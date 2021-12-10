@@ -62,16 +62,16 @@
 
 static bool windowOpen = false;
 
-
 /////////////////////////////////////////////////////////////////
 // Structs
 /////////////////////////////////////////////////////////////////
 
 struct TrollConfig {
 
-    bool blockbot{ false };
+    bool blockbot { false };
     KeyBind blockbotKey{ KeyBind::V };
-
+    bool doorSpam { false }; 
+    float doorSpamRange { 0.f };
 } trollConfig;
 
 
@@ -140,6 +140,26 @@ void Troll::blockbot(UserCmd* cmd) noexcept
     }
 }
 
+void Troll::doorSpam(UserCmd* cmd) noexcept
+{
+    if (!trollConfig.doorSpam || !localPlayer || localPlayer->isDefusing()) {
+        return;
+    }
+
+    Trace trace;
+    TraceFilter traceFilter{ localPlayer.get() };
+    traceFilter.skip = localPlayer.get();
+
+    const auto startPos = localPlayer->getEyePosition();
+    const auto endPos = startPos + Vector::fromAngle(cmd->viewangles) * trollConfig.doorSpamRange;
+    interfaces->engineTrace->traceRay({ startPos, endPos }, 0x46004009, traceFilter, trace);
+
+    if (trace.entity && trace.entity->getClientClass()->classId == ClassId::PropDoorRotating) {
+        if (cmd->buttons & UserCmd::IN_USE && cmd->tickCount & 1) {
+            cmd->buttons &= ~UserCmd::IN_USE;
+        }
+    }
+}
 
 /////////////////////////////////////////////////////////////////
 // GUI Functions
@@ -171,6 +191,8 @@ void Troll::drawGUI(bool contentOnly) noexcept
         ImGui::Begin("Troll", &windowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize
             | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
     }
+
+    //col 1
     ImGui::Columns(2, nullptr, false);
     ImGui::SetColumnOffset(1, 230.0f); 
     ImGui::Checkbox("Block Bot", &trollConfig.blockbot);
@@ -178,8 +200,14 @@ void Troll::drawGUI(bool contentOnly) noexcept
     ImGui::PushID("Block Bot Key");
     ImGui::hotkey("", trollConfig.blockbotKey);
     ImGui::PopID();
+
+    //col 2
     ImGui::NextColumn();
-     
+    ImGui::Checkbox("Door spam", &trollConfig.doorSpam);
+    ImGui::SameLine();
+    ImGui::PushItemWidth(220.0f);
+    ImGui::SliderFloat("Range", &trollConfig.doorSpamRange, 0, 500, "%.0f meters");
+    ImGui::PopItemWidth();
     if (!contentOnly)
         ImGui::End();
 }
@@ -192,6 +220,8 @@ static void from_json(const json& j, TrollConfig& m)
 {
     read(j, "Block Bot", m.blockbot);
     read(j, "Slowwalk key", m.blockbotKey);
+    read(j, "Door spam", m.doorSpam);
+    read(j, "Door spam range", m.doorSpamRange);
 }
 
 static void to_json(json& j, const TrollConfig& o)
@@ -199,6 +229,8 @@ static void to_json(json& j, const TrollConfig& o)
     const TrollConfig dummy;
     WRITE("Block Bot", blockbot);
     WRITE("Block Bot Key", blockbotKey);
+    WRITE("Door spam", doorSpam);
+    WRITE("Door spam range", doorSpamRange);
 }
 
 json Troll::toJson() noexcept

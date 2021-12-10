@@ -5,8 +5,9 @@
 
 namespace Troll
 {
-	
+	// Functions
 	void blockbot(UserCmd* cmd) noexcept;
+    void doorSpam(UserCmd* cmd) noexcept;
 
     // GUI
     void menuBarItem() noexcept;
