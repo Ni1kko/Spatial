@@ -105,8 +105,7 @@ struct MiscConfig {
     bool fastDuck{ false };
     bool moonwalk{ false };
     bool edgejump{ false };
-    bool slowwalk{ false };
-    bool blockbot{ false };
+    bool slowwalk{ false }; 
     bool autoPistol{ false };
     bool autoReload{ false };
     bool autoAccept{ false };
@@ -134,7 +133,6 @@ struct MiscConfig {
     char clanTag[16];
     KeyBind edgejumpkey;
     KeyBind slowwalkKey;
-    KeyBind blockbotKey;
     ColorToggleThickness noscopeCrosshair;
     ColorToggleThickness recoilCrosshair;
 
@@ -1353,67 +1351,6 @@ void Misc::updateEventListeners(bool forceRemove) noexcept
     }
 }
 
-void Misc::blockbot(UserCmd* cmd) noexcept
-{
-    if (!miscConfig.blockbot || !miscConfig.blockbotKey.isDown())
-        return;
-
-    if (!localPlayer || !localPlayer->isAlive())
-        return;
-
-    if (const auto mt = localPlayer->moveType(); mt == MoveType::LADDER || mt == MoveType::NOCLIP)
-        return;
-
-    float bestDistance = 200.0f;
-    int plyIndex = -1;
-
-    for (int i = 1; i < interfaces->engine->getMaxClients(); i++)
-    {
-        Entity* ply = interfaces->entityList->getEntity(i);
-
-        if (!ply)
-            continue;
-
-        if (!ply->isAlive() || ply->isDormant() || ply == localPlayer.get())
-            continue;
-
-        float distance = localPlayer->origin().distTo(ply->origin());
-
-        if (distance < bestDistance)
-        {
-            bestDistance = distance;
-            plyIndex = i;
-        }
-    }
-
-    if (plyIndex == -1)
-        return;
-
-    Entity* target = interfaces->entityList->getEntity(plyIndex);
-
-    if (!target)
-        return;
-
-    if (localPlayer->origin().z - target->origin().z > 20)
-    {
-        Vector vecForward = target->origin() - localPlayer->origin();
-
-        cmd->forwardmove = ((sin(Helpers::deg2rad(cmd->viewangles.y)) * vecForward.y) + (cos(Helpers::deg2rad(cmd->viewangles.y)) * vecForward.x)) * 450.0f;
-        cmd->sidemove = ((cos(Helpers::deg2rad(cmd->viewangles.y)) * -vecForward.y) + (sin(Helpers::deg2rad(cmd->viewangles.y)) * vecForward.x)) * 450.0f;
-    }
-    else {
-        Vector angles = Helpers::calculateRelativeAngle(localPlayer->origin(), target->origin());
-
-        angles.y = angles.y - localPlayer->eyeAngles().y;
-        angles.normalize();
-
-        if (angles.y < 0.0f)
-            cmd->sidemove = 450.0f;
-        else if (angles.y > 0.0f)
-            cmd->sidemove = -450.0f;
-    }
-}
-
 void Misc::updateInput() noexcept
 {
 
@@ -1467,11 +1404,6 @@ void Misc::drawGUI(bool contentOnly) noexcept
     ImGui::SameLine();
     ImGui::PushID("Slowwalk Key");
     ImGui::hotkey("", miscConfig.slowwalkKey);
-    ImGui::PopID();
-    ImGui::Checkbox("Block Bot", &miscConfig.blockbot);
-    ImGui::SameLine();
-    ImGui::PushID("Block Bot Key");
-    ImGui::hotkey("", miscConfig.blockbotKey);
     ImGui::PopID();
     ImGuiCustom::colorPicker("Noscope crosshair", miscConfig.noscopeCrosshair);
     ImGuiCustom::colorPicker("Recoil crosshair", miscConfig.recoilCrosshair);
@@ -1716,9 +1648,7 @@ static void from_json(const json& j, MiscConfig& m)
     read(j, "Edge Jump", m.edgejump);
     read(j, "Edge Jump Key", m.edgejumpkey);
     read(j, "Slowwalk", m.slowwalk);
-    read(j, "Slowwalk key", m.slowwalkKey);
-    read(j, "Block Bot", m.blockbot);
-    read(j, "Block Bot Key", m.blockbotKey);
+    read(j, "Slowwalk key", m.slowwalkKey);  
     read<value_t::object>(j, "Noscope crosshair", m.noscopeCrosshair);
     read<value_t::object>(j, "Recoil crosshair", m.recoilCrosshair);
     read(j, "Auto pistol", m.autoPistol);
@@ -1856,9 +1786,7 @@ static void to_json(json& j, const MiscConfig& o)
     WRITE("Edge Jump", edgejump);
     WRITE("Edge Jump Key", edgejumpkey);
     WRITE("Slowwalk", slowwalk);
-    WRITE("Slowwalk key", slowwalkKey);
-    WRITE("Block Bot", blockbot);
-    WRITE("Block Bot Key", blockbotKey);
+    WRITE("Slowwalk key", slowwalkKey);  
     WRITE("Noscope crosshair", noscopeCrosshair);
     WRITE("Recoil crosshair", recoilCrosshair);
     WRITE("Auto pistol", autoPistol);

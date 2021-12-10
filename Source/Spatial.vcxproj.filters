@@ -164,9 +164,6 @@
     <ClCompile Include="imgui\imgui_tables.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="Texture.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="freetype\src\autofit\autofit.c">
       <Filter>freetype</Filter>
     </ClCompile>
@@ -250,6 +247,9 @@
     </ClCompile>
     <ClCompile Include="InventoryChanger\InventoryConfig.cpp">
       <Filter>InventoryChanger</Filter>
+    </ClCompile>
+    <ClCompile Include="Hacks\Troll.cpp">
+      <Filter>Hacks</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -633,6 +633,9 @@
     </ClInclude>
     <ClInclude Include="InventoryChanger\TournamentMatches.h">
       <Filter>InventoryChanger</Filter>
+    </ClInclude>
+    <ClInclude Include="Hacks\Troll.h">
+      <Filter>Hacks</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

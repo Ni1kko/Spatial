@@ -30,6 +30,7 @@
 #include "Hacks/Backtrack.h"
 #include "Hacks/Sound.h"
 #include "Hacks/StreamProofESP.h"
+#include "Hacks/Troll.h"
 
 constexpr auto windowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize
 | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
@@ -108,6 +109,7 @@ void GUI::render() noexcept
         Sound::drawGUI(false);
         renderStyleWindow();
         Misc::drawGUI(false);
+        Troll::drawGUI(false);
         renderConfigWindow();
     } else {
         renderGuiStyle2();
@@ -159,6 +161,7 @@ void GUI::renderMenuBar() noexcept
         Sound::menuBarItem();
         menuBarItem("Style", window.style);
         Misc::menuBarItem();
+        Troll::menuBarItem();
         menuBarItem("Config", window.config);
         ImGui::EndMainMenuBar();   
     }
@@ -577,25 +580,25 @@ void GUI::renderConfigWindow(bool contentOnly) noexcept
             ImGui::OpenPopup("Config to reset");
 
         if (ImGui::BeginPopup("Config to reset")) {
-            static constexpr const char* names[]{ "Whole", "Aimbot", "Triggerbot", "Backtrack", "Anti aim", "Glow", "Chams", "ESP", "Visuals", "Inventory Changer", "Sound", "Style", "Misc" };
+            static constexpr const char* names[]{ "Whole", "Aimbot", "Triggerbot", "Backtrack", "Anti aim", "Glow", "Chams", "ESP", "Visuals", "Inventory Changer", "Sound", "Style", "Misc", "Troll" };
             for (int i = 0; i < IM_ARRAYSIZE(names); i++) {
                 if (i == 1) ImGui::Separator();
 
                 if (ImGui::Selectable(names[i])) {
                     switch (i) {
-                    case 0: config->reset(); updateColors(); Misc::updateClanTag(true); InventoryChanger::scheduleHudUpdate(); break;
-                    case 1: config->aimbot = { }; break;
-                    case 2: config->triggerbot = { }; break;
-                    case 3: Backtrack::resetConfig(); break;
-                    case 4: AntiAim::resetConfig(); break;
-                    case 5: Glow::resetConfig(); break;
-                    case 6: config->chams = { }; break;
-                    case 7: config->streamProofESP = { }; break;
-                    case 8: Visuals::resetConfig(); break;
-                    case 9: InventoryChanger::resetConfig(); InventoryChanger::scheduleHudUpdate(); break;
-                    case 10: Sound::resetConfig(); break;
-                    case 11: config->style = { }; updateColors(); break;
-                    case 12: Misc::resetConfig(); Misc::updateClanTag(true); break;
+                        case 0: config->reset(); updateColors(); Misc::updateClanTag(true); InventoryChanger::scheduleHudUpdate(); break;
+                        case 1: config->aimbot = { }; break;
+                        case 2: config->triggerbot = { }; break;
+                        case 3: Backtrack::resetConfig(); break;
+                        case 4: AntiAim::resetConfig(); break;
+                        case 5: Glow::resetConfig(); break;
+                        case 6: config->chams = { }; break;
+                        case 7: config->streamProofESP = { }; break;
+                        case 8: Visuals::resetConfig(); break;
+                        case 9: InventoryChanger::resetConfig(); InventoryChanger::scheduleHudUpdate(); break;
+                        case 10: Sound::resetConfig(); break;
+                        case 11: config->style = { }; updateColors(); break;
+                        case 12: Troll::resetConfig(); break;
                     }
                 }
             }
@@ -626,7 +629,7 @@ void GUI::renderConfigWindow(bool contentOnly) noexcept
 
 void GUI::renderGuiStyle2() noexcept
 {
-    ImGui::Begin("Spatial Modifed", nullptr, windowFlags | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Begin("Spatial", nullptr, windowFlags | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize);
 
     if (ImGui::BeginTabBar("TabBar", ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_FittingPolicyScroll | ImGuiTabBarFlags_NoTooltip)) {
         if (ImGui::BeginTabItem("Aimbot")) {
@@ -653,6 +656,7 @@ void GUI::renderGuiStyle2() noexcept
             ImGui::EndTabItem();
         }
         Misc::tabItem();
+        Troll::tabItem();
         if (ImGui::BeginTabItem("Config")) {
             renderConfigWindow(true);
             ImGui::EndTabItem();

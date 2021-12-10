@@ -39,6 +39,7 @@
 #include "Hacks/StreamProofESP.h"
 #include "Hacks/Glow.h"
 #include "Hacks/Misc.h"
+#include "Hacks/Troll.h"
 #include "Hacks/Sound.h"
 #include "Hacks/Triggerbot.h"
 #include "Hacks/Visuals.h"
@@ -208,7 +209,7 @@ static bool __STDCALL createMove(LINUX_ARGS(void* thisptr,) float inputSampleTim
     Misc::quickReload(cmd);
     Misc::fixTabletSignal();
     Misc::slowwalk(cmd);
-    Misc::blockbot(cmd);
+    Troll::blockbot(cmd);
 
     EnginePrediction::run(cmd);
 
