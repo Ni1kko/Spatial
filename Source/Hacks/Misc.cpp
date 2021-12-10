@@ -1665,9 +1665,10 @@ void Misc::drawGUI(bool contentOnly) noexcept
         ImGui::EndPopup();
     }
     ImGui::PopID();
-
-    if (ImGui::Button("Unhook"))
-        hooks->uninstall();
+    
+    #if DEBUG
+        if (ImGui::Button(xorstr_("Unhook"))) hooks->uninstall();
+    #endif
 
     ImGui::Columns(1);
     if (!contentOnly)
