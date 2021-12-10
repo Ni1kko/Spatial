@@ -51,6 +51,7 @@ static std::vector<LootCrateData> lootCrateData;
 static std::forward_list<ProjectileData> projectileData;
 static BombData bombData;
 static std::vector<InfernoData> infernoData;
+static std::vector<SmokeData> smokeGrenades;
 static std::atomic_int netOutgoingLatency;
 
 static auto playerByHandleWritable(int handle) noexcept
@@ -97,7 +98,19 @@ void GameData::update() noexcept
     if (!localPlayer) {
         playerData.clear();
         projectileData.clear();
+        smokeGrenades.clear();
         return;
+    }
+
+    std::erase_if(smokeGrenades, [](const auto& smoke) { return (interfaces->entityList->getEntityFromHandle(smoke.handle) == nullptr && smoke.fadingAlpha() == 0.f); });
+    for (int i = 0; i < memory->smokeHandles->size; ++i) {
+        const auto handle = memory->smokeHandles->memory[i];
+        const auto smoke = interfaces->entityList->getEntityFromHandle(handle);
+        if (!smoke)
+            continue;
+
+        if (std::ranges::find(std::as_const(smokeGrenades), handle, &SmokeData::handle) == smokeGrenades.cend())
+            smokeGrenades.push_back(SmokeData(smoke->getAbsOrigin(), handle));
     }
 
     viewMatrix = interfaces->engine->worldToScreenMatrix();
@@ -204,6 +217,7 @@ void GameData::clearProjectileList() noexcept
     projectileData.clear();
 }
 
+
 static void clearAvatarTextures() noexcept;
 
 struct PlayerAvatar {
@@ -212,6 +226,12 @@ struct PlayerAvatar {
 };
 
 static std::unordered_map<int, PlayerAvatar> playerAvatars;
+
+const std::vector<SmokeData>& GameData::smokes() noexcept
+{
+    return smokeGrenades;
+}
+
 
 void GameData::clearTextures() noexcept
 {
@@ -701,3 +721,11 @@ InfernoData::InfernoData(Entity* inferno) noexcept
             points.emplace_back(inferno->fireXDelta()[i] + origin.x, inferno->fireYDelta()[i] + origin.y, inferno->fireZDelta()[i] + origin.z);
     }
 }
+
+float SmokeData::fadingAlpha() const noexcept
+{
+    constexpr float fadeTime = 1.f;
+    return std::clamp(1.0f - (memory->globalVars->realtime - (explosionTime + SMOKEGRENADE_LIFETIME)) / fadeTime, 0.0f, 1.0f);
+}
+
+SmokeData::SmokeData(const Vector& origin, int handle) noexcept : origin{ origin }, handle{ handle }, explosionTime{ memory->globalVars->realtime } {}
