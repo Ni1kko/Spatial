@@ -243,6 +243,8 @@ static bool __STDCALL createMove(LINUX_ARGS(void* thisptr,) float inputSampleTim
     cmd->forwardmove = std::clamp(cmd->forwardmove, -450.0f, 450.0f);
     cmd->sidemove = std::clamp(cmd->sidemove, -450.0f, 450.0f);
 
+    Misc::fixMouseDelta(cmd);
+
     previousViewAngles = cmd->viewangles;
 
     return false;
