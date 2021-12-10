@@ -183,7 +183,8 @@ void GUI::renderAimbotWindow(bool contentOnly) noexcept
     ImGui::Combo("", &config->aimbotKeyMode, "Hold\0Toggle\0");
     ImGui::PopItemWidth();
     ImGui::PopID();
-    ImGui::Separator();
+    ImGui::SameLine();
+    ImGuiCustom::colorPicker("Draw AimBot FOV", config->drawaimbotFov);
     static int currentCategory{ 0 };
     ImGui::PushItemWidth(110.0f);
     ImGui::PushID(0);

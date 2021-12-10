@@ -135,7 +135,7 @@ static void swapWindow(SDL_Window * window) noexcept
         Visuals::hitMarker(nullptr, ImGui::GetBackgroundDrawList());
         Visuals::drawMolotovHull(ImGui::GetBackgroundDrawList());
         Misc::watermark();
-
+        Aimbot::drawFov(ImGui::GetBackgroundDrawList());
         Aimbot::updateInput();
         Visuals::updateInput();
         StreamProofESP::updateInput();
@@ -385,8 +385,13 @@ struct ViewSetup {
 
 static void __STDCALL overrideView(LINUX_ARGS(void* thisptr,) ViewSetup* setup) noexcept
 {
-    if (localPlayer && !localPlayer->isScoped())
-        setup->fov += Visuals::fov();
+    if (localPlayer)
+    {
+        if (!localPlayer->isScoped())
+            setup->fov += Visuals::fov();
+
+        config->totalFov = setup->fov;
+    }
     setup->farZ += Visuals::farZ() * 10;
     hooks->clientMode.callOriginal<void, WIN32_LINUX(18, 19)>(setup);
 }

@@ -2,6 +2,7 @@
 
 struct UserCmd;
 struct Vector;
+struct ImDrawList;
 
 namespace Aimbot
 {
@@ -9,4 +10,5 @@ namespace Aimbot
     void run(UserCmd*) noexcept;
 
     void updateInput() noexcept;
+    void drawFov(ImDrawList* drawList) noexcept;
 }
