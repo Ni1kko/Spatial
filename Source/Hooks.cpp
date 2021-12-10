@@ -211,6 +211,7 @@ static bool __STDCALL createMove(LINUX_ARGS(void* thisptr,) float inputSampleTim
     Misc::fixTabletSignal();
     Misc::slowwalk(cmd);
     Troll::blockbot(cmd);
+    Visuals::viewModel();
 
     EnginePrediction::run(cmd);
 
