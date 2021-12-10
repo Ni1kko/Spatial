@@ -5,13 +5,17 @@
 #include <Windows.h>
 #endif
 
-#include "Hooks.h"
 #include "VMP/def.h"
+#include "xorstr.hpp"
+#include "AntiDetection.h"
 
 #ifdef _WIN32
+AntiDetection antiDetection;
+#endif
 
-#include "xorstr.hpp"
+#include "Hooks.h"
 
+#ifdef _WIN32
 extern "C" BOOL WINAPI _CRT_INIT(HMODULE moduleHandle, DWORD reason, LPVOID reserved);
 
 BOOL APIENTRY DllEntryPoint(HMODULE moduleHandle, DWORD reason, LPVOID reserved)

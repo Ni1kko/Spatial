@@ -257,6 +257,9 @@
     <ClCompile Include="Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="AntiDetection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GUI.h">
@@ -650,6 +653,9 @@
       <Filter>VMP</Filter>
     </ClInclude>
     <ClInclude Include="xorstr.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AntiDetection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
