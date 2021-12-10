@@ -469,7 +469,7 @@ void Misc::watermark(ImDrawList* drawList) noexcept
     time << std::put_time(std::localtime(&t), ("%H:%M:%S"));
 
     std::ostringstream format;
-    format << "Osiris"
+    format << "Spatial"
         << " | " << name
         << " | " << (fps != 0.0f ? static_cast<int>(1 / fps) : 0) << " fps";
 
