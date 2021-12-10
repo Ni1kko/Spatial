@@ -17,6 +17,7 @@
 #include <unistd.h>
 #endif
 
+#include "Helpers.h"
 #include "Interfaces.h"
 #include "Memory.h"
 #include "SDK/LocalPlayer.h"
@@ -132,11 +133,8 @@ static std::uintptr_t findPattern(ModuleInfo moduleInfo, std::string_view patter
         }
     }
 
-    assert(false);
-#ifdef _WIN32
-    if constexpr (ReportNotFound)
-        MessageBoxA(nullptr, ("Failed to find pattern #" + std::to_string(id) + '!').c_str(), "Spatial", MB_OK | MB_ICONWARNING);
-#endif
+    assert(false); 
+    Helpers::messageBox("Spatial", ("Failed to find pattern #" + std::to_string(id) + '!').c_str());
     return 0;
 }
 
