@@ -23,6 +23,7 @@ Free open-source cross-platform cheat software for **Counter-Strike: Global Offe
 *   **Sound** - modify volume of certain sound effects
 *   **Style** - select menu window layout and colors
 *   **Misc** - miscellaneous features
+*   **Troll** - trolling features
 *   **Config** - JSON-based configuration system
 
 <details>
@@ -231,7 +232,11 @@ Free open-source cross-platform cheat software for **Counter-Strike: Global Offe
         *   **Abusive Communications** - report for abusive communications
 
     *   **Unhook** - unload cheat
-
+   
+*   **Troll** - trolling features
+    *   **Block bot** - enable player block bot
+    *   **Block bot key \[ key \]** - sets key for block bot
+   
 *   **Config** - JSON-based configuration system
     *   **Create config** - create new configuration file
     *   **Reset config** - restore default configuration settings (does not touch saved configuration)
