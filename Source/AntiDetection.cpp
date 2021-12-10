@@ -1,12 +1,12 @@
 #include "AntiDetection.h"
 #include <Windows.h>
 
+#include "xorstr.hpp"
+
 HMODULE GetSelfModuleHandle()
 {
 	MEMORY_BASIC_INFORMATION mbi;
-
-	return ((::VirtualQuery(GetSelfModuleHandle, &mbi, sizeof(mbi)) != 0)
-		? (HMODULE)mbi.AllocationBase : NULL);
+	return ((::VirtualQuery(GetSelfModuleHandle, &mbi, sizeof(mbi)) != 0) ? (HMODULE)mbi.AllocationBase : NULL);
 }
 
 void HideModule(void* pModule)
@@ -41,6 +41,7 @@ void HideModule(void* pModule)
 		pNext = *((void**)pNext);
 	} while (pCurrent != pNext);
 }
+
 AntiDetection::AntiDetection() {
 	//clear up PE headers.
 	HMODULE hModule = GetSelfModuleHandle();
@@ -48,7 +49,7 @@ AntiDetection::AntiDetection() {
 	VirtualProtect((void*)hModule, 0x1000, PAGE_EXECUTE_READWRITE, &dwMemPro);
 	memset((void*)hModule, 0, 0x1000);
 	VirtualProtect((void*)hModule, 0x1000, dwMemPro, &dwMemPro);
-	OutputDebugStringA("CleanUp PEheader Success.");
+	OutputDebugStringA(xorstr_("CleanUp PEheader Success."));
 	HideModule(hModule);
-	OutputDebugStringA("Cutup PEB link success.");
-}	
+	OutputDebugStringA(xorstr_("Cutup PEB link success."));
+}
