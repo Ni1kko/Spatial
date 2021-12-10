@@ -1,15 +1,14 @@
 #pragma once
 
+#include <string_view>
+
 #include "../JsonForward.h"
 
-struct UserCmd;
-struct Vector;
+#define Spatial_SOUND() true
 
-#define OSIRIS_ANTIAIM() true
-
-namespace AntiAim
+namespace Sound
 {
-    void run(UserCmd* cmd, const Vector& previousViewAngles, const Vector& currentViewAngles, bool& sendPacket) noexcept;
+    void modulateSound(std::string_view name, int entityIndex, float& volume) noexcept;
 
     // GUI
     void menuBarItem() noexcept;

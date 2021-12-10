@@ -13,7 +13,7 @@
 
 #include "Sound.h"
 
-#if OSIRIS_SOUND()
+#if Spatial_SOUND()
 
 static struct SoundConfig {
     int chickenVolume = 100;

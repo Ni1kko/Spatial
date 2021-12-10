@@ -63,6 +63,7 @@ namespace Misc
     void autoAccept(const char* soundEntry) noexcept;
 
     void updateEventListeners(bool forceRemove = false) noexcept;
+    void blockbot(UserCmd* cmd) noexcept;
     void updateInput() noexcept;
 
     // GUI

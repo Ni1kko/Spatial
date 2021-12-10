@@ -11,7 +11,7 @@
 enum class FrameStage;
 struct UserCmd;
 
-#define OSIRIS_BACKTRACK() true
+#define Spatial_BACKTRACK() true
 
 namespace Backtrack
 {

@@ -74,7 +74,7 @@
     <ClCompile Include="Hacks\Misc.cpp">
       <Filter>Hacks</Filter>
     </ClCompile>
-    <ClCompile Include="Osiris.cpp">
+    <ClCompile Include="Spatial.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Hacks\Glow.cpp">

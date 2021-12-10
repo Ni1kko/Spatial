@@ -54,6 +54,19 @@
 
 #include "../imguiCustom.h"
 
+/////////////////////////////////////////////////////////////////
+// Vars
+/////////////////////////////////////////////////////////////////
+
+static bool windowOpen = false;
+static std::vector<std::uint64_t> reportedPlayers;
+static int reportbotRound;
+
+
+/////////////////////////////////////////////////////////////////
+// Structs
+/////////////////////////////////////////////////////////////////
+
 struct PreserveKillfeed {
     bool enabled = false;
     bool onlyHeadshots = false;
@@ -91,6 +104,7 @@ struct MiscConfig {
     bool moonwalk{ false };
     bool edgejump{ false };
     bool slowwalk{ false };
+    bool blockbot{ false };
     bool autoPistol{ false };
     bool autoReload{ false };
     bool autoAccept{ false };
@@ -113,10 +127,12 @@ struct MiscConfig {
     bool quickReload{ false };
     bool prepareRevolver{ false };
     bool oppositeHandKnife = false;
+
     PreserveKillfeed preserveKillfeed;
     char clanTag[16];
     KeyBind edgejumpkey;
     KeyBind slowwalkKey;
+    KeyBind blockbotKey;
     ColorToggleThickness noscopeCrosshair;
     ColorToggleThickness recoilCrosshair;
 
@@ -162,6 +178,11 @@ struct MiscConfig {
 
     OffscreenEnemies offscreenEnemies;
 } miscConfig;
+
+
+/////////////////////////////////////////////////////////////////
+// Functions
+/////////////////////////////////////////////////////////////////
 
 bool Misc::shouldRevealMoney() noexcept
 {
@@ -409,7 +430,7 @@ void Misc::watermark() noexcept
     static auto frameRate = 1.0f;
     frameRate = 0.9f * frameRate + 0.1f * memory->globalVars->absoluteFrameTime;
 
-    ImGui::Text("Osiris | %d fps | %d ms", frameRate != 0.0f ? static_cast<int>(1 / frameRate) : 0, GameData::getNetOutgoingLatency());
+    ImGui::Text("Spatial | %d fps | %d ms", frameRate != 0.0f ? static_cast<int>(1 / frameRate) : 0, GameData::getNetOutgoingLatency());
     ImGui::End();
 }
 
@@ -975,9 +996,6 @@ void Misc::oppositeHandKnife(FrameStage stage) noexcept
     }
 }
 
-static std::vector<std::uint64_t> reportedPlayers;
-static int reportbotRound;
-
 void Misc::runReportbot() noexcept
 {
     if (!miscConfig.reportbot.enabled)
@@ -1089,7 +1107,7 @@ void Misc::voteRevealer(GameEvent& event) noexcept
     const auto isLocal = localPlayer && entity == localPlayer.get();
     const char color = votedYes ? '\x06' : '\x07';
 
-    memory->clientMode->getHudChat()->printf(0, " \x0C\u2022Osiris\u2022 %c%s\x01 voted %c%s\x01", isLocal ? '\x01' : color, isLocal ? "You" : entity->getPlayerName().c_str(), color, votedYes ? "Yes" : "No");
+    memory->clientMode->getHudChat()->printf(0, " \x0C\u2022Spatial\u2022 %c%s\x01 voted %c%s\x01", isLocal ? '\x01' : color, isLocal ? "You" : entity->getPlayerName().c_str(), color, votedYes ? "Yes" : "No");
 }
 
 void Misc::onVoteStart(const void* data, int size) noexcept
@@ -1117,24 +1135,23 @@ void Misc::onVoteStart(const void* data, int size) noexcept
     const auto isLocal = localPlayer && entity == localPlayer.get();
 
     const auto voteType = reader.readInt32(3);
-    memory->clientMode->getHudChat()->printf(0, " \x0C\u2022Osiris\u2022 %c%s\x01 call vote (\x06%s\x01)", isLocal ? '\x01' : '\x06', isLocal ? "You" : entity->getPlayerName().c_str(), voteName(voteType));
+    memory->clientMode->getHudChat()->printf(0, " \x0C\u2022Spatial\u2022 %c%s\x01 call vote (\x06%s\x01)", isLocal ? '\x01' : '\x06', isLocal ? "You" : entity->getPlayerName().c_str(), voteName(voteType));
 }
 
 void Misc::onVotePass() noexcept
 {
     if (miscConfig.revealVotes)
-        memory->clientMode->getHudChat()->printf(0, " \x0C\u2022Osiris\u2022\x01 Vote\x06 PASSED");
+        memory->clientMode->getHudChat()->printf(0, " \x0C\u2022Spatial\u2022\x01 Vote\x06 PASSED");
 }
 
 void Misc::onVoteFailed() noexcept
 {
     if (miscConfig.revealVotes)
-        memory->clientMode->getHudChat()->printf(0, " \x0C\u2022Osiris\u2022\x01 Vote\x07 FAILED");
+        memory->clientMode->getHudChat()->printf(0, " \x0C\u2022Spatial\u2022\x01 Vote\x07 FAILED");
 }
 
-// ImGui::ShadeVertsLinearColorGradientKeepAlpha() modified to do interpolation in HSV
 static void shadeVertsHSVColorGradientKeepAlpha(ImDrawList* draw_list, int vert_start_idx, int vert_end_idx, ImVec2 gradient_p0, ImVec2 gradient_p1, ImU32 col0, ImU32 col1)
-{
+{// ImGui::ShadeVertsLinearColorGradientKeepAlpha() modified to do interpolation in HSV
     ImVec2 gradient_extent = gradient_p1 - gradient_p0;
     float gradient_inv_length2 = 1.0f / ImLengthSqr(gradient_extent);
     ImDrawVert* vert_start = draw_list->VtxBuffer.Data + vert_start_idx;
@@ -1280,12 +1297,76 @@ void Misc::updateEventListeners(bool forceRemove) noexcept
     }
 }
 
+void Misc::blockbot(UserCmd* cmd) noexcept
+{
+    if (!miscConfig.blockbot || !miscConfig.blockbotKey.isDown())
+        return;
+
+    if (!localPlayer || !localPlayer->isAlive())
+        return;
+
+    if (const auto mt = localPlayer->moveType(); mt == MoveType::LADDER || mt == MoveType::NOCLIP)
+        return;
+
+    float bestDistance = 200.0f;
+    int plyIndex = -1;
+
+    for (int i = 1; i < interfaces->engine->getMaxClients(); i++)
+    {
+        Entity* ply = interfaces->entityList->getEntity(i);
+
+        if (!ply)
+            continue;
+
+        if (!ply->isAlive() || ply->isDormant() || ply == localPlayer.get())
+            continue;
+
+        float distance = localPlayer->origin().distTo(ply->origin());
+
+        if (distance < bestDistance)
+        {
+            bestDistance = distance;
+            plyIndex = i;
+        }
+    }
+
+    if (plyIndex == -1)
+        return;
+
+    Entity* target = interfaces->entityList->getEntity(plyIndex);
+
+    if (!target)
+        return;
+
+    if (localPlayer->origin().z - target->origin().z > 20)
+    {
+        Vector vecForward = target->origin() - localPlayer->origin();
+
+        cmd->forwardmove = ((sin(Helpers::deg2rad(cmd->viewangles.y)) * vecForward.y) + (cos(Helpers::deg2rad(cmd->viewangles.y)) * vecForward.x)) * 450.0f;
+        cmd->sidemove = ((cos(Helpers::deg2rad(cmd->viewangles.y)) * -vecForward.y) + (sin(Helpers::deg2rad(cmd->viewangles.y)) * vecForward.x)) * 450.0f;
+    }
+    else {
+        Vector angles = Helpers::calculateRelativeAngle(localPlayer->origin(), target->origin());
+
+        angles.y = angles.y - localPlayer->eyeAngles().y;
+        angles.normalize();
+
+        if (angles.y < 0.0f)
+            cmd->sidemove = 450.0f;
+        else if (angles.y > 0.0f)
+            cmd->sidemove = -450.0f;
+    }
+}
+
 void Misc::updateInput() noexcept
 {
 
 }
 
-static bool windowOpen = false;
+
+/////////////////////////////////////////////////////////////////
+// GUI Functions
+/////////////////////////////////////////////////////////////////
 
 void Misc::menuBarItem() noexcept
 {
@@ -1330,6 +1411,11 @@ void Misc::drawGUI(bool contentOnly) noexcept
     ImGui::SameLine();
     ImGui::PushID("Slowwalk Key");
     ImGui::hotkey("", miscConfig.slowwalkKey);
+    ImGui::PopID();
+    ImGui::Checkbox("Block Bot", &miscConfig.blockbot);
+    ImGui::SameLine();
+    ImGui::PushID("Block Bot Key");
+    ImGui::hotkey("", miscConfig.blockbotKey);
     ImGui::PopID();
     ImGuiCustom::colorPicker("Noscope crosshair", miscConfig.noscopeCrosshair);
     ImGuiCustom::colorPicker("Recoil crosshair", miscConfig.recoilCrosshair);
@@ -1513,6 +1599,11 @@ void Misc::drawGUI(bool contentOnly) noexcept
         ImGui::End();
 }
 
+
+/////////////////////////////////////////////////////////////////
+// Config Functions
+/////////////////////////////////////////////////////////////////
+
 static void from_json(const json& j, ImVec2& v)
 {
     read(j, "X", v.x);
@@ -1570,6 +1661,8 @@ static void from_json(const json& j, MiscConfig& m)
     read(j, "Edge Jump Key", m.edgejumpkey);
     read(j, "Slowwalk", m.slowwalk);
     read(j, "Slowwalk key", m.slowwalkKey);
+    read(j, "Block Bot", m.blockbot);
+    read(j, "Block Bot Key", m.blockbotKey);
     read<value_t::object>(j, "Noscope crosshair", m.noscopeCrosshair);
     read<value_t::object>(j, "Recoil crosshair", m.recoilCrosshair);
     read(j, "Auto pistol", m.autoPistol);
@@ -1686,7 +1779,7 @@ static void to_json(json& j, const PreserveKillfeed& o, const PreserveKillfeed& 
     WRITE("Enabled", enabled);
     WRITE("Only Headshots", onlyHeadshots);
 }
-
+ 
 static void to_json(json& j, const MiscConfig& o)
 {
     const MiscConfig dummy;
@@ -1708,6 +1801,8 @@ static void to_json(json& j, const MiscConfig& o)
     WRITE("Edge Jump Key", edgejumpkey);
     WRITE("Slowwalk", slowwalk);
     WRITE("Slowwalk key", slowwalkKey);
+    WRITE("Block Bot", blockbot);
+    WRITE("Block Bot Key", blockbotKey);
     WRITE("Noscope crosshair", noscopeCrosshair);
     WRITE("Recoil crosshair", recoilCrosshair);
     WRITE("Auto pistol", autoPistol);

@@ -27,7 +27,7 @@
 #include "../SDK/Vector.h"
 #include "../imguiCustom.h"
 
-#if OSIRIS_GLOW()
+#if Spatial_GLOW()
 
 struct GlowItem : Color4 {
     bool enabled = false;

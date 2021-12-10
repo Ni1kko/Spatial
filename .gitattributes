@@ -1,2 +1,2 @@
 *.h linguist-language=C++
-Osiris/freetype/** linguist-vendored
+Spatial/freetype/** linguist-vendored

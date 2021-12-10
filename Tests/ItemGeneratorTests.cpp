@@ -1,6 +1,6 @@
 #include "catch.hpp"
 
-#include "../Osiris/InventoryChanger/ItemGenerator.cpp"
+#include "../Spatial/InventoryChanger/ItemGenerator.cpp"
 
 TEST_CASE("getTournamentMatches() invalid tournament ID") {
     REQUIRE(getTournamentMatches(0).empty());

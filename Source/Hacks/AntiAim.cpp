@@ -10,7 +10,7 @@
 #include "../SDK/UserCmd.h"
 #include "../SDK/Vector.h"
 
-#if OSIRIS_ANTIAIM()
+#if Spatial_ANTIAIM()
 
 struct AntiAimConfig {
     bool enabled = false;

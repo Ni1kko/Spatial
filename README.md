@@ -1,4 +1,4 @@
-# Osiris 
+# Spatial 
 [![C++](https://img.shields.io/badge/language-C%2B%2B-%23f34b7d.svg?style=plastic)](https://en.wikipedia.org/wiki/C%2B%2B) 
 [![CS:GO](https://img.shields.io/badge/game-CS%3AGO-yellow.svg?style=plastic)](https://store.steampowered.com/app/730/CounterStrike_Global_Offensive/) 
 [![Windows](https://img.shields.io/badge/platform-Windows-0078d7.svg?style=plastic)](https://en.wikipedia.org/wiki/Microsoft_Windows) 
@@ -244,7 +244,7 @@ Free open-source cross-platform cheat software for **Counter-Strike: Global Offe
 ## Getting started
 
 ### Prerequisites
-Microsoft Visual Studio 2019 16.10 (or newer), platform toolset v142 and Windows SDK 10.0.x.x are required in order to compile Osiris. If you don't have ones, you can download VS [here](https://visualstudio.microsoft.com/) (Windows SDK is installed during Visual Studio Setup).
+Microsoft Visual Studio 2019 16.10 (or newer), platform toolset v142 and Windows SDK 10.0.x.x are required in order to compile Spatial. If you don't have ones, you can download VS [here](https://visualstudio.microsoft.com/) (Windows SDK is installed during Visual Studio Setup).
 
 ### Downloading
 
@@ -264,19 +264,19 @@ Open git command prompt and enter following command:
 
     git clone --depth=1 https://github.com/danielkrupinski/Osiris.git
 
-`Osiris` folder should have been successfully created, containing all the source files.
+`Spatial` folder should have been successfully created, containing all the source files.
 
 ### Compiling from source
 
-When you have equipped a copy of the source code, next step is opening **Osiris.sln** in Microsoft Visual Studio 2019.
+When you have equipped a copy of the source code, next step is opening **Spatial.sln** in Microsoft Visual Studio 2019.
 
 Then change build configuration to `Release | x86` and simply press **Build solution**.
 
-If everything went right you should receive `Osiris.dll`  binary file.
+If everything went right you should receive `Spatial.dll`  binary file.
 
 ### Loading / Injecting into game process
 
-Open your favorite [DLL injector](https://en.wikipedia.org/wiki/DLL_injection) and just inject `Osiris.dll` into `csgo.exe` process.
+Open your favorite [DLL injector](https://en.wikipedia.org/wiki/DLL_injection) and just inject `Spatial.dll` into `csgo.exe` process.
 
 When injected, menu is openable under `INSERT` key.
 
@@ -289,9 +289,9 @@ If your CPU supports AVX / AVX2 / AVX-512 instruction set, you can enable it in 
 Press <kbd>INSERT</kbd> while focused on CS:GO window.
 
 ### Where is my config file saved?
-Configuration files are saved inside `Osiris` folder in your `Documents` folder (`%USERPROFILE%\Documents\Osiris`). The config is in human readable format and can be edited (e.g, using notepad). Sometimes after updates configuration file needs to be deleted and recreated.
+Configuration files are saved inside `Spatial` folder in your `Documents` folder (`%USERPROFILE%\Documents\Spatial`). The config is in human readable format and can be edited (e.g, using notepad). Sometimes after updates configuration file needs to be deleted and recreated.
 
-### What hooking methods Osiris uses?
+### What hooking methods Spatial uses?
 Currently implemented hooking methods are:
 *   MinHook - trampoline hook
 *   VmtHook - hook a function directly in a vtable

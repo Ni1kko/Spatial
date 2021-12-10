@@ -2,13 +2,14 @@
 
 #include "../JsonForward.h"
 
-#define OSIRIS_GLOW() true
+struct UserCmd;
+struct Vector;
 
-namespace Glow
+#define Spatial_ANTIAIM() true
+
+namespace AntiAim
 {
-    void render() noexcept;
-    void clearCustomObjects() noexcept;
-    void updateInput() noexcept;
+    void run(UserCmd* cmd, const Vector& previousViewAngles, const Vector& currentViewAngles, bool& sendPacket) noexcept;
 
     // GUI
     void menuBarItem() noexcept;

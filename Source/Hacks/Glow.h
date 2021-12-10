@@ -1,14 +1,14 @@
 #pragma once
 
-#include <string_view>
-
 #include "../JsonForward.h"
 
-#define OSIRIS_SOUND() true
+#define Spatial_GLOW() true
 
-namespace Sound
+namespace Glow
 {
-    void modulateSound(std::string_view name, int entityIndex, float& volume) noexcept;
+    void render() noexcept;
+    void clearCustomObjects() noexcept;
+    void updateInput() noexcept;
 
     // GUI
     void menuBarItem() noexcept;

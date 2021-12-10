@@ -17,7 +17,7 @@
 #include "../SDK/NetworkChannel.h"
 #include "../SDK/UserCmd.h"
 
-#if OSIRIS_BACKTRACK()
+#if Spatial_BACKTRACK()
 
 struct BacktrackConfig {
     bool enabled = false;

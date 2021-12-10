@@ -71,6 +71,7 @@ namespace Helpers
         }
     }
 
+    Vector calculateRelativeAngle(const Vector& source, const Vector& destination) noexcept;
     bool worldToScreen(const Vector& worldPosition, ImVec2& screenPosition) noexcept;
     bool worldToScreenPixelAligned(const Vector& worldPosition, ImVec2& screenPosition) noexcept;
 
