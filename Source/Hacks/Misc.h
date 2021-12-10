@@ -44,6 +44,7 @@ namespace Misc
     void autoPistol(UserCmd* cmd) noexcept;
     void chokePackets(bool& sendPacket) noexcept;
     void autoReload(UserCmd* cmd) noexcept;
+    void autoDisconnect() noexcept;
     void revealRanks(UserCmd* cmd) noexcept;
     void autoStrafe(UserCmd* cmd) noexcept;
     void removeCrouchCooldown(UserCmd* cmd) noexcept;

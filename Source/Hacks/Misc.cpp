@@ -7,6 +7,8 @@
 #include <sstream>
 #include <vector>
 
+#include "xorstr.hpp"
+
 #include "../imgui/imgui.h"
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "../imgui/imgui_internal.h"
@@ -98,6 +100,7 @@ struct MiscConfig {
     KeyBind menuKey{ KeyBind::INSERT };
     bool antiAfkKick{ false };
     bool autoStrafe{ false };
+    bool autoDisconnect{ false };
     bool bunnyHop{ false };
     bool customClanTag{ false };
     bool clocktag{ false };
@@ -895,6 +898,12 @@ void Misc::autoStrafe(UserCmd* cmd) noexcept
     }
 }
 
+void Misc::autoDisconnect() noexcept
+{
+    if (miscConfig.autoDisconnect)
+        interfaces->engine->clientCmdUnrestricted(xorstr_("disconnect"));
+}
+
 void Misc::removeCrouchCooldown(UserCmd* cmd) noexcept
 {
     if (miscConfig.fastDuck)
@@ -1469,6 +1478,7 @@ void Misc::drawGUI(bool contentOnly) noexcept
     ImGui::hotkey("Menu Key", miscConfig.menuKey);
     ImGui::Checkbox("Anti AFK kick", &miscConfig.antiAfkKick);
     ImGui::Checkbox("Auto strafe", &miscConfig.autoStrafe);
+    ImGui::Checkbox(xorstr_("Auto Disconnect"), &miscConfig.autoDisconnect);
     ImGui::Checkbox("Bunny hop", &miscConfig.bunnyHop);
     ImGui::Checkbox("Fast duck", &miscConfig.fastDuck);
     ImGui::Checkbox("Moonwalk", &miscConfig.moonwalk);
@@ -1715,6 +1725,7 @@ static void from_json(const json& j, MiscConfig& m)
     read(j, "Menu key", m.menuKey);
     read(j, "Anti AFK kick", m.antiAfkKick);
     read(j, "Auto strafe", m.autoStrafe);
+    read(j, xorstr_("Auto disconnect"), m.autoDisconnect);
     read(j, "Bunny hop", m.bunnyHop);
     read(j, "Custom clan tag", m.customClanTag);
     read(j, "Clock tag", m.clocktag);
@@ -1850,6 +1861,7 @@ static void to_json(json& j, const MiscConfig& o)
     WRITE("Menu key", menuKey);
     WRITE("Anti AFK kick", antiAfkKick);
     WRITE("Auto strafe", autoStrafe);
+    WRITE(xorstr_("Auto disconnect"), autoDisconnect);
     WRITE("Bunny hop", bunnyHop);
     WRITE("Custom clan tag", customClanTag);
     WRITE("Clock tag", clocktag);

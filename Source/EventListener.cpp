@@ -1,6 +1,7 @@
 #include <cassert>
 #include <utility>
 
+#include "xorstr.hpp"
 #include "EventListener.h"
 #include "fnv.h"
 #include "GameData.h"
@@ -11,6 +12,7 @@
 #include "Memory.h"
 #include "SDK/GameEvent.h"
 #include "SDK/UtlVector.h"
+#include "SDK/Engine.h"
 
 namespace
 {
@@ -43,6 +45,9 @@ namespace
             case fnv::hash("round_mvp"):
                 InventoryChanger::onRoundMVP(*event);
                 break;
+            case fnv::hash("cs_win_panel_match"):
+                Misc::autoDisconnect();
+                break;
             }
         }
 
@@ -68,7 +73,8 @@ void EventListener::init() noexcept
     gameEventManager->addListener(&EventListenerImpl::instance(), "player_death");
     gameEventManager->addListener(&EventListenerImpl::instance(), "vote_cast");
     gameEventManager->addListener(&EventListenerImpl::instance(), "round_mvp");
-
+    gameEventManager->addListener(&EventListenerImpl::instance(), xorstr_("cs_win_panel_match"));
+    
     // Move our player_death listener to the first position to override killfeed icons (InventoryChanger::overrideHudIcon()) before HUD gets them
     if (const auto desc = memory->getEventDescriptor(gameEventManager, "player_death", nullptr))
         std::swap(desc->listeners[0], desc->listeners[desc->listeners.size - 1]);
