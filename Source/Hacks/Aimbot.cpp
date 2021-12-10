@@ -142,6 +142,8 @@ void Aimbot::updateInput() noexcept
 
 void Aimbot::run(UserCmd* cmd) noexcept
 {
+    Vector bestTarget{ };
+
     if (!localPlayer || localPlayer->nextAttack() > memory->globalVars->serverTime() || localPlayer->isDefusing() || localPlayer->waitForNoAttack())
         return;
 
@@ -160,6 +162,7 @@ void Aimbot::run(UserCmd* cmd) noexcept
     if (!config->aimbot[weaponIndex].enabled)
         weaponIndex = weaponClass;
 
+    //enabled
     if (!config->aimbot[weaponIndex].enabled)
         weaponIndex = 0;
 
@@ -167,27 +170,29 @@ void Aimbot::run(UserCmd* cmd) noexcept
     if (!config->aimbot[weaponIndex].betweenShots && (activeWeapon->nextPrimaryAttack() > memory->globalVars->serverTime() || (activeWeapon->isFullAuto() && localPlayer->shotsFired() > 1)))
         return;
 
+    //ignore flash
     if (!config->aimbot[weaponIndex].ignoreFlash && localPlayer->isFlashed())
         return;
 
     if (config->aimbotOnKey && !keyPressed)
         return;
 
+    //weapon config
     if (config->aimbot[weaponIndex].enabled && (cmd->buttons & UserCmd::IN_ATTACK || config->aimbot[weaponIndex].autoShot || config->aimbot[weaponIndex].aimlock) && activeWeapon->getInaccuracy() <= config->aimbot[weaponIndex].maxAimInaccuracy) {
 
+        //scoped only
         if (config->aimbot[weaponIndex].scopedOnly && activeWeapon->isSniperRifle() && !localPlayer->isScoped())
             return;
 
-        auto bestFov = config->aimbot[weaponIndex].fov;
-        Vector bestTarget{ };
-        const auto localPlayerEyePosition = localPlayer->getEyePosition();
-
+        auto bestFov = config->aimbot[weaponIndex].fov; 
+        const auto localPlayerEyePosition = localPlayer->getEyePosition(); 
         const auto aimPunch = activeWeapon->requiresRecoilControl() ? localPlayer->getAimPunch() : Vector{ };
 
+        //each target
         for (int i = 1; i <= interfaces->engine->getMaxClients(); i++) {
             auto entity = interfaces->entityList->getEntity(i);
-            if (!entity || entity == localPlayer.get() || entity->isDormant() || !entity->isAlive()
-                || !entity->isOtherEnemy(localPlayer.get()) && !config->aimbot[weaponIndex].friendlyFire || entity->gunGameImmunity())
+
+            if (!entity || entity == localPlayer.get() || entity->isDormant() || !entity->isAlive() || !entity->isOtherEnemy(localPlayer.get()) && !config->aimbot[weaponIndex].friendlyFire || entity->gunGameImmunity())
                 continue;
 
             for (auto bone : { 8, 4, 3, 7, 6, 5 }) {
