@@ -1,6 +1,6 @@
 #include "catch.hpp"
 
-#include "../Spatial/InventoryChanger/ItemGenerator.cpp"
+#include "../Source/InventoryChanger/ItemGenerator.cpp"
 
 TEST_CASE("getTournamentMatches() invalid tournament ID") {
     REQUIRE(getTournamentMatches(0).empty());

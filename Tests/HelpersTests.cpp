@@ -2,7 +2,7 @@
 
 #include "catch.hpp"
 
-#include "../Spatial/Helpers.h"
+#include "../Source/Helpers.h"
 
 constexpr auto pi = std::numbers::pi_v<float>;
 constexpr auto floatEpsilon = std::numeric_limits<float>::epsilon();
