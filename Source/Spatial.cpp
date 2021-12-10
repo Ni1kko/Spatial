@@ -10,7 +10,7 @@
 #include "AntiDetection.h"
 
 #ifdef _WIN32
-    #if !DEBUG
+    #ifndef _DEBUG
        AntiDetection antiDetection;
     #endif
 #endif

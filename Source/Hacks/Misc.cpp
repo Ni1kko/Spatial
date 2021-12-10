@@ -1666,7 +1666,7 @@ void Misc::drawGUI(bool contentOnly) noexcept
     }
     ImGui::PopID();
     
-    #if DEBUG
+    #ifdef _DEBUG
         if (ImGui::Button(xorstr_("Unhook"))) hooks->uninstall();
     #endif
 
