@@ -39,6 +39,9 @@
     <Filter Include="InventoryChanger">
       <UniqueIdentifier>{2d9b89c7-c323-4423-a60d-412e3bd1637f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="VMP">
+      <UniqueIdentifier>{708037d4-cdb2-4d28-9786-839c061cd25e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GUI.cpp">
@@ -250,6 +253,9 @@
     </ClCompile>
     <ClCompile Include="Hacks\Troll.cpp">
       <Filter>Hacks</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -637,10 +643,24 @@
     <ClInclude Include="Hacks\Troll.h">
       <Filter>Hacks</Filter>
     </ClInclude>
+    <ClInclude Include="VMP\def.h">
+      <Filter>VMP</Filter>
+    </ClInclude>
+    <ClInclude Include="VMP\VMProtectSDK.h">
+      <Filter>VMP</Filter>
+    </ClInclude>
+    <ClInclude Include="xorstr.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\default_vs.hlsl">
       <Filter>Resources\Shaders</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="VMP\VMProtectSDK32.lib">
+      <Filter>VMP</Filter>
+    </Library>
   </ItemGroup>
 </Project>
