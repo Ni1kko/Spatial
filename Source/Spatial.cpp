@@ -10,7 +10,9 @@
 #include "AntiDetection.h"
 
 #ifdef _WIN32
-AntiDetection antiDetection;
+    #if !DEBUG
+       AntiDetection antiDetection;
+    #endif
 #endif
 
 #include "Hooks.h"
