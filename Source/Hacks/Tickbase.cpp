@@ -216,7 +216,7 @@ void Tickbase::drawGUI(bool contentOnly) noexcept
     ImGui::PopID(); 
     ImGui::PushItemWidth(110.0f);
     ImGui::PushID("DTSpeed");
-    ImGui::Combo("", &netConfig.cp, "Instant\0Fast\0Accurate\0");
+    ImGui::Combo("", &netConfig.speed_dt, "Instant\0Fast\0Accurate\0");
     ImGui::PopID();
     
     //col 2
