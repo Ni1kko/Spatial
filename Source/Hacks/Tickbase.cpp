@@ -113,10 +113,6 @@ void Tickbase::shiftTicks(int ticks, UserCmd* cmd, bool shiftAnyways) noexcept /
     tick->commandNumber = cmd->commandNumber;
     tick->tickbase = localPlayer->tickBase();
     tick->tickshift = ticks;
-
-    //Teleport kinda buggy
-    tick->chokedPackets += ticks;
-    recalculateTicks();
 }
 
 void Tickbase::run(UserCmd* cmd) noexcept
