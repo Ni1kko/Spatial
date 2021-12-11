@@ -31,6 +31,7 @@
 #include "Hacks/Sound.h"
 #include "Hacks/StreamProofESP.h"
 #include "Hacks/Troll.h"
+#include "Hacks/Tickbase.h"
 
 constexpr auto windowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize
 | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
@@ -101,6 +102,7 @@ void GUI::render() noexcept
         AntiAim::drawGUI(false);
         renderTriggerbotWindow();
         Backtrack::drawGUI(false);
+        Tickbase::drawGUI(false);
         Glow::drawGUI(false);
         renderChamsWindow();
         StreamProofESP::drawGUI(false);
@@ -153,6 +155,7 @@ void GUI::renderMenuBar() noexcept
         AntiAim::menuBarItem();
         menuBarItem("Triggerbot", window.triggerbot);
         Backtrack::menuBarItem();
+        Tickbase::menuBarItem();
         Glow::menuBarItem();
         menuBarItem("Chams", window.chams);
         StreamProofESP::menuBarItem();
@@ -581,7 +584,7 @@ void GUI::renderConfigWindow(bool contentOnly) noexcept
             ImGui::OpenPopup("Config to reset");
 
         if (ImGui::BeginPopup("Config to reset")) {
-            static constexpr const char* names[]{ "Whole", "Aimbot", "Triggerbot", "Backtrack", "Anti aim", "Glow", "Chams", "ESP", "Visuals", "Inventory Changer", "Sound", "Style", "Misc", "Troll" };
+            static constexpr const char* names[]{ "Whole", "Aimbot", "Triggerbot", "Backtrack", "Anti aim", "Glow", "Chams", "ESP", "Visuals", "Inventory Changer", "Sound", "Style", "Misc", "Troll", "TickFucker"};
             for (int i = 0; i < IM_ARRAYSIZE(names); i++) {
                 if (i == 1) ImGui::Separator();
 
@@ -600,6 +603,7 @@ void GUI::renderConfigWindow(bool contentOnly) noexcept
                         case 10: Sound::resetConfig(); break;
                         case 11: config->style = { }; updateColors(); break;
                         case 12: Troll::resetConfig(); break;
+                        case 13: Tickbase::resetConfig(); break;
                     }
                 }
             }
@@ -643,6 +647,7 @@ void GUI::renderGuiStyle2() noexcept
             ImGui::EndTabItem();
         }
         Backtrack::tabItem();
+        Tickbase::tabItem();
         Glow::tabItem();
         if (ImGui::BeginTabItem("Chams")) {
             renderChamsWindow(true);

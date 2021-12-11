@@ -260,6 +260,9 @@
     <ClCompile Include="AntiDetection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Hacks\Tickbase.cpp">
+      <Filter>Hacks</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GUI.h">
@@ -657,6 +660,9 @@
     </ClInclude>
     <ClInclude Include="AntiDetection.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Hacks\Tickbase.h">
+      <Filter>Hacks</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

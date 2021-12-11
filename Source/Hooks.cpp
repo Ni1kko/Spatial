@@ -43,6 +43,7 @@
 #include "Hacks/Sound.h"
 #include "Hacks/Triggerbot.h"
 #include "Hacks/Visuals.h"
+#include "Hacks/Tickbase.h"
 
 #include "InventoryChanger/InventoryChanger.h"
 
@@ -224,7 +225,7 @@ static bool __STDCALL createMove(LINUX_ARGS(void* thisptr,) float inputSampleTim
     Troll::doorSpam(cmd);
 
     if (!(cmd->buttons & (UserCmd::IN_ATTACK | UserCmd::IN_ATTACK2))) {
-        Misc::chokePackets(sendPacket);
+        Tickbase::chokePackets(sendPacket);
         AntiAim::run(cmd, previousViewAngles, currentViewAngles, sendPacket);
     }
 
@@ -247,6 +248,8 @@ static bool __STDCALL createMove(LINUX_ARGS(void* thisptr,) float inputSampleTim
     Misc::fixMouseDelta(cmd);
 
     previousViewAngles = cmd->viewangles;
+
+    Tickbase::run(cmd);
 
     return false;
 }

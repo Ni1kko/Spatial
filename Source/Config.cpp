@@ -24,6 +24,7 @@
 #include "Hacks/Visuals.h"
 #include "Hacks/Misc.h"
 #include "Hacks/Troll.h"
+#include "Hacks/Tickbase.h"
 
 #ifdef _WIN32
 int CALLBACK fontCallback(const LOGFONTW* lpelfe, const TEXTMETRICW*, DWORD, LPARAM lParam)
@@ -577,6 +578,7 @@ void Config::reset() noexcept
     Sound::resetConfig();
     Misc::resetConfig();
     Troll::resetConfig();
+    Tickbase::resetConfig();
 }
 
 void Config::listConfigs() noexcept

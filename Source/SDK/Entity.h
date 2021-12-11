@@ -122,6 +122,7 @@ public:
     auto isPistol() noexcept { return getWeaponType() == WeaponType::Pistol; }
     auto isSniperRifle() noexcept { return getWeaponType() == WeaponType::SniperRifle; }
     auto isGrenade() noexcept { return getWeaponType() == WeaponType::Grenade; }
+    auto isKnife() noexcept { return getWeaponType() == WeaponType::Knife; }
 
     auto isFullAuto() noexcept
     {
@@ -179,7 +180,7 @@ public:
 
     bool canSee(Entity* other, const Vector& pos) noexcept;
     bool visibleTo(Entity* other) noexcept;
-
+  
     NETVAR(body, "CBaseAnimating", "m_nBody", int)
     NETVAR(hitboxSet, "CBaseAnimating", "m_nHitboxSet", int)
 
@@ -264,6 +265,11 @@ public:
     bool isFlashed() noexcept
     {
         return flashDuration() > 75.0f;
+    }
+
+    WeaponId ID() noexcept
+    {
+        return itemDefinitionIndex();
     }
 
     std::uint64_t originalOwnerXuid() noexcept

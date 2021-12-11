@@ -17,7 +17,13 @@
 #include "../SDK/NetworkChannel.h"
 #include "../SDK/UserCmd.h"
 
+
 #if Spatial_BACKTRACK()
+ 
+
+/////////////////////////////////////////////////////////////////
+// Structs
+/////////////////////////////////////////////////////////////////
 
 struct BacktrackConfig {
     bool enabled = false;
@@ -25,8 +31,6 @@ struct BacktrackConfig {
     bool recoilBasedFov = false;
     int timeLimit = 200;
 } backtrackConfig;
-
-static std::array<std::deque<Backtrack::Record>, 65> records;
 
 struct Cvars {
     ConVar* updateRate;
@@ -38,53 +42,57 @@ struct Cvars {
     ConVar* maxUnlag;
 };
 
+
+/////////////////////////////////////////////////////////////////
+// Vars
+/////////////////////////////////////////////////////////////////
+
+static bool backtrackWindowOpen = false;
+static std::array<std::deque<Backtrack::Record>, 65> records;
 static Cvars cvars;
+
+
+/////////////////////////////////////////////////////////////////
+// Functions
+/////////////////////////////////////////////////////////////////
 
 static auto timeToTicks(float time) noexcept
 {
     return static_cast<int>(0.5f + time / memory->globalVars->intervalPerTick);
 }
 
-void Backtrack::update(FrameStage stage) noexcept
-{
-    if (stage == FrameStage::RENDER_START) {
-        if (!backtrackConfig.enabled || !localPlayer || !localPlayer->isAlive()) {
-            for (auto& record : records)
-                record.clear();
-            return;
-        }
-
-        for (int i = 1; i <= interfaces->engine->getMaxClients(); i++) {
-            auto entity = interfaces->entityList->getEntity(i);
-            if (!entity || entity == localPlayer.get() || entity->isDormant() || !entity->isAlive() || !entity->isOtherEnemy(localPlayer.get())) {
-                records[i].clear();
-                continue;
-            }
-
-            if (!records[i].empty() && (records[i].front().simulationTime == entity->simulationTime()))
-                continue;
-
-            Record record{ };
-            record.origin = entity->getAbsOrigin();
-            record.simulationTime = entity->simulationTime();
-
-            entity->setupBones(record.matrix, 256, 0x7FF00, memory->globalVars->currenttime);
-
-            records[i].push_front(record);
-
-            while (records[i].size() > 3 && records[i].size() > static_cast<size_t>(timeToTicks(static_cast<float>(backtrackConfig.timeLimit) / 1000.f)))
-                records[i].pop_back();
-
-            if (auto invalid = std::find_if(std::cbegin(records[i]), std::cend(records[i]), [](const Record & rec) { return !valid(rec.simulationTime); }); invalid != std::cend(records[i]))
-                records[i].erase(invalid, std::cend(records[i]));
-        }
-    }
-}
-
 static float getLerp() noexcept
 {
     auto ratio = std::clamp(cvars.interpRatio->getFloat(), cvars.minInterpRatio->getFloat(), cvars.maxInterpRatio->getFloat());
     return (std::max)(cvars.interp->getFloat(), (ratio / ((cvars.maxUpdateRate) ? cvars.maxUpdateRate->getFloat() : cvars.updateRate->getFloat())));
+}
+
+const std::deque<Backtrack::Record>* Backtrack::getRecords(std::size_t index) noexcept
+{
+    if (!backtrackConfig.enabled)
+        return nullptr;
+    return &records[index];
+}
+
+bool Backtrack::valid(float simtime) noexcept
+{
+    const auto network = interfaces->engine->getNetworkChannel();
+    if (!network)
+        return false;
+
+    auto delta = std::clamp(network->getLatency(0) + network->getLatency(1) + getLerp(), 0.f, cvars.maxUnlag->getFloat()) - (memory->globalVars->serverTime() - simtime);
+    return std::abs(delta) <= 0.2f;
+}
+
+void Backtrack::init() noexcept
+{
+    cvars.updateRate = interfaces->cvar->findVar("cl_updaterate");
+    cvars.maxUpdateRate = interfaces->cvar->findVar("sv_maxupdaterate");
+    cvars.interp = interfaces->cvar->findVar("cl_interp");
+    cvars.interpRatio = interfaces->cvar->findVar("cl_interp_ratio");
+    cvars.minInterpRatio = interfaces->cvar->findVar("sv_client_min_interp_ratio");
+    cvars.maxInterpRatio = interfaces->cvar->findVar("sv_client_max_interp_ratio");
+    cvars.maxUnlag = interfaces->cvar->findVar("sv_maxunlag");
 }
 
 void Backtrack::run(UserCmd* cmd) noexcept
@@ -153,35 +161,46 @@ void Backtrack::run(UserCmd* cmd) noexcept
     }
 }
 
-const std::deque<Backtrack::Record>* Backtrack::getRecords(std::size_t index) noexcept
+void Backtrack::update(FrameStage stage) noexcept
 {
-    if (!backtrackConfig.enabled)
-        return nullptr;
-    return &records[index];
+    if (stage == FrameStage::RENDER_START) {
+        if (!backtrackConfig.enabled || !localPlayer || !localPlayer->isAlive()) {
+            for (auto& record : records)
+                record.clear();
+            return;
+        }
+
+        for (int i = 1; i <= interfaces->engine->getMaxClients(); i++) {
+            auto entity = interfaces->entityList->getEntity(i);
+            if (!entity || entity == localPlayer.get() || entity->isDormant() || !entity->isAlive() || !entity->isOtherEnemy(localPlayer.get())) {
+                records[i].clear();
+                continue;
+            }
+
+            if (!records[i].empty() && (records[i].front().simulationTime == entity->simulationTime()))
+                continue;
+
+            Record record{ };
+            record.origin = entity->getAbsOrigin();
+            record.simulationTime = entity->simulationTime();
+
+            entity->setupBones(record.matrix, 256, 0x7FF00, memory->globalVars->currenttime);
+
+            records[i].push_front(record);
+
+            while (records[i].size() > 3 && records[i].size() > static_cast<size_t>(timeToTicks(static_cast<float>(backtrackConfig.timeLimit) / 1000.f)))
+                records[i].pop_back();
+
+            if (auto invalid = std::find_if(std::cbegin(records[i]), std::cend(records[i]), [](const Record& rec) { return !valid(rec.simulationTime); }); invalid != std::cend(records[i]))
+                records[i].erase(invalid, std::cend(records[i]));
+        }
+    }
 }
 
-bool Backtrack::valid(float simtime) noexcept
-{
-    const auto network = interfaces->engine->getNetworkChannel();
-    if (!network)
-        return false;
 
-    auto delta = std::clamp(network->getLatency(0) + network->getLatency(1) + getLerp(), 0.f, cvars.maxUnlag->getFloat()) - (memory->globalVars->serverTime() - simtime);
-    return std::abs(delta) <= 0.2f;
-}
-
-void Backtrack::init() noexcept
-{
-    cvars.updateRate = interfaces->cvar->findVar("cl_updaterate");
-    cvars.maxUpdateRate = interfaces->cvar->findVar("sv_maxupdaterate");
-    cvars.interp = interfaces->cvar->findVar("cl_interp");
-    cvars.interpRatio = interfaces->cvar->findVar("cl_interp_ratio");
-    cvars.minInterpRatio = interfaces->cvar->findVar("sv_client_min_interp_ratio");
-    cvars.maxInterpRatio = interfaces->cvar->findVar("sv_client_max_interp_ratio");
-    cvars.maxUnlag = interfaces->cvar->findVar("sv_maxunlag");
-}
-
-static bool backtrackWindowOpen = false;
+/////////////////////////////////////////////////////////////////
+// GUI Functions
+/////////////////////////////////////////////////////////////////
 
 void Backtrack::menuBarItem() noexcept
 {
@@ -217,6 +236,11 @@ void Backtrack::drawGUI(bool contentOnly) noexcept
     if (!contentOnly)
         ImGui::End();
 }
+
+
+/////////////////////////////////////////////////////////////////
+// Config Functions
+/////////////////////////////////////////////////////////////////
 
 static void to_json(json& j, const BacktrackConfig& o, const BacktrackConfig& dummy = {})
 {
