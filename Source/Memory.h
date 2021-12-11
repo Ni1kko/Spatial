@@ -119,6 +119,11 @@ public:
     std::uintptr_t setStatTrakSwapToolItemsGetArgAsStringReturnAddress2;
     std::uintptr_t acknowledgeNewItemByItemIDGetArgAsStringReturnAddress;
 
+    void* WriteUsercmdDeltaToBufferReturn;
+    uintptr_t WriteUsercmd;
+    uintptr_t invertoryBlock;
+    std::uint8_t* fakePrime;
+
     std::add_pointer_t<EconItemView* __CDECL(std::uint64_t itemID)> findOrCreateEconItemViewForItemID;
     void*(__THISCALL* getInventoryItemByItemID)(CSPlayerInventory* thisptr, std::uint64_t itemID);
     std::uintptr_t useToolGetArgAsStringReturnAddress;
