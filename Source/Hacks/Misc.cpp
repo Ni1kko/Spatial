@@ -122,6 +122,7 @@ struct MiscConfig {
     bool fixMovement{ false };
     bool disableModelOcclusion{ false };
     bool nameStealer{ false };
+    bool fakePrime{ false };
     bool disablePanoramablur{ false };
     bool killMessage{ false };
     bool nadePredict{ false };
@@ -1204,7 +1205,7 @@ void Misc::onVoteStart(const void* data, int size) noexcept
         case 1: return "Change Level";
         case 6: return "Surrender";
         case 13: return "Start TimeOut";
-        default: return "";
+        default: return "unknown action";
         }
     };
 
@@ -1410,6 +1411,25 @@ void Misc::fixMouseDelta(UserCmd* cmd) noexcept
     delta_viewangles = cmd->viewangles;
 }
 
+void Misc::fakePrime() noexcept
+{
+    static bool lastState = false;
+
+    if (miscConfig.fakePrime != lastState)
+    {
+        lastState = miscConfig.fakePrime;
+
+#ifdef _WIN32
+        if (DWORD oldProtect; VirtualProtect(memory->fakePrime, 4, PAGE_EXECUTE_READWRITE, &oldProtect))
+        {
+            constexpr uint8_t patch[]{ 0x31, 0xC0, 0x40, 0xC3 };
+            std::memcpy(memory->fakePrime, patch, 4);
+            VirtualProtect(memory->fakePrime, 4, oldProtect, nullptr);
+        }
+#endif
+    }
+}
+
 void Misc::updateEventListeners(bool forceRemove) noexcept
 {
     class PurchaseEventListener : public GameEventListener {
@@ -1550,6 +1570,7 @@ void Misc::drawGUI(bool contentOnly) noexcept
     ImGui::PushID(1);
     ImGui::InputText("", &miscConfig.killMessageString);
     ImGui::PopID();
+    ImGui::Checkbox("Fake Prime status", &miscConfig.fakePrime);
     ImGui::Checkbox("Name stealer", &miscConfig.nameStealer);
     ImGui::PushID(3);
     ImGui::SetNextItemWidth(100.0f);
@@ -1744,6 +1765,7 @@ static void from_json(const json& j, MiscConfig& m)
     read(j, "Kill message", m.killMessage);
     read<value_t::string>(j, "Kill message string", m.killMessageString);
     read(j, "Name stealer", m.nameStealer);
+    read(j, "Fake prime", m.fakePrime);
     read(j, "Disable HUD blur", m.disablePanoramablur);
     read(j, "Ban color", m.banColor);
     read<value_t::string>(j, "Ban text", m.banText);
@@ -1881,6 +1903,7 @@ static void to_json(json& j, const MiscConfig& o)
     WRITE("Kill message", killMessage);
     WRITE("Kill message string", killMessageString);
     WRITE("Name stealer", nameStealer);
+    WRITE("Fake prime", fakePrime);
     WRITE("Disable HUD blur", disablePanoramablur);
     WRITE("Ban color", banColor);
     WRITE("Ban text", banText);

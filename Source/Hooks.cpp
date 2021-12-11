@@ -312,6 +312,7 @@ static void __STDCALL frameStageNotify(LINUX_ARGS(void* thisptr,) FrameStage sta
         GameData::update();
 
     if (stage == FrameStage::RENDER_START) {
+        Misc::fakePrime();
         Misc::preserveKillfeed();
         Misc::disablePanoramablur();
         Visuals::colorWorld();
