@@ -123,6 +123,7 @@ public:
     uintptr_t WriteUsercmd;
     uintptr_t invertoryBlock;
     std::uint8_t* fakePrime;
+    std::string* relayCluster;
 
     std::add_pointer_t<EconItemView* __CDECL(std::uint64_t itemID)> findOrCreateEconItemViewForItemID;
     void*(__THISCALL* getInventoryItemByItemID)(CSPlayerInventory* thisptr, std::uint64_t itemID);

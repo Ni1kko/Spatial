@@ -179,6 +179,7 @@ struct MiscConfig {
     } reportbot;
 
     OffscreenEnemies offscreenEnemies;
+    int forceRelayCluster{ 0 };
 } miscConfig;
 
 
@@ -1430,6 +1431,15 @@ void Misc::fakePrime() noexcept
     }
 }
 
+void Misc::forceRelayCluster() noexcept
+{
+    std::string dataCentersList[] = { "", "syd", "vie", "gru", "scl", "dxb", "par", "fra", "hkg",
+    "maa", "bom", "tyo", "lux", "ams", "limc", "man", "waw", "sgp", "jnb",
+    "mad", "sto", "lhr", "atl", "eat", "ord", "lax", "mwh", "okc", "sea", "iad" };
+
+    *memory->relayCluster = dataCentersList[miscConfig.forceRelayCluster];
+}
+
 void Misc::updateEventListeners(bool forceRemove) noexcept
 {
     class PurchaseEventListener : public GameEventListener {
@@ -1672,6 +1682,9 @@ void Misc::drawGUI(bool contentOnly) noexcept
     }
     ImGui::PopID();
     
+    ImGui::SetNextItemWidth(140);
+    ImGui::Combo("Force region", &miscConfig.forceRelayCluster, "Off\0Australia\0Austria\0Brazil\0Chile\0Dubai\0France\0Germany\0Hong Kong\0India (Chennai)\0India (Mumbai)\0Japan\0Luxembourg\0Netherlands\0Peru\0Philipines\0Poland\0Singapore\0South Africa\0Spain\0Sweden\0UK\0USA (Atlanta)\0USA (Seattle)\0USA (Chicago)\0USA (Los Angeles)\0USA (Moses Lake)\0USA (Oklahoma)\0USA (Seattle)\0USA (Washington DC)\0");
+    
     #ifdef _DEBUG
         if (ImGui::Button(xorstr_("Unhook"))) hooks->uninstall();
     #endif
@@ -1788,6 +1801,7 @@ static void from_json(const json& j, MiscConfig& m)
     read<value_t::object>(j, "Reportbot", m.reportbot);
     read(j, "Opposite Hand Knife", m.oppositeHandKnife);
     read<value_t::object>(j, "Preserve Killfeed", m.preserveKillfeed);
+    read(j, "Relay cluster", m.forceRelayCluster);
 }
 
 static void from_json(const json& j, MiscConfig::Reportbot& r)
@@ -1925,7 +1939,8 @@ static void to_json(json& j, const MiscConfig& o)
     WRITE("Purchase List", purchaseList);
     WRITE("Reportbot", reportbot);
     WRITE("Opposite Hand Knife", oppositeHandKnife);
-    WRITE("Preserve Killfeed", preserveKillfeed);
+    WRITE("Preserve Killfeed", forceRelayCluster); 
+    WRITE("Relay cluster", forceRelayCluster);
 }
 
 json Misc::toJson() noexcept

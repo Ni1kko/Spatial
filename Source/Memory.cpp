@@ -233,6 +233,7 @@ Memory::Memory() noexcept
     WriteUsercmd = findPattern(CLIENT_DLL, "\x55\x8B\xEC\x83\xE4\xF8\x51\x53\x56\x8B\xD9\x8B\x0D");
     invertoryBlock = findPattern(CLIENT_DLL, "\x84\xC0\x75\x04\xB0\x01\x5E") - 2;
     fakePrime = reinterpret_cast<std::uint8_t*>(findPattern(CLIENT_DLL, "\x8B\x0D????\x85\xC9\x75\x04\x33\xC0\xEB\x1E"));
+    relayCluster = *(std::string**)(findPattern("steamnetworkingsockets", "\xB8????\xB9????\x0F\x43") + 1);
 
     localPlayer.init(*reinterpret_cast<Entity***>(findPattern(CLIENT_DLL, "\xA1????\x89\x45\xBC\x85\xC0") + 1));
 #else

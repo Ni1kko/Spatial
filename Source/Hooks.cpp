@@ -318,6 +318,7 @@ static void __STDCALL frameStageNotify(LINUX_ARGS(void* thisptr,) FrameStage sta
         Visuals::colorWorld();
         Misc::updateEventListeners();
         Visuals::updateEventListeners();
+        Misc::forceRelayCluster();
     }
     if (interfaces->engine->isInGame()) {
         Visuals::skybox(stage);

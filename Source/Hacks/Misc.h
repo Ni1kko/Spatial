@@ -63,6 +63,7 @@ namespace Misc
     void autoAccept(const char* soundEntry) noexcept;
     void fixMouseDelta(UserCmd* cmd) noexcept;
     void fakePrime() noexcept;
+    void forceRelayCluster() noexcept;
     void updateEventListeners(bool forceRemove = false) noexcept;
     void updateInput() noexcept;
 
