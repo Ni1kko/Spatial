@@ -36,20 +36,20 @@
 /////////////////////////////////////////////////////////////////
 
 static bool windowOpen = false;
-
+static bool isDoubleTapping = false; 
 
 /////////////////////////////////////////////////////////////////
 // Structs
 /////////////////////////////////////////////////////////////////
 
 struct NetConfig {
-	bool enabled_dt = false;
-	bool onkey_dt = false;
-	int speed_dt = 0;
-	KeyBind key_dt;
-    bool enabled_cp = false;
+	bool enabled_dt{ false };
+	bool onkey_dt{ false };
+    int speed_dt{ 0 };
+    KeyBind key_dt;
+    bool enabled_cp{ false };
     int cp { 0 };
-    bool onkey_cp = false;
+    bool onkey_cp{ false };
     KeyBind key_cp;
 } netConfig;
 
@@ -59,18 +59,9 @@ struct NetConfig {
 /////////////////////////////////////////////////////////////////
 
 
-bool canShift(int ticks, bool shiftAnyways = false)
-{
-    if (!localPlayer || !localPlayer->isAlive() || ticks <= 0)
-        return false;
-
-    if (shiftAnyways)
-        return true;
-
-    if ((Tickbase::tick->ticksAllowedForProcessing - ticks) < 0)
-        return false;
-
-    if (localPlayer->nextAttack() > memory->globalVars->serverTime())
+bool canShift(int ticks)
+{ 
+    if (ticks <= 0 || localPlayer->nextAttack() > memory->globalVars->serverTime())
         return false;
 
     float nextAttack = (localPlayer->nextAttack() + (ticks * memory->globalVars->intervalPerTick));
@@ -96,82 +87,54 @@ bool canShift(int ticks, bool shiftAnyways = false)
 
     return true;
 }
-
-void recalculateTicks() noexcept
+  
+bool Tickbase::DTKeyDown() noexcept
 {
-    Tickbase::tick->chokedPackets = std::clamp(Tickbase::tick->chokedPackets, 0, Tickbase::tick->maxUsercmdProcessticks);
-    Tickbase::tick->ticksAllowedForProcessing = Tickbase::tick->maxUsercmdProcessticks - Tickbase::tick->chokedPackets;
-    Tickbase::tick->ticksAllowedForProcessing = std::clamp(Tickbase::tick->ticksAllowedForProcessing, 0, Tickbase::tick->maxUsercmdProcessticks);
+    return (netConfig.key_dt.isSet() && netConfig.key_dt.isDown());
 }
 
-void Tickbase::shiftTicks(int ticks, UserCmd* cmd, bool shiftAnyways) noexcept //useful, for other funcs
+bool Tickbase::CPKeyDown() noexcept
 {
-    if (!localPlayer || !localPlayer->isAlive() || !netConfig.enabled_dt)
-        return;
-    if (!canShift(ticks, shiftAnyways))
-        return;
-    tick->commandNumber = cmd->commandNumber;
-    tick->tickbase = localPlayer->tickBase();
-    tick->tickshift = ticks;
+    return (netConfig.onkey_cp && netConfig.key_cp.isSet() && netConfig.key_cp.isDown());
 }
 
 void Tickbase::run(UserCmd* cmd) noexcept
 {
-    //Alive?
-    if (!localPlayer || !localPlayer->isAlive()) return;
-
-    //Enabled
-    if (!netConfig.enabled_dt || (netConfig.enabled_dt && netConfig.onkey_dt && !netConfig.key_dt.isDown())) return;
-     
-    static void* oldNetwork = nullptr;
-    
-    if (auto network = interfaces->engine->getNetworkChannel(); network && oldNetwork != network)
-    {
-        oldNetwork = network;
-        tick->ticksAllowedForProcessing = tick->maxUsercmdProcessticks;
-        tick->chokedPackets = 0;
-    }
-
-    if (auto network = interfaces->engine->getNetworkChannel(); network && network->chokedPackets > tick->chokedPackets)
-        tick->chokedPackets = network->chokedPackets;
-
-    recalculateTicks();
-
-    tick->ticks = cmd->tickCount;
-     
+    auto enabled = netConfig.enabled_dt || DTKeyDown();
+    auto alive = localPlayer && localPlayer->isAlive();
+    auto alwaysRun = !netConfig.onkey_dt;
     auto ticks = 0;
 
-    switch (netConfig.speed_dt) {
-        case 0: //Instant
-            ticks = 16;
-            break;
-        case 1: //Fast
-            ticks = 14;
-            break;
-        case 2: //Accurate
-            ticks = 12;
-            break;
-    }
-
-    if (netConfig.enabled_dt && cmd->buttons & (UserCmd::IN_ATTACK))
-        shiftTicks(ticks, cmd);
-
-    if (tick->tickshift <= 0 && tick->ticksAllowedForProcessing < (tick->maxUsercmdProcessticks - tick->fakeLag) /*&& !config->antiAim.fakeDucking*/ && ((netConfig.enabled_cp <= (tick->maxUsercmdProcessticks - ticks)) || !netConfig.enabled_cp))
+    if (alive && (enabled && alwaysRun || enabled && !alwaysRun && DTKeyDown()))
     {
-        cmd->tickCount = INT_MAX; //recharge
-        tick->chokedPackets--;
+        switch (netConfig.speed_dt) 
+        {
+            case 0: //Instant
+                ticks = 17;
+                break;
+            case 1: //Fast
+                ticks = 14;
+                break;
+            case 2: //Accurate
+                ticks = 13;
+                break;
+        }
+        
+        if (ticks > 0 && (cmd->buttons == UserCmd::IN_ATTACK || DTKeyDown()))
+        { 
+            isDoubleTapping = true;
+            cmd->tickCount = ticks; 
+            isDoubleTapping = false;
+        }
+        
+        cmd->tickCount = 0;
     }
-
-    recalculateTicks();
 }
 
 void Tickbase::chokePackets(bool& sendPacket) noexcept
 {
-    bool pressed = netConfig.onkey_cp && netConfig.key_cp.isSet() && !netConfig.key_cp.isDown();
-        
-    if (!netConfig.enabled_cp || netConfig.enabled_cp && !pressed) return;
-    
-    sendPacket = interfaces->engine->getNetworkChannel()->chokedPackets >= netConfig.cp;
+    if (localPlayer /* && !isDoubleTapping */ && (netConfig.enabled_cp || netConfig.enabled_cp && netConfig.onkey_cp && CPKeyDown()))
+        sendPacket = interfaces->engine->getNetworkChannel()->chokedPackets >= netConfig.cp;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -209,7 +172,7 @@ void Tickbase::drawGUI(bool contentOnly) noexcept
     ImGui::Columns(2, nullptr, false);
     ImGui::SetColumnOffset(1, 300.0f);
     ImGui::Checkbox("Enable Double TAP", &netConfig.enabled_dt); 
-    ImGui::Checkbox("OnKey Only", &netConfig.onkey_dt);
+    ImGui::Checkbox("Double TAP Key", &netConfig.onkey_dt);
     ImGui::SameLine();
     ImGui::PushID("DTKey");
     ImGui::hotkey("", netConfig.key_dt);
@@ -222,8 +185,8 @@ void Tickbase::drawGUI(bool contentOnly) noexcept
     //col 2
     ImGui::NextColumn();
     ImGui::SetNextItemWidth(90.0f);
-    ImGui::Checkbox("Enable Choked packets", &netConfig.enabled_cp);
-    ImGui::Checkbox("OnKey Only", &netConfig.onkey_cp);
+    ImGui::Checkbox("Enable Choked Packets", &netConfig.enabled_cp);
+    ImGui::Checkbox("Choked Packets Key", &netConfig.onkey_cp);
     ImGui::SameLine();
     ImGui::PushID("CPKey");
     ImGui::hotkey("", netConfig.key_cp);
@@ -231,6 +194,7 @@ void Tickbase::drawGUI(bool contentOnly) noexcept
     ImGui::SetNextItemWidth(90.0f);
     ImGui::InputInt("Choked packets", &netConfig.cp, 1, 5);
     netConfig.cp = std::clamp(netConfig.cp, 0, 64);
+ 
 
     if (!contentOnly)
         ImGui::End();
