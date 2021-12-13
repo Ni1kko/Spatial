@@ -574,8 +574,8 @@ void StreamProofESP::drawGUI(bool contentOnly) noexcept
         ImGui::Begin("ESP", &windowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
     }
 
-    ImGui::hotkey("Toggle Key", config->streamProofESP.toggleKey, 80.0f);
-    ImGui::hotkey("Hold Key", config->streamProofESP.holdKey, 80.0f);
+    ImGui::hotkey("Toggle Key", config->streamProofESP.toggleKey, 110.0f);
+    ImGui::hotkey("Hold Key", config->streamProofESP.holdKey, 110.0f);
     ImGui::Separator();
 
     static std::size_t currentCategory;

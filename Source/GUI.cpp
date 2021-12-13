@@ -11,10 +11,13 @@
 #include <Windows.h>
 #endif
 
+#include "xorstr.hpp"
+
 #include "imgui/imgui.h"
 #include "imgui/imgui_stdlib.h"
 
 #include "imguiCustom.h"
+#include "Memory.h"
 
 #include "GUI.h"
 #include "Config.h"
@@ -24,6 +27,7 @@
 #include "Helpers.h"
 #include "Interfaces.h"
 #include "SDK/InputSystem.h"
+#include "SDK/GlobalVars.h"
 #include "Hacks/Visuals.h"
 #include "Hacks/Glow.h"
 #include "Hacks/AntiAim.h"
@@ -33,8 +37,7 @@
 #include "Hacks/Troll.h"
 #include "Hacks/Tickbase.h"
 
-constexpr auto windowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize
-| ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
+constexpr auto windowFlags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar;
 
 static ImFont* addFontFromVFONT(const std::string& path, float size, const ImWchar* glyphRanges, bool merge) noexcept
 {
@@ -51,6 +54,27 @@ static ImFont* addFontFromVFONT(const std::string& path, float size, const ImWch
     cfg.SizePixels = size;
 
     return ImGui::GetIO().Fonts->AddFont(&cfg);
+}
+
+void GUI::updateColors() const noexcept
+{
+    switch (config->style.menuColors) {
+    case 0: ImGui::StyleColorsDark(); break;
+    case 1: ImGui::StyleColorsLight(); break;
+    case 2: ImGui::StyleColorsClassic(); break;
+    }
+}
+
+void GUI::handleToggle() noexcept
+{
+    if (Misc::isMenuKeyPressed()) {
+        open = !open;
+        if (!open)
+            interfaces->inputSystem->resetInputState();
+#ifndef _WIN32
+        ImGui::GetIO().MouseDrawCursor = gui->open;
+#endif
+    }
 }
 
 GUI::GUI() noexcept
@@ -92,92 +116,215 @@ GUI::GUI() noexcept
         io.Fonts->AddFontDefault(&cfg);
     addFontFromVFONT("csgo/panorama/fonts/notosanskr-regular.vfont", 15.0f, io.Fonts->GetGlyphRangesKorean(), true);
     addFontFromVFONT("csgo/panorama/fonts/notosanssc-regular.vfont", 17.0f, io.Fonts->GetGlyphRangesChineseFull(), true);
+
+    /*if (!autoload) {
+        static int cc = 0;
+        config->load(cc, false);
+        autoload = true;
+    }*/
+}
+
+void GUI::cbox_colorpicker(const std::string& name, bool* enable, float* color) noexcept
+{
+    ImGui::Checkbox(("##" + name).c_str(), enable);
+    ImGui::SameLine(0.0f, 5.0f);
+    ImGui::PushID(0);
+    bool openPopup = ImGui::ColorButton(("##" + name).c_str(), ImColor{ color[0], color[1], color[2] }, ImGuiColorEditFlags_NoTooltip);
+    ImGui::PopID();
+    ImGui::SameLine(0.0f, 5.0f);
+    ImGui::TextUnformatted(name.c_str());
+    ImGui::PushID(1);
+    if (openPopup)
+        ImGui::OpenPopup(("##" + name).c_str());
+    if (ImGui::BeginPopup(("##" + name).c_str())) {
+        ImGui::PushID(2);
+        ImGui::ColorPicker3(("##" + name).c_str(), color, ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_NoSidePreview);
+        ImGui::PopID();
+        ImGui::EndPopup();
+    }
+    ImGui::PopID();
+}
+
+void GUI::change_keybind(int& key) noexcept
+{
+    key ? ImGui::Text(xorstr_("[ 0x%x ]"), key) : ImGui::TextUnformatted(xorstr_("[ key ]"));
+    if (ImGui::IsItemHovered()) {
+        showTooltip(xorstr_("Press any key to change keybind"));
+        ImGuiIO& io = ImGui::GetIO();
+        for (int i = 0; i < IM_ARRAYSIZE(io.KeysDown); i++) {
+            if (ImGui::IsKeyPressed(i)) key = i != VK_ESCAPE ? i : 0;
+        }
+        for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++) {
+            if (ImGui::IsMouseDown(i) /* && i + (i > 1 ? 2 : 1) != Misc::menuKeyBind()*/) key = i + (i > 1 ? 2 : 1);
+        }
+    }
+}
+
+void GUI::showTooltip(const char* Tooltip) noexcept
+{
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip(Tooltip);
+}
+
+void GUI::showAlert(bool display, std::string title, std::string message) noexcept
+{
+    static float cur_time{ 0.f };
+
+    if (title.length() < 3) title = { xorstr_("Spatial | Alert") };
+    if (message.length() < 1) return;
+    if (alerts_notification.size() > 15) alerts_notification.pop_front();
+
+    if (display || isAlertPending && !isAlertOpen)
+    {
+        isAlertOpen = true;
+
+        for (size_t i = 0; i < alerts_notification.size(); i++) {
+            auto& notification = alerts_notification.at(i);
+
+            title = notification.m_title.c_str();
+            message = notification.m_msg.c_str();
+            cur_time = notification.m_time;
+        } 
+    }
+    else
+    {
+        if (isAlertOpen && !isAlertPending || memory->globalVars->currenttime - cur_time <= alertsDuration)
+        {
+            isAlertPending = true;
+            for (size_t i = 0; i < alerts_notification.size(); i++) {
+                auto& notification = alerts_notification.at(i); 
+                notification.m_title = title.c_str();
+                notification.m_msg = message.c_str();
+                notification.m_time = memory->globalVars->currenttime + alertsDuration;
+            }
+        }
+    }
+
+    if (isAlertOpen && memory->globalVars->currenttime - cur_time > alertsDuration) isAlertOpen = false;
+
 }
 
 void GUI::render() noexcept
 {
-    if (!config->style.menuStyle) {
-        renderMenuBar();
+    renderAlerts();
+    ImGui::Begin(xorstr_("Spatial"), &open, windowFlags); {
+        renderNodes();
+        ImGui::Separator();
+        ImGui::TextUnformatted(std::string{ (xorstr_("Spatial | Compiled On The : ") + std::string { __DATE__ }) }.c_str());
+    }
+    ImGui::End();
+}
+
+void GUI::renderAlerts() noexcept
+{
+    int adjust_height = 5;
+
+    for (size_t i = 0; i < alerts_notification.size(); i++) {
+        auto& notification = alerts_notification.at(i);
+
+        // notification.color;
+        // = notification.background_color; 
+        const char* title = notification.m_title.c_str();
+        const char* message = notification.m_msg.c_str();
+        const float cur_time = notification.m_time;
+
+        if (memory->globalVars->serverTime() - cur_time > alertsDuration)
+        {
+            const float DISTANCE = 10.0f;
+            static int corner = 0;
+            ImGuiIO& io = ImGui::GetIO();
+            if (corner != -1)
+            {
+                ImVec2 window_pos = ImVec2((corner & 1) ? io.DisplaySize.x - DISTANCE : DISTANCE, (corner & 2) ? io.DisplaySize.y - DISTANCE : DISTANCE);
+                ImVec2 window_pos_pivot = ImVec2((corner & 1) ? 1.0f : 0.0f, (corner & 2) ? 1.0f : 0.0f);
+                ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+            }
+            ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
+            if (ImGui::Begin(title, &isAlertOpen, (corner != -1 ? ImGuiWindowFlags_NoMove : 0) | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav))
+            {
+                ImGui::Text(message);
+                ImGui::Separator();
+                if (ImGui::BeginPopupContextWindow())
+                {
+                    if (ImGui::MenuItem("Custom", NULL, corner == -1)) corner = -1;
+                    if (ImGui::MenuItem("Top-left", NULL, corner == 0)) corner = 0;
+                    if (ImGui::MenuItem("Top-right", NULL, corner == 1)) corner = 1;
+                    if (ImGui::MenuItem("Bottom-left", NULL, corner == 2)) corner = 2;
+                    if (ImGui::MenuItem("Bottom-right", NULL, corner == 3)) corner = 3;
+                    if (&isAlertOpen && ImGui::MenuItem("Close"))*&isAlertOpen = false;
+                    ImGui::EndPopup();
+                }
+            }
+            ImGui::End();
+        }
+    }
+}
+
+void GUI::renderNodes() noexcept
+{
+    if (ImGui::TreeNode(xorstr_("Aim"))) {
         renderAimbotWindow();
-        AntiAim::drawGUI(false);
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode(xorstr_("AntiAim"))) {
+        renderAntiAimWindow();
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode(xorstr_("Triggerbot"))) {
         renderTriggerbotWindow();
-        Backtrack::drawGUI(false);
-        Tickbase::drawGUI(false);
-        Glow::drawGUI(false);
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode(xorstr_("BackTrack"))) {
+        renderBackTrackWindow();
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode(xorstr_("Network"))) {
+        renderNetworkWindow();
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode(xorstr_("Glow"))) {
+        renderGlowWindow();
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode(xorstr_("Chams"))) {
         renderChamsWindow();
-        StreamProofESP::drawGUI(false);
-        Visuals::drawGUI(false);
-        InventoryChanger::drawGUI(false);
-        Sound::drawGUI(false);
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode(xorstr_("ESP"))) {
+        renderESPWindow();
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode(xorstr_("Visuals"))) {
+        renderVisualsWindow();
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode(xorstr_("Inventory"))) {
+        renderInventoryWindow();
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode(xorstr_("Sound"))) {
+        renderSoundWindow();
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode(xorstr_("Style"))) {
         renderStyleWindow();
-        Misc::drawGUI(false);
-        Troll::drawGUI(false);
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode(xorstr_("Misc"))) {
+        renderMiscWindow();
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode(xorstr_("Troll"))) {
+        renderTrollWindow();
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode(xorstr_("Config"))) {
         renderConfigWindow();
-    } else {
-        renderGuiStyle2();
+        ImGui::TreePop();
     }
 }
 
-void GUI::updateColors() const noexcept
+void GUI::renderAimbotWindow() noexcept
 {
-    switch (config->style.menuColors) {
-    case 0: ImGui::StyleColorsDark(); break;
-    case 1: ImGui::StyleColorsLight(); break;
-    case 2: ImGui::StyleColorsClassic(); break;
-    }
-}
-
-void GUI::handleToggle() noexcept
-{
-    if (Misc::isMenuKeyPressed()) {
-        open = !open;
-        if (!open)
-            interfaces->inputSystem->resetInputState();
-#ifndef _WIN32
-        ImGui::GetIO().MouseDrawCursor = gui->open;
-#endif
-    }
-}
-
-static void menuBarItem(const char* name, bool& enabled) noexcept
-{
-    if (ImGui::MenuItem(name)) {
-        enabled = true;
-        ImGui::SetWindowFocus(name);
-        ImGui::SetWindowPos(name, { 100.0f, 100.0f });
-    }
-}
-
-void GUI::renderMenuBar() noexcept
-{
-    if (ImGui::BeginMainMenuBar()) {
-        menuBarItem("Aimbot", window.aimbot);
-        AntiAim::menuBarItem();
-        menuBarItem("Triggerbot", window.triggerbot);
-        Backtrack::menuBarItem();
-        Tickbase::menuBarItem();
-        Glow::menuBarItem();
-        menuBarItem("Chams", window.chams);
-        StreamProofESP::menuBarItem();
-        Visuals::menuBarItem();
-        InventoryChanger::menuBarItem();
-        Sound::menuBarItem();
-        menuBarItem("Style", window.style);
-        Misc::menuBarItem();
-        Troll::menuBarItem();
-        menuBarItem("Config", window.config);
-        ImGui::EndMainMenuBar();   
-    }
-}
-
-void GUI::renderAimbotWindow(bool contentOnly) noexcept
-{
-    if (!contentOnly) {
-        if (!window.aimbot)
-            return;
-        ImGui::SetNextWindowSize({ 600.0f, 0.0f });
-        ImGui::Begin("Aimbot", &window.aimbot, windowFlags);
-    }
     ImGui::Checkbox("On key", &config->aimbotOnKey);
     ImGui::SameLine();
     ImGui::PushID("Aimbot Key");
@@ -214,7 +361,8 @@ void GUI::renderAimbotWindow(bool contentOnly) noexcept
                 static std::string name;
                 name = pistols[idx];
                 *out_text = name.append(" *").c_str();
-            } else {
+            }
+            else {
                 *out_text = pistols[idx];
             }
             return true;
@@ -232,7 +380,8 @@ void GUI::renderAimbotWindow(bool contentOnly) noexcept
                 static std::string name;
                 name = heavies[idx];
                 *out_text = name.append(" *").c_str();
-            } else {
+            }
+            else {
                 *out_text = heavies[idx];
             }
             return true;
@@ -250,7 +399,8 @@ void GUI::renderAimbotWindow(bool contentOnly) noexcept
                 static std::string name;
                 name = smgs[idx];
                 *out_text = name.append(" *").c_str();
-            } else {
+            }
+            else {
                 *out_text = smgs[idx];
             }
             return true;
@@ -268,7 +418,8 @@ void GUI::renderAimbotWindow(bool contentOnly) noexcept
                 static std::string name;
                 name = rifles[idx];
                 *out_text = name.append(" *").c_str();
-            } else {
+            }
+            else {
                 *out_text = rifles[idx];
             }
             return true;
@@ -305,18 +456,15 @@ void GUI::renderAimbotWindow(bool contentOnly) noexcept
     ImGui::Checkbox("Killshot", &config->aimbot[currentWeapon].killshot);
     ImGui::Checkbox("Between shots", &config->aimbot[currentWeapon].betweenShots);
     ImGui::Columns(1);
-    if (!contentOnly)
-        ImGui::End();
 }
 
-void GUI::renderTriggerbotWindow(bool contentOnly) noexcept
+void GUI::renderAntiAimWindow() noexcept
 {
-    if (!contentOnly) {
-        if (!window.triggerbot)
-            return;
-        ImGui::SetNextWindowSize({ 0.0f, 0.0f });
-        ImGui::Begin("Triggerbot", &window.triggerbot, windowFlags);
-    }
+    AntiAim::drawGUI(true);
+}
+
+void GUI::renderTriggerbotWindow() noexcept
+{
     static int currentCategory{ 0 };
     ImGui::PushItemWidth(110.0f);
     ImGui::PushID(0);
@@ -344,7 +492,8 @@ void GUI::renderTriggerbotWindow(bool contentOnly) noexcept
                 static std::string name;
                 name = pistols[idx];
                 *out_text = name.append(" *").c_str();
-            } else {
+            }
+            else {
                 *out_text = pistols[idx];
             }
             return true;
@@ -362,7 +511,8 @@ void GUI::renderTriggerbotWindow(bool contentOnly) noexcept
                 static std::string name;
                 name = heavies[idx];
                 *out_text = name.append(" *").c_str();
-            } else {
+            }
+            else {
                 *out_text = heavies[idx];
             }
             return true;
@@ -380,7 +530,8 @@ void GUI::renderTriggerbotWindow(bool contentOnly) noexcept
                 static std::string name;
                 name = smgs[idx];
                 *out_text = name.append(" *").c_str();
-            } else {
+            }
+            else {
                 *out_text = smgs[idx];
             }
             return true;
@@ -398,7 +549,8 @@ void GUI::renderTriggerbotWindow(bool contentOnly) noexcept
                 static std::string name;
                 name = rifles[idx];
                 *out_text = name.append(" *").c_str();
-            } else {
+            }
+            else {
                 *out_text = rifles[idx];
             }
             return true;
@@ -425,22 +577,27 @@ void GUI::renderTriggerbotWindow(bool contentOnly) noexcept
     config->triggerbot[currentWeapon].minDamage = std::clamp(config->triggerbot[currentWeapon].minDamage, 0, 250);
     ImGui::Checkbox("Killshot", &config->triggerbot[currentWeapon].killshot);
     ImGui::SliderFloat("Burst Time", &config->triggerbot[currentWeapon].burstTime, 0.0f, 0.5f, "%.3f s");
-
-    if (!contentOnly)
-        ImGui::End();
 }
 
-void GUI::renderChamsWindow(bool contentOnly) noexcept
+void GUI::renderBackTrackWindow() noexcept
 {
-    if (!contentOnly) {
-        if (!window.chams)
-            return;
-        ImGui::SetNextWindowSize({ 0.0f, 0.0f });
-        ImGui::Begin("Chams", &window.chams, windowFlags);
-    }
+    Backtrack::drawGUI(true);
+}
 
-    ImGui::hotkey("Toggle Key", config->chamsToggleKey, 80.0f);
-    ImGui::hotkey("Hold Key", config->chamsHoldKey, 80.0f);
+void GUI::renderNetworkWindow() noexcept
+{
+    Tickbase::drawGUI(true);
+}
+
+void GUI::renderGlowWindow() noexcept
+{
+    Glow::drawGUI(true);
+}
+
+void GUI::renderChamsWindow() noexcept
+{
+    ImGui::hotkey("Toggle Key", config->chamsToggleKey, 110.0f);
+    ImGui::hotkey("Hold Key", config->chamsHoldKey, 110.0f);
     ImGui::Separator();
 
     static int currentCategory{ 0 };
@@ -486,24 +643,41 @@ void GUI::renderChamsWindow(bool contentOnly) noexcept
     ImGui::Checkbox("Cover", &chams.cover);
     ImGui::Checkbox("Ignore-Z", &chams.ignorez);
     ImGuiCustom::colorPicker("Color", chams);
-
-    if (!contentOnly) {
-        ImGui::End();
-    }
 }
 
-void GUI::renderStyleWindow(bool contentOnly) noexcept
+void GUI::renderESPWindow() noexcept
 {
-    if (!contentOnly) {
-        if (!window.style)
-            return;
-        ImGui::SetNextWindowSize({ 0.0f, 0.0f });
-        ImGui::Begin("Style", &window.style, windowFlags);
-    }
+    StreamProofESP::drawGUI(true);
+}
 
+void GUI::renderVisualsWindow() noexcept
+{
+    Visuals::drawGUI(true);
+}
+
+void GUI::renderInventoryWindow() noexcept
+{ 
+    InventoryChanger::drawGUI(true);
+}
+
+void GUI::renderSoundWindow() noexcept
+{
+    Sound::drawGUI(true);
+}
+
+void GUI::renderMiscWindow() noexcept
+{
+    Misc::drawGUI(true);
+}
+
+void GUI::renderTrollWindow() noexcept
+{
+    Troll::drawGUI(true);
+}
+
+void GUI::renderStyleWindow() noexcept
+{
     ImGui::PushItemWidth(150.0f);
-    if (ImGui::Combo("Menu style", &config->style.menuStyle, "Classic\0One window\0"))
-        window = { };
     if (ImGui::Combo("Menu colors", &config->style.menuColors, "Dark\0Light\0Classic\0Custom\0"))
         updateColors();
     ImGui::PopItemWidth();
@@ -516,23 +690,10 @@ void GUI::renderStyleWindow(bool contentOnly) noexcept
             ImGuiCustom::colorPicker(ImGui::GetStyleColorName(i), (float*)&style.Colors[i], &style.Colors[i].w);
         }
     }
-
-    if (!contentOnly)
-        ImGui::End();
 }
 
-void GUI::renderConfigWindow(bool contentOnly) noexcept
+void GUI::renderConfigWindow() noexcept
 {
-    if (!contentOnly) {
-        if (!window.config)
-            return;
-        ImGui::SetNextWindowSize({ 320.0f, 0.0f });
-        if (!ImGui::Begin("Config", &window.config, windowFlags)) {
-            ImGui::End();
-            return;
-        }
-    }
-
     ImGui::Columns(2, nullptr, false);
     ImGui::SetColumnOffset(1, 170.0f);
 
@@ -562,7 +723,7 @@ void GUI::renderConfigWindow(bool contentOnly) noexcept
         *out_text = (const char*)vector[idx].c_str();
         return true;
         }, &configItems, configItems.size(), 5) && currentConfig != -1)
-            buffer = configItems[currentConfig];
+        buffer = configItems[currentConfig];
 
         ImGui::PushID(0);
         if (ImGui::InputTextWithHint("", "config name", &buffer, ImGuiInputTextFlags_EnterReturnsTrue)) {
@@ -584,26 +745,26 @@ void GUI::renderConfigWindow(bool contentOnly) noexcept
             ImGui::OpenPopup("Config to reset");
 
         if (ImGui::BeginPopup("Config to reset")) {
-            static constexpr const char* names[]{ "Whole", "Aimbot", "Triggerbot", "Backtrack", "Anti aim", "Glow", "Chams", "ESP", "Visuals", "Inventory Changer", "Sound", "Style", "Misc", "Troll", "TickFucker"};
+            static constexpr const char* names[]{ "Whole", "Aimbot", "Triggerbot", "Backtrack", "Anti aim", "Glow", "Chams", "ESP", "Visuals", "Inventory Changer", "Sound", "Style", "Misc", "Troll", "TickFucker" };
             for (int i = 0; i < IM_ARRAYSIZE(names); i++) {
                 if (i == 1) ImGui::Separator();
 
                 if (ImGui::Selectable(names[i])) {
                     switch (i) {
-                        case 0: config->reset(); updateColors(); Misc::updateClanTag(true); InventoryChanger::scheduleHudUpdate(); break;
-                        case 1: config->aimbot = { }; break;
-                        case 2: config->triggerbot = { }; break;
-                        case 3: Backtrack::resetConfig(); break;
-                        case 4: AntiAim::resetConfig(); break;
-                        case 5: Glow::resetConfig(); break;
-                        case 6: config->chams = { }; break;
-                        case 7: config->streamProofESP = { }; break;
-                        case 8: Visuals::resetConfig(); break;
-                        case 9: InventoryChanger::resetConfig(); InventoryChanger::scheduleHudUpdate(); break;
-                        case 10: Sound::resetConfig(); break;
-                        case 11: config->style = { }; updateColors(); break;
-                        case 12: Troll::resetConfig(); break;
-                        case 13: Tickbase::resetConfig(); break;
+                    case 0: config->reset(); updateColors(); Misc::updateClanTag(true); InventoryChanger::scheduleHudUpdate(); break;
+                    case 1: config->aimbot = { }; break;
+                    case 2: config->triggerbot = { }; break;
+                    case 3: Backtrack::resetConfig(); break;
+                    case 4: AntiAim::resetConfig(); break;
+                    case 5: Glow::resetConfig(); break;
+                    case 6: config->chams = { }; break;
+                    case 7: config->streamProofESP = { }; break;
+                    case 8: Visuals::resetConfig(); break;
+                    case 9: InventoryChanger::resetConfig(); InventoryChanger::scheduleHudUpdate(); break;
+                    case 10: Sound::resetConfig(); break;
+                    case 11: config->style = { }; updateColors(); break;
+                    case 12: Troll::resetConfig(); break;
+                    case 13: Tickbase::resetConfig(); break;
                     }
                 }
             }
@@ -628,47 +789,4 @@ void GUI::renderConfigWindow(bool contentOnly) noexcept
             }
         }
         ImGui::Columns(1);
-        if (!contentOnly)
-            ImGui::End();
-}
-
-void GUI::renderGuiStyle2() noexcept
-{
-    ImGui::Begin("Spatial", nullptr, windowFlags | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize);
-
-    if (ImGui::BeginTabBar("TabBar", ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_FittingPolicyScroll | ImGuiTabBarFlags_NoTooltip)) {
-        if (ImGui::BeginTabItem("Aimbot")) {
-            renderAimbotWindow(true);
-            ImGui::EndTabItem();
-        }
-        AntiAim::tabItem();
-        if (ImGui::BeginTabItem("Triggerbot")) {
-            renderTriggerbotWindow(true);
-            ImGui::EndTabItem();
-        }
-        Backtrack::tabItem();
-        Tickbase::tabItem();
-        Glow::tabItem();
-        if (ImGui::BeginTabItem("Chams")) {
-            renderChamsWindow(true);
-            ImGui::EndTabItem();
-        }
-        StreamProofESP::tabItem();
-        Visuals::tabItem();
-        InventoryChanger::tabItem();
-        Sound::tabItem();
-        if (ImGui::BeginTabItem("Style")) {
-            renderStyleWindow(true);
-            ImGui::EndTabItem();
-        }
-        Misc::tabItem();
-        Troll::tabItem();
-        if (ImGui::BeginTabItem("Config")) {
-            renderConfigWindow(true);
-            ImGui::EndTabItem();
-        }
-        ImGui::EndTabBar();
-    }
-
-    ImGui::End();
 }

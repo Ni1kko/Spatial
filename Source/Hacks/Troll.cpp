@@ -208,6 +208,8 @@ void Troll::drawGUI(bool contentOnly) noexcept
     ImGui::PushItemWidth(220.0f);
     ImGui::SliderFloat("Range", &trollConfig.doorSpamRange, 0, 500, "%.0f meters");
     ImGui::PopItemWidth();
+    ImGui::Columns(1);
+
     if (!contentOnly)
         ImGui::End();
 }

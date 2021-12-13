@@ -2,6 +2,8 @@
 
 #include "../JsonForward.h"
 
+#include "../InputUtil.h"
+
 enum class FrameStage;
 class GameEvent;
 struct ImDrawList;
@@ -15,6 +17,7 @@ namespace Misc
     bool shouldFixBoneMatrix() noexcept;
     bool isRadarHackOn() noexcept;
     bool isMenuKeyPressed() noexcept;
+    KeyBind menuKeyBind() noexcept;
     float maxAngleDelta() noexcept;
     float aspectRatio() noexcept;
 

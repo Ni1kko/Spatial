@@ -206,9 +206,8 @@ void Glow::drawGUI(bool contentOnly) noexcept
         ImGui::SetNextWindowSize({ 450.0f, 0.0f });
         ImGui::Begin("Glow", &glowWindowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
     }
-
-    ImGui::hotkey("Toggle Key", glowToggleKey, 80.0f);
-    ImGui::hotkey("Hold Key", glowHoldKey, 80.0f);
+    ImGui::hotkey("Toggle Key", glowToggleKey, 110.0f);
+    ImGui::hotkey("Hold Key", glowHoldKey, 110.0f);
     ImGui::Separator();
 
     static int currentCategory{ 0 };

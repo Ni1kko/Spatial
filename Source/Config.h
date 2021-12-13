@@ -111,8 +111,7 @@ public:
         ImFont* big;
     };
    
-    struct Style {
-        int menuStyle{ 0 };
+    struct Style { 
         int menuColors{ 0 };
     } style;
 

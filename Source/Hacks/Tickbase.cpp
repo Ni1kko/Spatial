@@ -194,7 +194,7 @@ void Tickbase::drawGUI(bool contentOnly) noexcept
     ImGui::SetNextItemWidth(90.0f);
     ImGui::InputInt("Choked packets", &netConfig.cp, 1, 5);
     netConfig.cp = std::clamp(netConfig.cp, 0, 64);
- 
+    ImGui::Columns(1);
 
     if (!contentOnly)
         ImGui::End();

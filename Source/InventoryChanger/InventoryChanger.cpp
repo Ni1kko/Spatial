@@ -759,7 +759,7 @@ void InventoryChanger::drawGUI(bool contentOnly) noexcept
     if (!contentOnly) {
         if (!windowOpen)
             return;
-        ImGui::SetNextWindowSize({ 700.0f, 400.0f });
+        ImGui::SetNextWindowSize({ 700.0f, 25.0f });
         if (!ImGui::Begin("Inventory Changer", &windowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
             ImGui::End();
             return;

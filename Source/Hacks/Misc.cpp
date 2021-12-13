@@ -181,8 +181,6 @@ struct MiscConfig {
     OffscreenEnemies offscreenEnemies;
     int forceRelayCluster{ 0 };
 } miscConfig;
-
-
 /////////////////////////////////////////////////////////////////
 // Functions
 /////////////////////////////////////////////////////////////////
@@ -212,9 +210,14 @@ bool Misc::isRadarHackOn() noexcept
     return miscConfig.radarHack;
 }
 
+KeyBind Misc::menuKeyBind() noexcept
+{
+    return miscConfig.menuKey;
+}
+
 bool Misc::isMenuKeyPressed() noexcept
 {
-    return miscConfig.menuKey.isPressed();
+    return menuKeyBind().isPressed();
 }
 
 float Misc::maxAngleDelta() noexcept
