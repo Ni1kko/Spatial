@@ -166,6 +166,7 @@ struct TrollConfig {
     int chatSpamType{ 0 };
     int chatSpamDelay{ 3 };
     KeyBind chatSpamKey;
+    std::string chatSpamCustom{ "" };
 } trollConfig;
 
 
@@ -284,9 +285,10 @@ void Troll::chatSpam(ChatSpamEvents spamEvent) noexcept
     std::string message;
     switch (trollConfig.chatSpamMode)
     {
-        case 2: message = std::string{ xorstr_("\xE2\x80\xA9"), 75}; break;
-        case 3: message = std::string{ xorstr_("\uFDFD "), 30 };  break;
-        default: message = chatSpamList[rand() % chatSpamList.size()]; break;
+        case 1:  message = chatSpamList[rand() % chatSpamList.size()]; break; //Random
+        case 2:  message = trollConfig.chatSpamCustom;                 break; //Custom
+        case 3:  message = std::string{ xorstr_("\xE2\x80\xA9"), 75};  break; //Nuke
+        case 4:  message = std::string{ xorstr_("\uFDFD "), 30 };      break; //Basmala
     }
     
     //no message
@@ -346,10 +348,17 @@ void Troll::drawGUI(bool contentOnly) noexcept
     ImGui::PopItemWidth();
     ImGui::PushItemWidth(80.0f); 
     ImGui::PushID("Spam Mode");
-    ImGui::Combo("", &trollConfig.chatSpamMode, "Off\0Random\0Nuke\0Basmala\0");
+    ImGui::Combo("", &trollConfig.chatSpamMode, "Off\0Random\0Custom\0Nuke\0Basmala\0");
     ImGui::PopID();
     ImGui::PopItemWidth();
     if (trollConfig.chatSpamMode != 0) {
+        if (trollConfig.chatSpamMode == 2) {
+            ImGui::SameLine();
+            ImGui::PushItemWidth(120.0f);
+            ImGui::PushID("Spam Custom");
+            ImGui::InputText("", &trollConfig.chatSpamCustom);
+            ImGui::PopID();
+        }
         ImGui::SameLine();
         ImGui::PushItemWidth(80.0f);
         ImGui::PushID("Spam Type");
@@ -390,6 +399,7 @@ static void from_json(const json& j, TrollConfig& m)
     read(j, xorstr_("Chat spam type"), m.chatSpamType);
     read(j, xorstr_("Chat spam key"), m.chatSpamKey);
     read(j, xorstr_("Chat spam delay"), m.chatSpamDelay);
+    read<value_t::string>(j, xorstr_("Chat spam custom"), m.chatSpamCustom);
 }
 
 static void to_json(json& j, const TrollConfig& o)
@@ -403,6 +413,7 @@ static void to_json(json& j, const TrollConfig& o)
     WRITE(xorstr_("Chat spam type"), chatSpamType);
     WRITE(xorstr_("Chat spam key"), chatSpamKey);
     WRITE(xorstr_("Chat spam delay"), chatSpamDelay);
+    WRITE(xorstr_("Chat spam custom"), chatSpamCustom);
 }
 
 json Troll::toJson() noexcept
