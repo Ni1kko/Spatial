@@ -319,35 +319,19 @@ void Troll::tabItem() noexcept
 void Troll::drawGUI(bool contentOnly) noexcept
 {
     if (!contentOnly) {
-        if (!windowOpen)
-            return;
+        if (!windowOpen) return;
         ImGui::SetNextWindowSize({ 580.0f, 0.0f });
-        ImGui::Begin(xorstr_("Troll"), &windowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize
-            | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+        ImGui::Begin(xorstr_("Troll"), &windowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize| ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
     }
 
     //col 1
     ImGui::Columns(2, nullptr, false);
-    ImGui::SetColumnOffset(1, 280.0f); 
+    ImGui::SetColumnOffset(1, 325.0f); 
     ImGui::Checkbox("Block Bot", &trollConfig.blockbot);
     ImGui::SameLine();
     ImGui::PushID("Block Bot Key");
     ImGui::hotkey("", trollConfig.blockbotKey);
     ImGui::PopID();
-    ImGui::PushItemWidth(80.0f);
-    ImGui::Combo("Chat spam", &trollConfig.chatSpamMode, "Off\0Random\0Nuke\0Basmala\0");
-    ImGui::PopItemWidth();
-    if (trollConfig.chatSpamMode != 0) {
-        ImGui::SameLine();
-        ImGui::PushItemWidth(80.0f);
-        ImGui::Combo("Spam Type", &trollConfig.chatSpamType, "Timed\0OnKill\0OnDeath\0OnKey\0OnMVP\0OnDMG\0");
-        ImGui::PopItemWidth();
-        if (trollConfig.chatSpamType == 3) {
-            ImGui::PushID("Spam Key");
-            ImGui::hotkey("", trollConfig.chatSpamKey);
-            ImGui::PopID();
-        }
-    }
 
     //col 2
     ImGui::NextColumn();
@@ -356,6 +340,23 @@ void Troll::drawGUI(bool contentOnly) noexcept
     ImGui::PushItemWidth(220.0f);
     ImGui::SliderFloat("Range", &trollConfig.doorSpamRange, 0, 500, "%.0f meters");
     ImGui::PopItemWidth();
+    ImGui::PushItemWidth(80.0f);
+    ImGui::Combo("Spam Mode", &trollConfig.chatSpamMode, "Off\0Random\0Nuke\0Basmala\0");
+    ImGui::PopItemWidth();
+    if (trollConfig.chatSpamMode != 0) {
+        ImGui::SameLine();
+        ImGui::PushItemWidth(80.0f);
+        ImGui::PushID("Type");
+        ImGui::Combo("", &trollConfig.chatSpamType, "Timed\0OnKill\0OnDeath\0OnKey\0OnMVP\0OnDMG\0");
+        ImGui::PopID();
+        ImGui::PopItemWidth();
+        if (trollConfig.chatSpamType == 3) {
+            ImGui::SameLine();
+            ImGui::PushID("Spam Key");
+            ImGui::hotkey("", trollConfig.chatSpamKey);
+            ImGui::PopID();
+        }
+    }
 
     ImGui::Columns(1);
 
