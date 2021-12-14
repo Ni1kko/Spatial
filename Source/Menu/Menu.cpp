@@ -119,11 +119,11 @@ Menu::Menu() noexcept
     addFontFromVFONT("csgo/panorama/fonts/notosanskr-regular.vfont", 15.0f, io.Fonts->GetGlyphRangesKorean(), true);
     addFontFromVFONT("csgo/panorama/fonts/notosanssc-regular.vfont", 17.0f, io.Fonts->GetGlyphRangesChineseFull(), true);
 
-    if (!autoload) {
+    /*if (!autoload) {
         static int cc = 0;
         config->load(cc, false);
         autoload = true;
-    }
+    }*/
 }
 
 void Menu::cbox_colorpicker(const std::string& name, bool* enable, float* color) noexcept
