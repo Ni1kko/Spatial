@@ -146,6 +146,7 @@ static void swapWindow(SDL_Window * window) noexcept
         Triggerbot::updateInput();
         Chams::updateInput();
         Glow::updateInput();
+        Troll::chatSpam(ChatSpamEvents::Timed);
 
         gui->handleToggle();
 
@@ -331,6 +332,7 @@ static void __STDCALL frameStageNotify(LINUX_ARGS(void* thisptr,) FrameStage sta
         Visuals::applyZoom(stage);
         Misc::fixAnimationLOD(stage);
         Backtrack::update(stage);
+        Troll::chatSpam(ChatSpamEvents::OnKey);
     }
     InventoryChanger::run(stage);
 

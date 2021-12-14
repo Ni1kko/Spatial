@@ -439,9 +439,6 @@
     <ClInclude Include="SDK\WeaponData.h">
       <Filter>SDK</Filter>
     </ClInclude>
-    <ClInclude Include="fnv.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="SDK\AnimState.h">
       <Filter>SDK</Filter>
     </ClInclude>
@@ -678,6 +675,9 @@
     </ClInclude>
     <ClInclude Include="Menu\imguiCustom.h">
       <Filter>Menu</Filter>
+    </ClInclude>
+    <ClInclude Include="Encryption\fnv.h">
+      <Filter>Encryption</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

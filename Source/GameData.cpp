@@ -7,7 +7,8 @@
 #include <memory>
 #include <unordered_map>
 
-#include "fnv.h"
+#include <Encryption\fnv.h>
+
 #include "GameData.h"
 #include "Interfaces.h"
 #include "Memory.h"

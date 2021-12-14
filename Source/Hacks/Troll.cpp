@@ -51,6 +51,7 @@
 #include "../SDK/WeaponId.h"
 #include "../SDK/WeaponSystem.h"
 #include "../SDK/Steam.h"
+#include "../SDK/GameEvent.h"
 
 #include "../Menu/Menu.h"
 #include "../Helpers.h"
@@ -160,8 +161,10 @@ struct TrollConfig {
     bool blockbot { false };
     KeyBind blockbotKey{ KeyBind::V };
     bool doorSpam { false }; 
-    float doorSpamRange { 0.f };
-    bool chatSpam { false };
+    float doorSpamRange { 0.f }; 
+    int chatSpamMode { 0 };
+    int chatSpamType{ 0 };
+    KeyBind chatSpamKey;
 } trollConfig;
 
 
@@ -251,28 +254,45 @@ void Troll::doorSpam(UserCmd* cmd) noexcept
     }
 }
 
-void Troll::chatSpam() noexcept
+void Troll::chatSpam(ChatSpamEvents spamEvent) noexcept
 { 
-    if (!localPlayer->isAlive() || !interfaces->engine->isInGame()) return;
+    if (trollConfig.chatSpamMode == 0 || spamEvent == ChatSpamEvents::Off || !localPlayer || !interfaces->engine->isInGame()) return;
+     
+    //Timed
+    long curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    if (trollConfig.chatSpamType == 0 && (spamEvent != ChatSpamEvents::Timed || (Troll::timestamp - curTime) < 1450)) return;
+    Troll::timestamp = curTime;
 
-    if (trollConfig.chatSpam)
+    //onKill
+    if (trollConfig.chatSpamType == 1 && !localPlayer->isAlive() || spamEvent != ChatSpamEvents::OnKill) return;
+    
+    //onDeath
+    if (trollConfig.chatSpamType == 2 && localPlayer->isAlive() || spamEvent != ChatSpamEvents::OnDeath) return;
+
+    //onKey
+    if (trollConfig.chatSpamType == 3 && !trollConfig.chatSpamKey.isPressed()) return;
+
+    //OnMVP
+    if (trollConfig.chatSpamType == 4 && spamEvent != ChatSpamEvents::OnMVP) return;
+
+    //OnDMG
+    if (trollConfig.chatSpamType == 5 && spamEvent != ChatSpamEvents::OnDMG) return;
+      
+    //message
+    std::srand(time(NULL));
+    std::string message;
+    switch (trollConfig.chatSpamMode)
     {
-        //current time
-        long curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-
-        //not ready yet
-        if (Troll::timestamp + 1450 > curTime) return;
-        
-        //update timestamp
-        Troll::timestamp = curTime;
-         
-        //get random message
-        std::srand(time(NULL));
-        std::string message = chatSpamList[rand() % chatSpamList.size()];
-        
-        //excute command
-        Helpers::excuteSayCommand(message.c_str());
+        case 2: message = xorstr_("\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9"); break;
+        case 3: message = xorstr_("\uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD"); break;
+        default: message = chatSpamList[rand() % chatSpamList.size()]; break;
     }
+    
+    //no message
+    if (message.empty()) return;
+
+    //excute command
+    Helpers::excuteSayCommand(message.c_str());
 }
 
 /////////////////////////////////////////////////////////////////
@@ -308,12 +328,26 @@ void Troll::drawGUI(bool contentOnly) noexcept
 
     //col 1
     ImGui::Columns(2, nullptr, false);
-    ImGui::SetColumnOffset(1, 230.0f); 
+    ImGui::SetColumnOffset(1, 280.0f); 
     ImGui::Checkbox("Block Bot", &trollConfig.blockbot);
     ImGui::SameLine();
     ImGui::PushID("Block Bot Key");
     ImGui::hotkey("", trollConfig.blockbotKey);
     ImGui::PopID();
+    ImGui::PushItemWidth(80.0f);
+    ImGui::Combo("Chat spam", &trollConfig.chatSpamMode, "Off\0Random\0Nuke\0Basmala\0");
+    ImGui::PopItemWidth();
+    if (trollConfig.chatSpamMode != 0) {
+        ImGui::SameLine();
+        ImGui::PushItemWidth(80.0f);
+        ImGui::Combo("Spam Type", &trollConfig.chatSpamType, "Timed\0OnKill\0OnDeath\0OnKey\0OnMVP\0OnDMG\0");
+        ImGui::PopItemWidth();
+        if (trollConfig.chatSpamType == 3) {
+            ImGui::PushID("Spam Key");
+            ImGui::hotkey("", trollConfig.chatSpamKey);
+            ImGui::PopID();
+        }
+    }
 
     //col 2
     ImGui::NextColumn();
@@ -322,7 +356,6 @@ void Troll::drawGUI(bool contentOnly) noexcept
     ImGui::PushItemWidth(220.0f);
     ImGui::SliderFloat("Range", &trollConfig.doorSpamRange, 0, 500, "%.0f meters");
     ImGui::PopItemWidth();
-    ImGui::Checkbox("Chat spam", &trollConfig.chatSpam);
 
     ImGui::Columns(1);
 
@@ -340,7 +373,9 @@ static void from_json(const json& j, TrollConfig& m)
     read(j, xorstr_("Slowwalk key"), m.blockbotKey);
     read(j, xorstr_("Door spam"), m.doorSpam);
     read(j, xorstr_("Door spam range"), m.doorSpamRange);
-    read(j, xorstr_("Chat spam"), m.chatSpam);
+    read(j, xorstr_("Chat spam mode"), m.chatSpamMode);
+    read(j, xorstr_("Chat spam type"), m.chatSpamType);
+    read(j, xorstr_("Chat spam key"), m.chatSpamKey);
 }
 
 static void to_json(json& j, const TrollConfig& o)
@@ -350,7 +385,9 @@ static void to_json(json& j, const TrollConfig& o)
     WRITE(xorstr_("Block Bot Key"), blockbotKey);
     WRITE(xorstr_("Door spam"), doorSpam);
     WRITE(xorstr_("Door spam range"), doorSpamRange);
-    WRITE(xorstr_("Chat spam"), chatSpam);
+    WRITE(xorstr_("Chat spam mode"), chatSpamMode);
+    WRITE(xorstr_("Chat spam type"), chatSpamType);
+    WRITE(xorstr_("Chat spam key"), chatSpamKey);
 }
 
 json Troll::toJson() noexcept

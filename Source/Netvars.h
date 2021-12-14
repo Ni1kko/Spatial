@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <type_traits>
 
-#include "fnv.h"
+#include "Encryption/fnv.h"
 
 namespace Netvars
 {

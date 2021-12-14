@@ -207,9 +207,9 @@
     <ClInclude Include="Encryption\cx_fnv1.h" />
     <ClInclude Include="Encryption\cx_pcg32.h" />
     <ClInclude Include="Encryption\cx_strenc.h" />
+    <ClInclude Include="Encryption\fnv.h" />
     <ClInclude Include="Encryption\xorstr.hpp" />
     <ClInclude Include="EventListener.h" />
-    <ClInclude Include="fnv.h" />
     <ClInclude Include="freetype\freetype\config\ftmodule.h" />
     <ClInclude Include="freetype\freetype\config\ftoption.h" />
     <ClInclude Include="GameData.h" />
