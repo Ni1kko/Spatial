@@ -164,7 +164,7 @@ struct TrollConfig {
     float doorSpamRange { 0.f }; 
     int chatSpamMode { 0 };
     int chatSpamType{ 0 };
-    int chatSpamDelay{ 1450 };
+    int chatSpamDelay{ 3 };
     KeyBind chatSpamKey;
 } trollConfig;
 
@@ -261,7 +261,7 @@ void Troll::chatSpam(ChatSpamEvents spamEvent) noexcept
      
     //Timed
     long curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-    if (trollConfig.chatSpamType == 0 && (spamEvent != ChatSpamEvents::Timed || (Troll::timestamp - curTime) < (trollConfig.chatSpamDelay * 1000))) return;
+    if ((trollConfig.chatSpamType == 0 || trollConfig.chatSpamType == 3) && (spamEvent != ChatSpamEvents::Timed || spamEvent != ChatSpamEvents::OnKey || ((Troll::timestamp - curTime) < (trollConfig.chatSpamType == 3 && (spamEvent == ChatSpamEvents::OnKey ? 1 : trollConfig.chatSpamDelay) * 1000)))) return;
     Troll::timestamp = curTime;
 
     //onKill
@@ -272,7 +272,7 @@ void Troll::chatSpam(ChatSpamEvents spamEvent) noexcept
 
     //onKey
     if (trollConfig.chatSpamType == 3 && (spamEvent != ChatSpamEvents::OnKey || !trollConfig.chatSpamKey.isDown())) return;
-
+    
     //OnMVP
     if (trollConfig.chatSpamType == 4 && spamEvent != ChatSpamEvents::OnMVP) return;
 
@@ -340,30 +340,36 @@ void Troll::drawGUI(bool contentOnly) noexcept
     ImGui::Checkbox("Door spam", &trollConfig.doorSpam);
     ImGui::SameLine();
     ImGui::PushItemWidth(220.0f);
-    ImGui::SliderFloat("Range", &trollConfig.doorSpamRange, 0, 500, "%.0f meters");
+    ImGui::PushID("Door spam range");
+    ImGui::SliderFloat("", &trollConfig.doorSpamRange, 0, 500, "Range (%.0f) meters");
+    ImGui::PopID();
     ImGui::PopItemWidth();
-    ImGui::PushItemWidth(80.0f);
-    ImGui::Spacing();
+    ImGui::PushItemWidth(80.0f); 
+    ImGui::PushID("Spam Mode");
     ImGui::Combo("", &trollConfig.chatSpamMode, "Off\0Random\0Nuke\0Basmala\0");
+    ImGui::PopID();
     ImGui::PopItemWidth();
     if (trollConfig.chatSpamMode != 0) {
         ImGui::SameLine();
         ImGui::PushItemWidth(80.0f);
-        ImGui::PushID("Type");
+        ImGui::PushID("Spam Type");
         ImGui::Combo("", &trollConfig.chatSpamType, "Timed\0OnKill\0OnDeath\0OnKey\0OnMVP\0OnDMG\0");
         ImGui::PopID();
         ImGui::PopItemWidth();
-        if (trollConfig.chatSpamType == 3) {
+        if(trollConfig.chatSpamType == 0) {
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(140.0f);
+            ImGui::PushID("Spam Delay");
+            ImGui::SliderInt("", &trollConfig.chatSpamDelay, 1, 180, "Delay (%.0d) seconds");
+            ImGui::PopID();
+        } else if (trollConfig.chatSpamType == 3) {
             ImGui::SameLine();
             ImGui::PushID("Spam Key");
             ImGui::hotkey("", trollConfig.chatSpamKey);
             ImGui::PopID();
         }
-        ImGui::SameLine();
-        ImGui::SliderInt("Delay", &trollConfig.chatSpamDelay, 1, 180, "%.0d seconds");
     }
-    ImGui::Spacing();
-
+     
     ImGui::Columns(1);
 
     if (!contentOnly)
