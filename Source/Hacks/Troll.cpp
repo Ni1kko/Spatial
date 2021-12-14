@@ -261,7 +261,7 @@ void Troll::chatSpam(ChatSpamEvents spamEvent) noexcept
      
     //Timed
     long curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-    if ((trollConfig.chatSpamType == 0 || trollConfig.chatSpamType == 3) && (spamEvent != ChatSpamEvents::Timed || spamEvent != ChatSpamEvents::OnKey || ((Troll::timestamp - curTime) < (trollConfig.chatSpamType == 3 && (spamEvent == ChatSpamEvents::OnKey ? 1 : trollConfig.chatSpamDelay) * 1000)))) return;
+    if (trollConfig.chatSpamType == 0 && (spamEvent != ChatSpamEvents::Timed || Troll::timestamp - curTime < trollConfig.chatSpamType == 3 && trollConfig.chatSpamDelay * 1000)) return;
     Troll::timestamp = curTime;
 
     //onKill
@@ -271,7 +271,7 @@ void Troll::chatSpam(ChatSpamEvents spamEvent) noexcept
     if (trollConfig.chatSpamType == 2 && (spamEvent != ChatSpamEvents::OnDeath || localPlayer->isAlive())) return;
 
     //onKey
-    if (trollConfig.chatSpamType == 3 && (spamEvent != ChatSpamEvents::OnKey || !trollConfig.chatSpamKey.isDown())) return;
+    if (trollConfig.chatSpamType == 3 && (spamEvent != ChatSpamEvents::OnKey || !trollConfig.chatSpamKey.isPressed())) return;
     
     //OnMVP
     if (trollConfig.chatSpamType == 4 && spamEvent != ChatSpamEvents::OnMVP) return;
@@ -284,8 +284,8 @@ void Troll::chatSpam(ChatSpamEvents spamEvent) noexcept
     std::string message;
     switch (trollConfig.chatSpamMode)
     {
-        case 2: message = xorstr_("\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9"); break;
-        case 3: message = xorstr_("\uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD"); break;
+        case 2: message = std::string{ xorstr_("\xE2\x80\xA9"), 75}; break;
+        case 3: message = std::string{ xorstr_("\uFDFD "), 30 };  break;
         default: message = chatSpamList[rand() % chatSpamList.size()]; break;
     }
     
