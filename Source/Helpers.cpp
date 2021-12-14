@@ -15,6 +15,8 @@
 #include <SDL2/SDL_messagebox.h>
 #endif
 
+#include "xorstr.hpp"
+
 #include "imgui/imgui.h"
 
 #include "ConfigStructs.h"
@@ -245,4 +247,28 @@ Vector Helpers::calculateRelativeAngle(const Vector& source, const Vector& desti
     Vector delta = destination - source;
     Vector angles{ Helpers::rad2deg(atan2f(-delta.z, std::hypotf(delta.x, delta.y))), Helpers::rad2deg(atan2f(delta.y, delta.x)), 0.f };
     return angles.normalize();;
+}
+
+
+const char* Helpers::getColorByte(ColorByte colorByte)  noexcept
+{
+    switch (colorByte) {
+        case ColorByte::Invisible: return std::string{ xorstr_("\n") }.append(xorstr_("\xAD")).append(xorstr_("\xAD")).append(xorstr_("\xAD")).c_str();/*INVISIBLE*/
+        case ColorByte::White: return xorstr_("\x01");/*WHITE*/
+        case ColorByte::Red: return xorstr_("\x02");/*RED*/
+        case ColorByte::Purple: return xorstr_("\x03");/*PURPLE*/
+        case ColorByte::Green: return xorstr_("\x04");/*GREEN*/
+        case ColorByte::LightGreen: return xorstr_("\x05");/*LIGHT GREEN*/
+        case ColorByte::Turquoise: return xorstr_("\x06");/*TURQUOISE*/
+        case ColorByte::LightRed: return xorstr_("\x07");/*LIGHT RED*/
+        case ColorByte::Grey: return xorstr_("\x08");/*GRAY*/
+        case ColorByte::Yellow: return xorstr_("\x09");/*YELLOW*/
+        case ColorByte::Orange: return xorstr_("\x10");/*ORANGE*/
+        case ColorByte::LightGrey: return xorstr_("\x0A");/*LIGHT GRAY*/
+        case ColorByte::LightBlue: return xorstr_("\x0B");/*LIGHT BLUE*/
+        case ColorByte::GreyPurpleForSpectaor: return xorstr_("\x0C");/*GRAY (PURPLE FOR SPEC)*/
+        case ColorByte::Blue: return xorstr_("\x0D");/*BLUE*/
+        case ColorByte::Pink: return xorstr_("\x0E");/*PINK*/
+        case ColorByte::DarkOrange: return xorstr_("\x0F");/*DARK ORANGE*/
+    };
 }

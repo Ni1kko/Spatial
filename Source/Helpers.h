@@ -17,6 +17,27 @@ struct Color3;
 struct Color4;
 struct Vector;
 
+enum ColorByte
+{  
+    Invisible = 0,
+    White,
+    Red,
+    Purple,
+    Green,
+    LightGreen,
+    Turquoise,
+    LightRed,
+    Grey,
+    LightGrey,
+    LightBlue,
+    Yellow,
+    Orange,
+    GreyPurpleForSpectaor,
+    Blue,
+    Pink,
+    DarkOrange
+};
+
 namespace Helpers
 {
     unsigned int calculateColor(Color4 color) noexcept;
@@ -72,6 +93,7 @@ namespace Helpers
     }
     void messageBox(std::string_view title, std::string_view msg, const int type = 0) noexcept;
     Vector calculateRelativeAngle(const Vector& source, const Vector& destination) noexcept;
+    const char* getColorByte(ColorByte colorByte) noexcept;
     bool worldToScreen(const Vector& worldPosition, ImVec2& screenPosition) noexcept;
     bool worldToScreenPixelAligned(const Vector& worldPosition, ImVec2& screenPosition) noexcept;
 
