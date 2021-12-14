@@ -164,6 +164,7 @@ struct TrollConfig {
     float doorSpamRange { 0.f }; 
     int chatSpamMode { 0 };
     int chatSpamType{ 0 };
+    int chatSpamDelay{ 1450 };
     KeyBind chatSpamKey;
 } trollConfig;
 
@@ -260,17 +261,17 @@ void Troll::chatSpam(ChatSpamEvents spamEvent) noexcept
      
     //Timed
     long curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-    if (trollConfig.chatSpamType == 0 && (spamEvent != ChatSpamEvents::Timed || (Troll::timestamp - curTime) < 1450)) return;
+    if (trollConfig.chatSpamType == 0 && (spamEvent != ChatSpamEvents::Timed || (Troll::timestamp - curTime) < (trollConfig.chatSpamDelay * 1000))) return;
     Troll::timestamp = curTime;
 
     //onKill
-    if (trollConfig.chatSpamType == 1 && !localPlayer->isAlive() || spamEvent != ChatSpamEvents::OnKill) return;
+    if (trollConfig.chatSpamType == 1 && (spamEvent != ChatSpamEvents::OnKill || !localPlayer->isAlive())) return;
     
     //onDeath
-    if (trollConfig.chatSpamType == 2 && localPlayer->isAlive() || spamEvent != ChatSpamEvents::OnDeath) return;
+    if (trollConfig.chatSpamType == 2 && (spamEvent != ChatSpamEvents::OnDeath || localPlayer->isAlive())) return;
 
     //onKey
-    if (trollConfig.chatSpamType == 3 && !trollConfig.chatSpamKey.isPressed()) return;
+    if (trollConfig.chatSpamType == 3 && (spamEvent != ChatSpamEvents::OnKey || !trollConfig.chatSpamKey.isDown())) return;
 
     //OnMVP
     if (trollConfig.chatSpamType == 4 && spamEvent != ChatSpamEvents::OnMVP) return;
@@ -332,6 +333,7 @@ void Troll::drawGUI(bool contentOnly) noexcept
     ImGui::PushID("Block Bot Key");
     ImGui::hotkey("", trollConfig.blockbotKey);
     ImGui::PopID();
+    ImGui::Spacing();
 
     //col 2
     ImGui::NextColumn();
@@ -341,7 +343,8 @@ void Troll::drawGUI(bool contentOnly) noexcept
     ImGui::SliderFloat("Range", &trollConfig.doorSpamRange, 0, 500, "%.0f meters");
     ImGui::PopItemWidth();
     ImGui::PushItemWidth(80.0f);
-    ImGui::Combo("Spam Mode", &trollConfig.chatSpamMode, "Off\0Random\0Nuke\0Basmala\0");
+    ImGui::Spacing();
+    ImGui::Combo("", &trollConfig.chatSpamMode, "Off\0Random\0Nuke\0Basmala\0");
     ImGui::PopItemWidth();
     if (trollConfig.chatSpamMode != 0) {
         ImGui::SameLine();
@@ -356,7 +359,10 @@ void Troll::drawGUI(bool contentOnly) noexcept
             ImGui::hotkey("", trollConfig.chatSpamKey);
             ImGui::PopID();
         }
+        ImGui::SameLine();
+        ImGui::SliderInt("Delay", &trollConfig.chatSpamDelay, 1, 180, "%.0d seconds");
     }
+    ImGui::Spacing();
 
     ImGui::Columns(1);
 
@@ -377,6 +383,7 @@ static void from_json(const json& j, TrollConfig& m)
     read(j, xorstr_("Chat spam mode"), m.chatSpamMode);
     read(j, xorstr_("Chat spam type"), m.chatSpamType);
     read(j, xorstr_("Chat spam key"), m.chatSpamKey);
+    read(j, xorstr_("Chat spam delay"), m.chatSpamDelay);
 }
 
 static void to_json(json& j, const TrollConfig& o)
@@ -389,6 +396,7 @@ static void to_json(json& j, const TrollConfig& o)
     WRITE(xorstr_("Chat spam mode"), chatSpamMode);
     WRITE(xorstr_("Chat spam type"), chatSpamType);
     WRITE(xorstr_("Chat spam key"), chatSpamKey);
+    WRITE(xorstr_("Chat spam delay"), chatSpamDelay);
 }
 
 json Troll::toJson() noexcept
