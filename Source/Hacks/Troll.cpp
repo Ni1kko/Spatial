@@ -257,21 +257,21 @@ void Troll::doorSpam(UserCmd* cmd) noexcept
 }
 
 void Troll::chatSpam(ChatSpamEvents spamEvent) noexcept
-{ 
+{
     //off
     if (trollConfig.chatSpamMode == 0 || spamEvent == ChatSpamEvents::Off || !localPlayer || !interfaces->engine->isConnected() || !interfaces->engine->isInGame()) return;
      
     //timed
-    if (trollConfig.chatSpamType == 0 && (spamEvent != ChatSpamEvents::Timed || Troll::timestamp - Helpers::getCurrentTime() < trollConfig.chatSpamDelay * 1000)) return;
+    if (trollConfig.chatSpamType == 0 && (spamEvent != ChatSpamEvents::Timed || (Troll::chatTimestamp - Helpers::getCurrentTime()) > (trollConfig.chatSpamDelay * 1000))) return;
      
     //onKill
     if (trollConfig.chatSpamType == 1 && (spamEvent != ChatSpamEvents::OnKill || !localPlayer->isAlive())) return;
     
     //onDeath
     if (trollConfig.chatSpamType == 2 && (spamEvent != ChatSpamEvents::OnDeath || localPlayer->isAlive())) return;
-
+    
     //onKey
-    if (trollConfig.chatSpamType == 3 && (spamEvent != ChatSpamEvents::OnKey || !trollConfig.chatSpamKey.isPressed())) return;
+    if (trollConfig.chatSpamType == 3 && (spamEvent != ChatSpamEvents::OnKey || !trollConfig.chatSpamKey.isPressed() || (Troll::chatTimestamp - Helpers::getCurrentTime()) > 1000)) return;
     
     //OnMVP
     if (trollConfig.chatSpamType == 4 && spamEvent != ChatSpamEvents::OnMVP) return;
@@ -286,8 +286,8 @@ void Troll::chatSpam(ChatSpamEvents spamEvent) noexcept
     {
         case 1:  message = chatSpamList[rand() % chatSpamList.size()]; break; //Random
         case 2:  message = trollConfig.chatSpamCustom;                 break; //Custom
-        case 3:  message = std::string{ xorstr_("\xE2\x80\xA9"), 75};  break; //Nuke
-        case 4:  message = std::string{ xorstr_("\uFDFD "), 30 };      break; //Basmala
+        case 3:  message = xorstr_("\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9\xE2\x80\xA9"); break;
+        case 4:  message = xorstr_("\uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD \uFDFD"); break;
     }
     
     //no message
@@ -297,7 +297,7 @@ void Troll::chatSpam(ChatSpamEvents spamEvent) noexcept
     Helpers::excuteSayCommand(message.c_str());
 
     //timestamp lastrun
-    Troll::timestamp = Helpers::getCurrentTime();
+    Troll::chatTimestamp = Helpers::getCurrentTime();
 }
 
 /////////////////////////////////////////////////////////////////
