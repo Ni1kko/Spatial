@@ -11,31 +11,33 @@
 #include <Windows.h>
 #endif
 
-#include "xorstr.hpp"
+#include <imgui/imgui.h>
+#include <imgui/imgui_stdlib.h>
+#include <Menu/imguiCustom.h>
+#include <Menu/Menu.h>
 
-#include "imgui/imgui.h"
-#include "imgui/imgui_stdlib.h"
+#include <SDK/InputSystem.h>
+#include <SDK/GlobalVars.h>
 
-#include "imguiCustom.h"
-#include "Memory.h"
+#include <Encryption/xorstr.hpp>
 
-#include "GUI.h"
-#include "Config.h"
-#include "ConfigStructs.h"
-#include "Hacks/Misc.h"
-#include "InventoryChanger/InventoryChanger.h"
-#include "Helpers.h"
-#include "Interfaces.h"
-#include "SDK/InputSystem.h"
-#include "SDK/GlobalVars.h"
-#include "Hacks/Visuals.h"
-#include "Hacks/Glow.h"
-#include "Hacks/AntiAim.h"
-#include "Hacks/Backtrack.h"
-#include "Hacks/Sound.h"
-#include "Hacks/StreamProofESP.h"
-#include "Hacks/Troll.h"
-#include "Hacks/Tickbase.h"
+#include <Config.h>
+#include <ConfigStructs.h>
+#include <Helpers.h>
+#include <Interfaces.h>
+#include "../Memory.h"
+
+#include <InventoryChanger/InventoryChanger.h>
+#include <Hacks/Visuals.h>
+#include <Hacks/Glow.h>
+#include <Hacks/AntiAim.h>
+#include <Hacks/Backtrack.h>
+#include <Hacks/Sound.h>
+#include <Hacks/StreamProofESP.h>
+#include <Hacks/Misc.h>
+#include <Hacks/Troll.h>
+#include <Hacks/Tickbase.h>
+
 
 constexpr auto windowFlags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar;
 
@@ -56,16 +58,16 @@ static ImFont* addFontFromVFONT(const std::string& path, float size, const ImWch
     return ImGui::GetIO().Fonts->AddFont(&cfg);
 }
 
-void GUI::updateColors() const noexcept
+void Menu::updateColors() const noexcept
 {
     switch (config->style.menuColors) {
-    case 0: ImGui::StyleColorsDark(); break;
-    case 1: ImGui::StyleColorsLight(); break;
-    case 2: ImGui::StyleColorsClassic(); break;
+        case 0: ImGui::StyleColorsDark(); break;
+        case 1: ImGui::StyleColorsLight(); break;
+        case 2: ImGui::StyleColorsClassic(); break;
     }
 }
 
-void GUI::handleToggle() noexcept
+void Menu::handleToggle() noexcept
 {
     if (Misc::isMenuKeyPressed()) {
         open = !open;
@@ -77,7 +79,7 @@ void GUI::handleToggle() noexcept
     }
 }
 
-GUI::GUI() noexcept
+Menu::Menu() noexcept
 {
     ImGui::StyleColorsDark();
     ImGuiStyle& style = ImGui::GetStyle();
@@ -117,14 +119,14 @@ GUI::GUI() noexcept
     addFontFromVFONT("csgo/panorama/fonts/notosanskr-regular.vfont", 15.0f, io.Fonts->GetGlyphRangesKorean(), true);
     addFontFromVFONT("csgo/panorama/fonts/notosanssc-regular.vfont", 17.0f, io.Fonts->GetGlyphRangesChineseFull(), true);
 
-    /*if (!autoload) {
+    if (!autoload) {
         static int cc = 0;
         config->load(cc, false);
         autoload = true;
-    }*/
+    }
 }
 
-void GUI::cbox_colorpicker(const std::string& name, bool* enable, float* color) noexcept
+void Menu::cbox_colorpicker(const std::string& name, bool* enable, float* color) noexcept
 {
     ImGui::Checkbox(("##" + name).c_str(), enable);
     ImGui::SameLine(0.0f, 5.0f);
@@ -145,7 +147,7 @@ void GUI::cbox_colorpicker(const std::string& name, bool* enable, float* color) 
     ImGui::PopID();
 }
 
-void GUI::change_keybind(int& key) noexcept
+void Menu::change_keybind(int& key) noexcept
 {
     key ? ImGui::Text(xorstr_("[ 0x%x ]"), key) : ImGui::TextUnformatted(xorstr_("[ key ]"));
     if (ImGui::IsItemHovered()) {
@@ -157,15 +159,15 @@ void GUI::change_keybind(int& key) noexcept
         for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++) {
             if (ImGui::IsMouseDown(i) /* && i + (i > 1 ? 2 : 1) != Misc::menuKeyBind()*/) key = i + (i > 1 ? 2 : 1);
         }
-    }
+    };
 }
 
-void GUI::showTooltip(const char* Tooltip) noexcept
+void Menu::showTooltip(const char* Tooltip) noexcept
 {
     if (ImGui::IsItemHovered()) ImGui::SetTooltip(Tooltip);
 }
 
-void GUI::showAlert(bool display, std::string title, std::string message) noexcept
+void Menu::showAlert(bool display, std::string title, std::string message) noexcept
 {
     static float cur_time{ 0.f };
 
@@ -203,7 +205,12 @@ void GUI::showAlert(bool display, std::string title, std::string message) noexce
 
 }
 
-void GUI::render() noexcept
+void Menu::clearAlerts() noexcept
+{
+    alerts_notification.clear();
+}
+
+void Menu::render() noexcept
 {
     renderAlerts();
     ImGui::Begin(xorstr_("Spatial"), &open, windowFlags); {
@@ -214,7 +221,7 @@ void GUI::render() noexcept
     ImGui::End();
 }
 
-void GUI::renderAlerts() noexcept
+void Menu::renderAlerts() noexcept
 {
     int adjust_height = 5;
 
@@ -253,13 +260,13 @@ void GUI::renderAlerts() noexcept
                     if (&isAlertOpen && ImGui::MenuItem("Close"))*&isAlertOpen = false;
                     ImGui::EndPopup();
                 }
-            }
+            };
             ImGui::End();
         }
     }
 }
 
-void GUI::renderNodes() noexcept
+void Menu::renderNodes() noexcept
 {
     if (ImGui::TreeNode(xorstr_("Aim"))) {
         renderAimbotWindow();
@@ -323,7 +330,7 @@ void GUI::renderNodes() noexcept
     }
 }
 
-void GUI::renderAimbotWindow() noexcept
+void Menu::renderAimbotWindow() noexcept
 {
     ImGui::Checkbox("On key", &config->aimbotOnKey);
     ImGui::SameLine();
@@ -458,12 +465,12 @@ void GUI::renderAimbotWindow() noexcept
     ImGui::Columns(1);
 }
 
-void GUI::renderAntiAimWindow() noexcept
+void Menu::renderAntiAimWindow() noexcept
 {
     AntiAim::drawGUI(true);
 }
 
-void GUI::renderTriggerbotWindow() noexcept
+void Menu::renderTriggerbotWindow() noexcept
 {
     static int currentCategory{ 0 };
     ImGui::PushItemWidth(110.0f);
@@ -579,22 +586,22 @@ void GUI::renderTriggerbotWindow() noexcept
     ImGui::SliderFloat("Burst Time", &config->triggerbot[currentWeapon].burstTime, 0.0f, 0.5f, "%.3f s");
 }
 
-void GUI::renderBackTrackWindow() noexcept
+void Menu::renderBackTrackWindow() noexcept
 {
     Backtrack::drawGUI(true);
 }
 
-void GUI::renderNetworkWindow() noexcept
+void Menu::renderNetworkWindow() noexcept
 {
     Tickbase::drawGUI(true);
 }
 
-void GUI::renderGlowWindow() noexcept
+void Menu::renderGlowWindow() noexcept
 {
     Glow::drawGUI(true);
 }
 
-void GUI::renderChamsWindow() noexcept
+void Menu::renderChamsWindow() noexcept
 {
     ImGui::hotkey("Toggle Key", config->chamsToggleKey, 110.0f);
     ImGui::hotkey("Hold Key", config->chamsHoldKey, 110.0f);
@@ -645,37 +652,37 @@ void GUI::renderChamsWindow() noexcept
     ImGuiCustom::colorPicker("Color", chams);
 }
 
-void GUI::renderESPWindow() noexcept
+void Menu::renderESPWindow() noexcept
 {
     StreamProofESP::drawGUI(true);
 }
 
-void GUI::renderVisualsWindow() noexcept
+void Menu::renderVisualsWindow() noexcept
 {
     Visuals::drawGUI(true);
 }
 
-void GUI::renderInventoryWindow() noexcept
+void Menu::renderInventoryWindow() noexcept
 { 
     InventoryChanger::drawGUI(true);
 }
 
-void GUI::renderSoundWindow() noexcept
+void Menu::renderSoundWindow() noexcept
 {
     Sound::drawGUI(true);
 }
 
-void GUI::renderMiscWindow() noexcept
+void Menu::renderMiscWindow() noexcept
 {
     Misc::drawGUI(true);
 }
 
-void GUI::renderTrollWindow() noexcept
+void Menu::renderTrollWindow() noexcept
 {
     Troll::drawGUI(true);
 }
 
-void GUI::renderStyleWindow() noexcept
+void Menu::renderStyleWindow() noexcept
 {
     ImGui::PushItemWidth(150.0f);
     if (ImGui::Combo("Menu colors", &config->style.menuColors, "Dark\0Light\0Classic\0Custom\0"))
@@ -692,7 +699,7 @@ void GUI::renderStyleWindow() noexcept
     }
 }
 
-void GUI::renderConfigWindow() noexcept
+void Menu::renderConfigWindow() noexcept
 {
     ImGui::Columns(2, nullptr, false);
     ImGui::SetColumnOffset(1, 170.0f);

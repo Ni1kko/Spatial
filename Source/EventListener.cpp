@@ -1,7 +1,7 @@
 #include <cassert>
 #include <utility>
 
-#include "xorstr.hpp"
+#include "Encryption/xorstr.hpp"
 #include "EventListener.h"
 #include "fnv.h"
 #include "GameData.h"

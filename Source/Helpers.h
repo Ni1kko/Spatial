@@ -94,6 +94,7 @@ namespace Helpers
     void messageBox(std::string_view title, std::string_view msg, const int type = 0) noexcept;
     Vector calculateRelativeAngle(const Vector& source, const Vector& destination) noexcept;
     const char* getColorByte(ColorByte colorByte) noexcept;
+    void excuteSayCommand(const char* message, bool fromConsoleOrKeybind = false) noexcept;
     bool worldToScreen(const Vector& worldPosition, ImVec2& screenPosition) noexcept;
     bool worldToScreenPixelAligned(const Vector& worldPosition, ImVec2& screenPosition) noexcept;
 

@@ -16,9 +16,9 @@ struct alerts_struct {
 };
 
 
-class GUI {
+class Menu {
 public:
-    GUI() noexcept;
+    Menu() noexcept;
     void render() noexcept;
     void handleToggle() noexcept;
     [[nodiscard]] bool isOpen() const noexcept { return open; }
@@ -74,4 +74,4 @@ private:
     float timeToNextConfigRefresh = 0.1f;
 };
 
-inline std::unique_ptr<GUI> gui;
+inline std::unique_ptr<Menu> gui;

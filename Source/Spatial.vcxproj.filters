@@ -42,11 +42,14 @@
     <Filter Include="VMP">
       <UniqueIdentifier>{708037d4-cdb2-4d28-9786-839c061cd25e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Encryption">
+      <UniqueIdentifier>{cb3a6c20-467c-4618-90ce-ed0df78af3e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Menu">
+      <UniqueIdentifier>{f65b98f4-2aed-4a1f-9322-fefbb68b95f1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="GUI.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="imgui\imgui.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
@@ -106,9 +109,6 @@
     </ClCompile>
     <ClCompile Include="Hacks\AntiAim.cpp">
       <Filter>Hacks</Filter>
-    </ClCompile>
-    <ClCompile Include="imguiCustom.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="imgui\imgui_stdlib.cpp">
       <Filter>imgui</Filter>
@@ -263,11 +263,14 @@
     <ClCompile Include="Hacks\Tickbase.cpp">
       <Filter>Hacks</Filter>
     </ClCompile>
+    <ClCompile Include="Menu\Menu.cpp">
+      <Filter>Menu</Filter>
+    </ClCompile>
+    <ClCompile Include="Menu\imguiCustom.cpp">
+      <Filter>Menu</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GUI.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="imgui\imconfig.h">
       <Filter>imgui</Filter>
     </ClInclude>
@@ -450,9 +453,6 @@
     </ClInclude>
     <ClInclude Include="SDK\RenderContext.h">
       <Filter>SDK</Filter>
-    </ClInclude>
-    <ClInclude Include="imguiCustom.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="imgui\imgui_stdlib.h">
       <Filter>imgui</Filter>
@@ -655,14 +655,29 @@
     <ClInclude Include="VMP\VMProtectSDK.h">
       <Filter>VMP</Filter>
     </ClInclude>
-    <ClInclude Include="xorstr.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="AntiDetection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Hacks\Tickbase.h">
       <Filter>Hacks</Filter>
+    </ClInclude>
+    <ClInclude Include="Encryption\cx_pcg32.h">
+      <Filter>Encryption</Filter>
+    </ClInclude>
+    <ClInclude Include="Encryption\cx_strenc.h">
+      <Filter>Encryption</Filter>
+    </ClInclude>
+    <ClInclude Include="Encryption\cx_fnv1.h">
+      <Filter>Encryption</Filter>
+    </ClInclude>
+    <ClInclude Include="Encryption\xorstr.hpp">
+      <Filter>Encryption</Filter>
+    </ClInclude>
+    <ClInclude Include="Menu\Menu.h">
+      <Filter>Menu</Filter>
+    </ClInclude>
+    <ClInclude Include="Menu\imguiCustom.h">
+      <Filter>Menu</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -5,9 +5,9 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "../imgui/imgui_internal.h"
 #include "../imgui/imgui_stdlib.h"
-#include "../imguiCustom.h"
+#include "../Menu/imguiCustom.h"
 
-#include "xorstr.hpp"
+#include <Encryption/xorstr.hpp>
 
 #include "../Hacks/Aimbot.h"
 #include "../Config.h"
@@ -133,7 +133,7 @@ void Tickbase::run(UserCmd* cmd) noexcept
 
 void Tickbase::chokePackets(bool& sendPacket) noexcept
 {
-    if (localPlayer /* && !isDoubleTapping */ && (netConfig.enabled_cp || netConfig.enabled_cp && netConfig.onkey_cp && CPKeyDown()))
+    if (localPlayer && (netConfig.enabled_cp && !netConfig.onkey_cp || netConfig.enabled_cp && netConfig.onkey_cp && CPKeyDown()) || isDoubleTapping)
         sendPacket = interfaces->engine->getNetworkChannel()->chokedPackets >= netConfig.cp;
 }
 

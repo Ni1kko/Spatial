@@ -15,9 +15,12 @@
 #include <SDL2/SDL_messagebox.h>
 #endif
 
-#include "xorstr.hpp"
+#include <Encryption/xorstr.hpp>
+#include <Encryption/cx_strenc.h>
 
 #include "imgui/imgui.h"
+
+#include "../Interfaces.h"
 
 #include "ConfigStructs.h"
 #include "GameData.h"
@@ -271,4 +274,14 @@ const char* Helpers::getColorByte(ColorByte colorByte)  noexcept
         case ColorByte::Pink: return xorstr_("\x0E");/*PINK*/
         case ColorByte::DarkOrange: return xorstr_("\x0F");/*DARK ORANGE*/
     };
+}
+
+void Helpers::excuteSayCommand(const char* message, bool fromConsoleOrKeybind) noexcept
+{
+    //build command
+    std::string command = charenc("say ");
+    command.append(message);
+
+    //excute command
+    interfaces->engine->clientCmdUnrestricted(command.c_str(), fromConsoleOrKeybind);
 }

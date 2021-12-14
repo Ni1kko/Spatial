@@ -26,7 +26,7 @@
 #include "Config.h"
 #include "EventListener.h"
 #include "GameData.h"
-#include "GUI.h"
+#include "Menu/Menu.h"
 #include "Hooks.h"
 #include "Interfaces.h"
 #include "Memory.h"
@@ -83,7 +83,7 @@ static LRESULT __stdcall wndProc(HWND window, UINT msg, WPARAM wParam, LPARAM lP
         ImGui::CreateContext();
         ImGui_ImplWin32_Init(window);
         config = std::make_unique<Config>();
-        gui = std::make_unique<GUI>();
+        gui = std::make_unique<Menu>();
 
         hooks->install();
 

@@ -6,7 +6,7 @@
 #endif
 
 #include "VMP/def.h"
-#include "xorstr.hpp"
+#include "Encryption/xorstr.hpp"
 #include "AntiDetection.h"
 
 #ifdef _WIN32

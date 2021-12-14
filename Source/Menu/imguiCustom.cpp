@@ -1,10 +1,10 @@
-#include "imgui/imgui.h"
+#include <imgui/imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
-#include "imgui/imgui_internal.h"
+#include <imgui/imgui_internal.h>
 
-#include "imguiCustom.h"
-#include "ConfigStructs.h"
-#include "InputUtil.h"
+#include <Menu/imguiCustom.h>
+#include <ConfigStructs.h>
+#include <InputUtil.h>
 
 void ImGuiCustom::AddCircleImageFilled(ImTextureID user_texture_id, const ImVec2& centre, float radius, ImU32 col, int num_segments)
 {

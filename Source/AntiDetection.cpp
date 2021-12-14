@@ -1,7 +1,7 @@
 #include "AntiDetection.h"
 #include <Windows.h>
 
-#include "xorstr.hpp"
+#include "Encryption/xorstr.hpp"
 
 HMODULE GetSelfModuleHandle()
 {

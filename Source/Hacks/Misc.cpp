@@ -7,7 +7,7 @@
 #include <sstream>
 #include <vector>
 
-#include "xorstr.hpp"
+#include "../Encryption/xorstr.hpp"
 
 #include "../imgui/imgui.h"
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -51,12 +51,12 @@
 
 #include "../SDK/Steam.h"
 
-#include "../GUI.h"
+#include <Menu/Menu.h>
 #include "../Helpers.h"
 #include "../Hooks.h"
 #include "../GameData.h"
 
-#include "../imguiCustom.h"
+#include <Menu/imguiCustom.h>
 
 /////////////////////////////////////////////////////////////////
 // Vars

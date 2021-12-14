@@ -6,6 +6,10 @@
 #include <numeric>
 #include <sstream>
 #include <vector>
+#include <string>
+
+#include <Encryption/xorstr.hpp>
+#include <Encryption/cx_strenc.h>
 
 #include "../imgui/imgui.h"
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -48,12 +52,12 @@
 #include "../SDK/WeaponSystem.h"
 #include "../SDK/Steam.h"
 
-#include "../GUI.h"
+#include "../Menu/Menu.h"
 #include "../Helpers.h"
 #include "../Hooks.h"
 #include "../GameData.h"
 
-#include "../imguiCustom.h"
+#include "../Menu/imguiCustom.h"
 
 
 /////////////////////////////////////////////////////////////////
@@ -61,6 +65,91 @@
 /////////////////////////////////////////////////////////////////
 
 static bool windowOpen = false;
+
+std::vector<std::string> chatSpamList =
+{
+    charenc("You Got Rekt'd by Affinity!"),
+    charenc("Bro u so very bad, refund your cheat"),
+    charenc("Are you sure with that your c+p?"),
+    charenc("It's a ez game for me"),
+    charenc("Can u start play dog?"),
+    charenc("I love if somebody is mad"),
+    charenc("Affinity Just You Look Like A Bitch"),
+    charenc("U can't be better then me, just surrender hhh"),
+    charenc("Just come i one tap u"),
+    charenc("Who using aimware in 2019? Maybe u hurensohn"),
+    charenc("I don't like dog's, but i like cat on a plate"),
+    charenc("You only killed me because I ran out of health"),
+    charenc("WOW! imagine if your parents weren't siblings"),
+    charenc("I PLAY WITH A RACING WHEEL"),
+    charenc("CS:GO is too hard for you m8 maybe consider a game that requires less skill, like idk.... solitaire"),
+    charenc("Bro you couldn't hit an elephant in the ass with a shotgun with aim like that"),
+    charenc("You're the human equivalent of a participation award."),
+    charenc("server cvar 'sv_rekt' changed to 1"),
+    charenc("Was that your spray on the wall or are you just happy to see me?"),
+    charenc("Oops, I must have chosen easy bots by accident"),
+    charenc("Is this casual?? I have 16k"),
+    charenc("I thought I already finished chemistry.. So much NaCl around here.."),
+    charenc("Did you know that csgo isn't just Free to play Its also Free to uninstall?"),
+    charenc("Even Noah can't carry these animals"),
+    charenc("Options -> How To Play"),
+    charenc("deutschland deutschland ohne alles"),
+    charenc("How much did you tag that wall for??"),
+    charenc("I thought I put bots on hard, why are they on easy?"),
+    charenc("Who are you sponsored by? Parkinson's?"),
+    charenc("How did you change your difficulty settings? My CS:GO is stuck on easy :P"),
+    charenc("Nice $4750 decoy!!!"),
+    charenc("If I were to commit suicide, I would jump from your ego to your elo!"),
+    charenc("Dude Is your monitor even on?"),
+    charenc("idk if u know but it's mouse1 to shoot!"),
+    charenc("you guys buy accounts on ebay??"),
+    charenc("You have the reaction time of a dead puppy!"),
+    charenc("You always over do it, just the same as the germans did on the french hoilday 1939 :)"),
+    charenc("The only thing you carry is an extra chromosome"),
+    charenc("Safest place for us to stand is in front of your gun"),
+    charenc("is that a decoy, or are you trying to shoot somebody?"),
+    charenc("I could swallow bullets and shit out a better spray than that"),
+    charenc("deranking?"),
+    charenc("a bad awper = $5k decoy"),
+    charenc("Shut up, I fucked your dad."),
+    charenc("You REALLY gotta win those"),
+    charenc("Buy sound next time"),
+    charenc("mad cuz bad"),
+    charenc("You couldn't even carry groceries in from the car :p"),
+    charenc("I kissed your mom last night. Her breath was globally offensive :D"),
+    charenc("Dude you're so fat you run out of breath rushing B"),
+    charenc("Did you learn your spray downs in a bukkake video?"),
+    charenc("You're almost as salty as the semen dripping from your mum's mouth :D"),
+    charenc("Rest in spaghetti never forgetti"),
+    charenc("Don't be upsetti, have some spaghetti"),
+    charenc("Stop buying an awp you $4750 Decoy"),
+    charenc("This guy is more toxic than the beaches at Fukushima"),
+    charenc("I'm jealous of people that don't know you."),
+    charenc("If only your mother beat alcoholism instead of you, you wouldn't act the way you do. "),
+    charenc("You Got Rosated Bitch"),
+    charenc("I'd tell you to go outside, but you'd just ruin that for everyone else too"),
+    charenc("If autism speaks, you're fucking shouting."),
+    charenc("i don't have the time nor the crayons to explain it to you"),
+    charenc("You are the reason the gene pool needs a lifeguard"),
+    charenc("When you go to a family reunion, who brings the condoms?"),
+    charenc("You are the reason I have to doubt evolution and natural selection"),
+    charenc("Believe in yourself, because the rest of us think you're an idiot."),
+    charenc("I'm surprised that you were able hit the 'Install' button"),
+    charenc("I'm not trash talking, I'm talking to trash"),
+    charenc("Don't worry guys, I'm a garbage collector. I'm used to carrying trash."),
+    charenc("I'd love to see things from your perspective, but I don't think I could shove my head that far up my ass."),
+    charenc("To which foundation do I need to donate to help you?"),
+    charenc("Does your ass get jealous of all the shit that comes out of your mouth?"),
+    charenc("A million years of evolution and we get you."),
+    charenc("You're the reason the gene pool needs a lifeguard."),
+    charenc("Two wrongs don't make a right, take your parents as an example."),
+    charenc("I would insult you but nature did a better job."),
+    charenc("With aim like that, I pity whoever has to clean the floor around your toilet"),
+    charenc("I would call you cancer, but cancer actually kills people."),
+    charenc("Stephen Hawking did great with his disability. Why can't you?"),
+    charenc("I'd tell you to go outside, but you'd just ruin that for everyone else too"),
+    charenc("Go home and take a look into your mirror. See that? It's called a failure at life.")
+};
 
 /////////////////////////////////////////////////////////////////
 // Structs
@@ -72,6 +161,7 @@ struct TrollConfig {
     KeyBind blockbotKey{ KeyBind::V };
     bool doorSpam { false }; 
     float doorSpamRange { 0.f };
+    bool chatSpam { false };
 } trollConfig;
 
 
@@ -161,22 +251,46 @@ void Troll::doorSpam(UserCmd* cmd) noexcept
     }
 }
 
+void Troll::chatSpam() noexcept
+{ 
+    if (!localPlayer->isAlive() || !interfaces->engine->isInGame()) return;
+
+    if (trollConfig.chatSpam)
+    {
+        //current time
+        long curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+
+        //not ready yet
+        if (Troll::timestamp + 1450 > curTime) return;
+        
+        //update timestamp
+        Troll::timestamp = curTime;
+         
+        //get random message
+        std::srand(time(NULL));
+        std::string message = chatSpamList[rand() % chatSpamList.size()];
+        
+        //excute command
+        Helpers::excuteSayCommand(message.c_str());
+    }
+}
+
 /////////////////////////////////////////////////////////////////
 // GUI Functions
 /////////////////////////////////////////////////////////////////
 
 void Troll::menuBarItem() noexcept
 {
-    if (ImGui::MenuItem("Troll")) {
+    if (ImGui::MenuItem(xorstr_("Troll"))) {
         windowOpen = true;
-        ImGui::SetWindowFocus("Troll");
-        ImGui::SetWindowPos("Troll", { 100.0f, 100.0f });
+        ImGui::SetWindowFocus(xorstr_("Troll"));
+        ImGui::SetWindowPos(xorstr_("Troll"), { 100.0f, 100.0f });
     }
 }
 
 void Troll::tabItem() noexcept
 {
-    if (ImGui::BeginTabItem("Troll")) {
+    if (ImGui::BeginTabItem(xorstr_("Troll"))) {
         drawGUI(true);
         ImGui::EndTabItem();
     }
@@ -188,7 +302,7 @@ void Troll::drawGUI(bool contentOnly) noexcept
         if (!windowOpen)
             return;
         ImGui::SetNextWindowSize({ 580.0f, 0.0f });
-        ImGui::Begin("Troll", &windowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize
+        ImGui::Begin(xorstr_("Troll"), &windowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize
             | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
     }
 
@@ -208,6 +322,8 @@ void Troll::drawGUI(bool contentOnly) noexcept
     ImGui::PushItemWidth(220.0f);
     ImGui::SliderFloat("Range", &trollConfig.doorSpamRange, 0, 500, "%.0f meters");
     ImGui::PopItemWidth();
+    ImGui::Checkbox("Chat spam", &trollConfig.chatSpam);
+
     ImGui::Columns(1);
 
     if (!contentOnly)
@@ -220,19 +336,21 @@ void Troll::drawGUI(bool contentOnly) noexcept
 
 static void from_json(const json& j, TrollConfig& m)
 {
-    read(j, "Block Bot", m.blockbot);
-    read(j, "Slowwalk key", m.blockbotKey);
-    read(j, "Door spam", m.doorSpam);
-    read(j, "Door spam range", m.doorSpamRange);
+    read(j, xorstr_("Block Bot"), m.blockbot);
+    read(j, xorstr_("Slowwalk key"), m.blockbotKey);
+    read(j, xorstr_("Door spam"), m.doorSpam);
+    read(j, xorstr_("Door spam range"), m.doorSpamRange);
+    read(j, xorstr_("Chat spam"), m.chatSpam);
 }
 
 static void to_json(json& j, const TrollConfig& o)
 {
     const TrollConfig dummy;
-    WRITE("Block Bot", blockbot);
-    WRITE("Block Bot Key", blockbotKey);
-    WRITE("Door spam", doorSpam);
-    WRITE("Door spam range", doorSpamRange);
+    WRITE(xorstr_("Block Bot"), blockbot);
+    WRITE(xorstr_("Block Bot Key"), blockbotKey);
+    WRITE(xorstr_("Door spam"), doorSpam);
+    WRITE(xorstr_("Door spam range"), doorSpamRange);
+    WRITE(xorstr_("Chat spam"), chatSpam);
 }
 
 json Troll::toJson() noexcept
