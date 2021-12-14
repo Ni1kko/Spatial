@@ -95,6 +95,7 @@ namespace Helpers
     Vector calculateRelativeAngle(const Vector& source, const Vector& destination) noexcept;
     const char* getColorByte(ColorByte colorByte) noexcept;
     void excuteSayCommand(const char* message, bool fromConsoleOrKeybind = false) noexcept;
+    long getCurrentTime() noexcept;
     bool worldToScreen(const Vector& worldPosition, ImVec2& screenPosition) noexcept;
     bool worldToScreenPixelAligned(const Vector& worldPosition, ImVec2& screenPosition) noexcept;
 

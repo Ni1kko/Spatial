@@ -258,13 +258,12 @@ void Troll::doorSpam(UserCmd* cmd) noexcept
 
 void Troll::chatSpam(ChatSpamEvents spamEvent) noexcept
 { 
-    if (trollConfig.chatSpamMode == 0 || spamEvent == ChatSpamEvents::Off || !localPlayer || !interfaces->engine->isInGame()) return;
+    //off
+    if (trollConfig.chatSpamMode == 0 || spamEvent == ChatSpamEvents::Off || !localPlayer || !interfaces->engine->isConnected() || !interfaces->engine->isInGame()) return;
      
-    //Timed
-    long curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-    if (trollConfig.chatSpamType == 0 && (spamEvent != ChatSpamEvents::Timed || Troll::timestamp - curTime < trollConfig.chatSpamType == 3 && trollConfig.chatSpamDelay * 1000)) return;
-    Troll::timestamp = curTime;
-
+    //timed
+    if (trollConfig.chatSpamType == 0 && (spamEvent != ChatSpamEvents::Timed || Troll::timestamp - Helpers::getCurrentTime() < trollConfig.chatSpamDelay * 1000)) return;
+     
     //onKill
     if (trollConfig.chatSpamType == 1 && (spamEvent != ChatSpamEvents::OnKill || !localPlayer->isAlive())) return;
     
@@ -280,7 +279,7 @@ void Troll::chatSpam(ChatSpamEvents spamEvent) noexcept
     //OnDMG
     if (trollConfig.chatSpamType == 5 && spamEvent != ChatSpamEvents::OnDMG) return;
       
-    //message
+    //mode message
     std::srand(time(NULL));
     std::string message;
     switch (trollConfig.chatSpamMode)
@@ -293,9 +292,12 @@ void Troll::chatSpam(ChatSpamEvents spamEvent) noexcept
     
     //no message
     if (message.empty()) return;
-
+    
     //excute command
     Helpers::excuteSayCommand(message.c_str());
+
+    //timestamp lastrun
+    Troll::timestamp = Helpers::getCurrentTime();
 }
 
 /////////////////////////////////////////////////////////////////
