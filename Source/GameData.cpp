@@ -506,7 +506,7 @@ void PlayerData::update(Entity* entity) noexcept
 
     bool dangerzone = false;//temp
     const auto pr = *memory->playerResource;
-    const auto rankid = pr->competitiveRank()[entity->index()];
+    const auto rankid = pr->rank()[entity->index()];
     
     rank = dangerzone ? GameData::ranks_dz[rankid] : GameData::ranks[rankid];
 
