@@ -33,6 +33,7 @@ namespace GameData
     void clearUnusedAvatars() noexcept;
 
     std::string ranks[];
+    std::string ranks_dz[];
 
     class Lock {
     public:

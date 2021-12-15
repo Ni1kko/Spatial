@@ -67,6 +67,29 @@ std::string GameData::ranks[] = {
     xorstr_("The Global Elite")
 };
 
+std::string GameData::ranks_dz[] = {
+    GameData::ranks[0],
+    xorstr_("Lab Rat I"),
+    xorstr_("Lab Rat II"),
+
+    xorstr_("Sprinting Hare I"),
+    xorstr_("Sprinting Hare II"),
+
+    xorstr_("Wild Scout I"),
+    xorstr_("Wild Scout II"),
+    xorstr_("Wild Scout Elite"),
+
+    xorstr_("Hunter Fox I"),
+    xorstr_("Hunter Fox II"),
+    xorstr_("Hunter Fox III"),
+    xorstr_("Hunter Fox Elite"),
+
+    xorstr_("Timber Wolf"),
+    xorstr_("Ember Wolf"),
+    xorstr_("Wildfire Wolf"),
+    xorstr_("The Howling Alpha")
+};
+
 static Matrix4x4 viewMatrix;
 static LocalPlayerData localPlayerData;
 static std::vector<PlayerData> playerData;
@@ -481,8 +504,12 @@ void PlayerData::update(Entity* entity) noexcept
         return false;
     };
 
+    bool dangerzone = false;//temp
     const auto pr = *memory->playerResource;
-    rank = GameData::ranks[pr->competitiveRank()[entity->index()]];
+    const auto rankid = pr->competitiveRank()[entity->index()];
+    
+    rank = dangerzone ? GameData::ranks_dz[rankid] : GameData::ranks[rankid];
+
     audible = isEntityAudible(entity->index());
     spotted = entity->spotted();
     health = entity->health();
