@@ -249,7 +249,7 @@ void Troll::doorSpam(UserCmd* cmd) noexcept
     const auto endPos = startPos + Vector::fromAngle(cmd->viewangles) * trollConfig.doorSpamRange;
     interfaces->engineTrace->traceRay({ startPos, endPos }, 0x46004009, traceFilter, trace);
 
-    if (trace.entity && trace.entity->getClientClass()->classId == ClassId::PropDoorRotating) {
+    if (trace.entity && trace.entity->getClientClass()->classId == ClassId::CPropDoorRotating) {
         if (cmd->buttons & UserCmd::IN_USE && cmd->tickCount & 1) {
             cmd->buttons &= ~UserCmd::IN_USE;
         }

@@ -272,7 +272,7 @@ static float __STDCALL getViewModelFov(LINUX_ARGS(void* thisptr)) noexcept
 {
     float additionalFov = Visuals::viewModelFov();
     if (localPlayer) {
-        if (const auto activeWeapon = localPlayer->getActiveWeapon(); activeWeapon && activeWeapon->getClientClass()->classId == ClassId::Tablet)
+        if (const auto activeWeapon = localPlayer->getActiveWeapon(); activeWeapon && activeWeapon->getClientClass()->classId == ClassId::CTablet)
             additionalFov = 0.0f;
     }
 

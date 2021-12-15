@@ -552,7 +552,7 @@ void Misc::fastPlant(UserCmd* cmd) noexcept
     if (!localPlayer || !localPlayer->isAlive() || (localPlayer->inBombZone() && localPlayer->flags() & 1))
         return;
 
-    if (const auto activeWeapon = localPlayer->getActiveWeapon(); !activeWeapon || activeWeapon->getClientClass()->classId != ClassId::C4)
+    if (const auto activeWeapon = localPlayer->getActiveWeapon(); !activeWeapon || activeWeapon->getClientClass()->classId != ClassId::CC4)
         return;
 
     cmd->buttons &= ~UserCmd::IN_ATTACK;
@@ -564,7 +564,7 @@ void Misc::fastPlant(UserCmd* cmd) noexcept
     const auto endPos = startPos + Vector::fromAngle(cmd->viewangles) * doorRange;
     interfaces->engineTrace->traceRay({ startPos, endPos }, 0x46004009, localPlayer.get(), trace);
 
-    if (!trace.entity || trace.entity->getClientClass()->classId != ClassId::PropDoorRotating)
+    if (!trace.entity || trace.entity->getClientClass()->classId != ClassId::CPropDoorRotating)
         cmd->buttons &= ~UserCmd::IN_USE;
 }
 
@@ -794,7 +794,7 @@ void Misc::nadePredict() noexcept
 void Misc::fixTabletSignal() noexcept
 {
     if (miscConfig.fixTabletSignal && localPlayer) {
-        if (auto activeWeapon{ localPlayer->getActiveWeapon() }; activeWeapon && activeWeapon->getClientClass()->classId == ClassId::Tablet)
+        if (auto activeWeapon{ localPlayer->getActiveWeapon() }; activeWeapon && activeWeapon->getClientClass()->classId == ClassId::CTablet)
             activeWeapon->tabletReceptionIsBlocked() = false;
     }
 }
@@ -843,7 +843,6 @@ void Misc::fixAnimationLOD(FrameStage stage) noexcept
     if (miscConfig.fixAnimationLOD && stage == FrameStage::RENDER_START) {
         if (!localPlayer)
             return;
-
         for (int i = 1; i <= interfaces->engine->getMaxClients(); i++) {
             Entity* entity = interfaces->entityList->getEntity(i);
             if (!entity || entity == localPlayer.get() || entity->isDormant() || !entity->isAlive()) continue;
@@ -1076,7 +1075,7 @@ void Misc::oppositeHandKnife(FrameStage stage) noexcept
         original = cl_righthand->getInt();
 
         if (const auto activeWeapon = localPlayer->getActiveWeapon()) {
-            if (const auto classId = activeWeapon->getClientClass()->classId; classId == ClassId::Knife || classId == ClassId::KnifeGG)
+            if (const auto classId = activeWeapon->getClientClass()->classId; classId == ClassId::CKnife || classId == ClassId::CKnifeGG)
                 cl_righthand->setValue(!original);
         }
     } else {

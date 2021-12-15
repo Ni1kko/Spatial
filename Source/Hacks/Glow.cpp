@@ -68,17 +68,17 @@ void Glow::render() noexcept
             continue;
 
         switch (entity->getClientClass()->classId) {
-        case ClassId::EconEntity:
-        case ClassId::BaseCSGrenadeProjectile:
-        case ClassId::BreachChargeProjectile:
-        case ClassId::BumpMineProjectile:
-        case ClassId::DecoyProjectile:
-        case ClassId::MolotovProjectile:
-        case ClassId::SensorGrenadeProjectile:
-        case ClassId::SmokeGrenadeProjectile:
-        case ClassId::SnowballProjectile:
-        case ClassId::Hostage:
-        case ClassId::CSRagdoll:
+        case ClassId::CEconEntity:
+        case ClassId::CBaseCSGrenadeProjectile:
+        case ClassId::CBreachChargeProjectile:
+        case ClassId::CBumpMineProjectile:
+        case ClassId::CDecoyProjectile:
+        case ClassId::CMolotovProjectile:
+        case ClassId::CSensorGrenadeProjectile:
+        case ClassId::CSmokeGrenadeProjectile:
+        case ClassId::CSnowballProjectile:
+        case ClassId::CHostage:
+        case ClassId::CCSRagdoll:
             if (!memory->glowObjectManager->hasGlowEffect(entity)) {
                 if (auto index{ memory->glowObjectManager->registerGlowObject(entity) }; index != -1)
                     customGlowEntities.emplace_back(i, index);
@@ -126,10 +126,10 @@ void Glow::render() noexcept
         };
 
         switch (entity->getClientClass()->classId) {
-        case ClassId::CSPlayer:
+        case ClassId::CCSPlayer:
             if (!entity->isAlive())
                 break;
-            if (auto activeWeapon{ entity->getActiveWeapon() }; activeWeapon && activeWeapon->getClientClass()->classId == ClassId::C4 && activeWeapon->c4StartedArming())
+            if (auto activeWeapon{ entity->getActiveWeapon() }; activeWeapon && activeWeapon->getClientClass()->classId == ClassId::CC4 && activeWeapon->c4StartedArming())
                 applyPlayerGlow("Planting", entity);
             else if (entity->isDefusing())
                 applyPlayerGlow("Defusing", entity);
@@ -140,23 +140,23 @@ void Glow::render() noexcept
             else
                 applyPlayerGlow("Allies", entity);
             break;
-        case ClassId::C4: applyGlow(glow["C4"]); break;
-        case ClassId::PlantedC4: applyGlow(glow["Planted C4"]); break;
-        case ClassId::Chicken: applyGlow(glow["Chickens"]); break;
-        case ClassId::EconEntity: applyGlow(glow["Defuse Kits"]); break;
+        case ClassId::CC4: applyGlow(glow["C4"]); break;
+        case ClassId::CPlantedC4: applyGlow(glow["Planted C4"]); break;
+        case ClassId::CChicken: applyGlow(glow["Chickens"]); break;
+        case ClassId::CEconEntity: applyGlow(glow["Defuse Kits"]); break;
 
-        case ClassId::BaseCSGrenadeProjectile:
-        case ClassId::BreachChargeProjectile:
-        case ClassId::BumpMineProjectile:
-        case ClassId::DecoyProjectile:
-        case ClassId::MolotovProjectile:
-        case ClassId::SensorGrenadeProjectile:
-        case ClassId::SmokeGrenadeProjectile:
-        case ClassId::SnowballProjectile:
+        case ClassId::CBaseCSGrenadeProjectile:
+        case ClassId::CBreachChargeProjectile:
+        case ClassId::CBumpMineProjectile:
+        case ClassId::CDecoyProjectile:
+        case ClassId::CMolotovProjectile:
+        case ClassId::CSensorGrenadeProjectile:
+        case ClassId::CSmokeGrenadeProjectile:
+        case ClassId::CSnowballProjectile:
             applyGlow(glow["Projectiles"]); break;
 
-        case ClassId::Hostage: applyGlow(glow["Hostages"]); break;
-        case ClassId::CSRagdoll: applyGlow(glow["Ragdolls"]); break;
+        case ClassId::CHostage: applyGlow(glow["Hostages"]); break;
+        case ClassId::CCSRagdoll: applyGlow(glow["Ragdolls"]); break;
         default:
            if (entity->isWeapon()) {
                 applyGlow(glow["Weapons"]);

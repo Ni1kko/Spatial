@@ -173,7 +173,7 @@ void Chams::renderPlayer(Entity* player) noexcept
 
     const auto health = player->health();
 
-    if (const auto activeWeapon = player->getActiveWeapon(); activeWeapon && activeWeapon->getClientClass()->classId == ClassId::C4 && activeWeapon->c4StartedArming() && std::ranges::any_of(config->chams["Planting"].materials, [](const Config::Chams::Material& mat) { return mat.enabled; })) {
+    if (const auto activeWeapon = player->getActiveWeapon(); activeWeapon && activeWeapon->getClientClass()->classId == ClassId::CC4 && activeWeapon->c4StartedArming() && std::ranges::any_of(config->chams["Planting"].materials, [](const Config::Chams::Material& mat) { return mat.enabled; })) {
         applyChams(config->chams["Planting"].materials, health);
     } else if (player->isDefusing() && std::ranges::any_of(config->chams["Defusing"].materials, [](const Config::Chams::Material& mat) { return mat.enabled; })) {
         applyChams(config->chams["Defusing"].materials, health);

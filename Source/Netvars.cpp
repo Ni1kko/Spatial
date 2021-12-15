@@ -39,7 +39,7 @@ static void __CDECL viewModelSequence(recvProxyData& data, void* outStruct, void
 
     if (localPlayer && interfaces->entityList->getEntityFromHandle(viewModel->owner()) == localPlayer.get()) {
         if (const auto weapon = interfaces->entityList->getEntityFromHandle(viewModel->weapon())) {
-            if (Visuals::isDeagleSpinnerOn() && weapon->getClientClass()->classId == ClassId::Deagle && data.value._int == 7)
+            if (Visuals::isDeagleSpinnerOn() && weapon->getClientClass()->classId == ClassId::CDEagle && data.value._int == 7)
                 data.value._int = 8;
 
             InventoryChanger::fixKnifeAnimation(weapon, data.value._int);
