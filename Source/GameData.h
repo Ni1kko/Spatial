@@ -32,6 +32,8 @@ namespace GameData
     void clearTextures() noexcept;
     void clearUnusedAvatars() noexcept;
 
+    std::string ranks[];
+
     class Lock {
     public:
         Lock() noexcept : lock{ mutex } {}
@@ -135,6 +137,7 @@ struct PlayerData : BaseData {
     int handle;
     Team team;
     std::string name;
+    std::string rank;
     Vector headMins, headMaxs;
     Vector origin;
     std::string activeWeapon;

@@ -8,6 +8,7 @@
 #include <unordered_map>
 
 #include <Encryption\fnv.h>
+#include <Encryption\xorstr.hpp>
 
 #include "GameData.h"
 #include "Interfaces.h"
@@ -41,6 +42,30 @@ auto operator<(const BaseData& a, const BaseData& b) noexcept
 {
     return a.distanceToLocal > b.distanceToLocal;
 }
+
+std::string GameData::ranks[] = {
+    xorstr_("Unranked"),
+    xorstr_("Silver I"),
+    xorstr_("Silver II"),
+    xorstr_("Silver III"),
+    xorstr_("Silver IV"),
+    xorstr_("Silver Elite"),
+    xorstr_("Silver Elite Master"),
+
+    xorstr_("Gold Nova I"),
+    xorstr_("Gold Nova II"),
+    xorstr_("Gold Nova III"),
+    xorstr_("Gold Nova Master"),
+    xorstr_("Master Guardian I"),
+    xorstr_("Master Guardian II"),
+    xorstr_("Master Guardian Elite"),
+
+    xorstr_("Distinguished Master Guardian"),
+    xorstr_("Legendary Eagle"),
+    xorstr_("Legendary Eagle Master"),
+    xorstr_("Supreme Master First Class"),
+    xorstr_("The Global Elite")
+};
 
 static Matrix4x4 viewMatrix;
 static LocalPlayerData localPlayerData;
@@ -218,7 +243,6 @@ void GameData::clearProjectileList() noexcept
     projectileData.clear();
 }
 
-
 static void clearAvatarTextures() noexcept;
 
 struct PlayerAvatar {
@@ -232,7 +256,6 @@ const std::vector<SmokeData>& GameData::smokes() noexcept
 {
     return smokeGrenades;
 }
-
 
 void GameData::clearTextures() noexcept
 {
@@ -458,6 +481,8 @@ void PlayerData::update(Entity* entity) noexcept
         return false;
     };
 
+    const auto pr = *memory->playerResource;
+    rank = GameData::ranks[pr->competitiveRank()[entity->index()]];
     audible = isEntityAudible(entity->index());
     spotted = entity->spotted();
     health = entity->health();

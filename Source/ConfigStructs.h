@@ -119,6 +119,7 @@ struct Player : Shared {
     bool audibleOnly = false;
     bool spottedOnly = false;
     HealthBar healthBar;
+    ColorToggle rank;
     ColorToggleThickness skeleton;
     Box headBox;
 

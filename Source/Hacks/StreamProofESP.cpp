@@ -317,6 +317,12 @@ static void renderPlayerBox(const PlayerData& playerData, const Player& config) 
     drawHealthBar(config.healthBar, bbox.min - ImVec2{ 5.0f, 0.0f }, (bbox.max.y - bbox.min.y), playerData.health);
 
     FontPush font{ config.font.name, playerData.distanceToLocal };
+ 
+    if (config.rank.enabled)
+    {
+        const auto rankTextSize = renderText(playerData.distanceToLocal, config.textCullDistance,config.rank.asColor4(), playerData.rank.c_str(), { (bbox.min.x + bbox.max.x) / 2, bbox.min.y - 2 }, true, false);
+        offsetMins.y -= rankTextSize.y + 2;
+    }
 
     if (config.name.enabled) {
         const auto nameSize = renderText(playerData.distanceToLocal, config.textCullDistance, config.name.asColor4(), playerData.name.c_str(), { (bbox.min.x + bbox.max.x) / 2, bbox.min.y - 2 });
@@ -873,7 +879,7 @@ void StreamProofESP::drawGUI(bool contentOnly) noexcept
 
         if (currentCategory < 2) {
             auto& playerConfig = getConfigPlayer(currentCategory, currentItem);
-
+            ImGuiCustom::colorPicker("Ranks", playerConfig.rank);
             ImGuiCustom::colorPicker("Weapon", playerConfig.weapon);
             ImGuiCustom::colorPicker("Flash Duration", playerConfig.flashDuration);
             ImGui::SameLine(spacing);

@@ -28,4 +28,5 @@ public:
     NETVAR(bombsiteCenterB, "CCSPlayerResource", "m_bombsiteCenterB", Vector)
     NETVAR(musicID, "CCSPlayerResource", "m_nMusicID", int[65])
     NETVAR(activeCoinRank, "CCSPlayerResource", "m_nActiveCoinRank", int[65])
+    NETVAR(competitiveRank, "CCSPlayerResource", "m_iCompetitiveRanking", int[65]) // 0x1A84 is netvar offset
 };
