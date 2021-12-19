@@ -13,9 +13,9 @@
 #include <filesystem>
 #include <fstream>
 
-#include "imgui/imgui.h"
+#include "Menu/imgui/imgui.h"
 #define IMGUI_DEFINE_MATH_OPERATORS
-#include "imgui/imgui_internal.h"
+#include "Menu/imgui/imgui_internal.h"
 #include "nlohmann/json.hpp"
 #endif
 

@@ -9,10 +9,10 @@
 
 #include "../Encryption/xorstr.hpp"
 
-#include "../imgui/imgui.h"
+#include "../Menu/imgui/imgui.h"
 #define IMGUI_DEFINE_MATH_OPERATORS
-#include "../imgui/imgui_internal.h"
-#include "../imgui/imgui_stdlib.h"
+#include "../Menu/imgui/imgui_internal.h"
+#include "../Menu/imgui/imgui_stdlib.h"
 
 #include "../ConfigStructs.h"
 #include "../InputUtil.h"

@@ -2,15 +2,15 @@
 #include <functional>
 #include <string>
 
-#include "imgui/imgui.h"
+#include "Menu/imgui/imgui.h"
 
 #ifdef _WIN32
 #include <intrin.h>
 #include <Windows.h>
 #include <Psapi.h>
 
-#include "imgui/imgui_impl_dx9.h"
-#include "imgui/imgui_impl_win32.h"
+#include "Menu/imgui/imgui_impl_dx9.h"
+#include "Menu/imgui/imgui_impl_win32.h"
 
 #include "MinHook/MinHook.h"
 #elif __linux__

@@ -11,8 +11,8 @@
 #include <Windows.h>
 #endif
 
-#include <imgui/imgui.h>
-#include <imgui/imgui_stdlib.h>
+#include <Menu/imgui/imgui.h>
+#include <Menu/imgui/imgui_stdlib.h>
 #include <Menu/imguiCustom.h>
 #include <Menu/Menu.h>
 

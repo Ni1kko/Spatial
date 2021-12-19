@@ -13,10 +13,10 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "../stb_image.h"
 
-#include "../imgui/imgui.h"
+#include "../Menu/imgui/imgui.h"
 #define IMGUI_DEFINE_MATH_OPERATORS
-#include "../imgui/imgui_internal.h"
-#include "../imgui/imgui_stdlib.h"
+#include "../Menu/imgui/imgui_internal.h"
+#include "../Menu/imgui/imgui_stdlib.h"
 #include "../Interfaces.h"
 #include "InventoryChanger.h"
 #include "../ProtobufReader.h"
