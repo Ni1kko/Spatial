@@ -75,32 +75,31 @@ public:
     VIRTUAL_METHOD(int, index, 10, (), (this + sizeof(uintptr_t) * 2))
     VIRTUAL_METHOD(void, setDestroyedOnRecreateEntities, 13, (), (this + sizeof(uintptr_t) * 2))
 
-    VIRTUAL_METHOD(bool, shouldDraw, WIN32_LINUX(3, 149), (), (this + WIN32_LINUX(sizeof(uintptr_t), 0)))
+    VIRTUAL_METHOD(bool, shouldDraw, 3, (), (this + sizeof(uintptr_t)))
     VIRTUAL_METHOD(const Model*, getModel, 8, (), (this + sizeof(uintptr_t)))
     VIRTUAL_METHOD(const matrix3x4&, toWorldTransform, 32, (), (this + sizeof(uintptr_t)))
 
     VIRTUAL_METHOD_V(int&, handle, 2, (), (this))
     VIRTUAL_METHOD_V(Collideable*, getCollideable, 3, (), (this))
 
-    VIRTUAL_METHOD(const Vector&, getAbsOrigin, WIN32_LINUX(10, 12), (), (this))
-    VIRTUAL_METHOD(void, setModelIndex, WIN32_LINUX(75, 111), (int index), (this, index))
-    VIRTUAL_METHOD(bool, getAttachment, WIN32_LINUX(84, 122), (int index, Vector& origin), (this, index, std::ref(origin)))
-    VIRTUAL_METHOD(Team, getTeamNumber, WIN32_LINUX(88, 128), (), (this))
-    VIRTUAL_METHOD(int, health, WIN32_LINUX(122, 167), (), (this))
-    VIRTUAL_METHOD(bool, isAlive, WIN32_LINUX(156, 208), (), (this))
-    VIRTUAL_METHOD(bool, isPlayer, WIN32_LINUX(158, 210), (), (this))
-    VIRTUAL_METHOD(bool, isWeapon, WIN32_LINUX(166, 218), (), (this))
-    VIRTUAL_METHOD(Entity*, getActiveWeapon, WIN32_LINUX(268, 331), (), (this))
-    VIRTUAL_METHOD(int, getWeaponSubType, WIN32_LINUX(282, 350), (), (this))
-    VIRTUAL_METHOD(ObsMode, getObserverMode, WIN32_LINUX(294, 357), (), (this))
-    VIRTUAL_METHOD(Entity*, getObserverTarget, WIN32_LINUX(295, 358), (), (this))
-    VIRTUAL_METHOD(WeaponType, getWeaponType, WIN32_LINUX(455, 523), (), (this))
-    VIRTUAL_METHOD(WeaponInfo*, getWeaponData, WIN32_LINUX(461, 529), (), (this))
-    VIRTUAL_METHOD(int, getMuzzleAttachmentIndex1stPerson, WIN32_LINUX(468, 536), (Entity* viewModel), (this, viewModel))
-    VIRTUAL_METHOD(int, getMuzzleAttachmentIndex3rdPerson, WIN32_LINUX(469, 537), (), (this))
-    VIRTUAL_METHOD(float, getInaccuracy, WIN32_LINUX(483, 551), (), (this))
+    VIRTUAL_METHOD(const Vector&, getAbsOrigin, 10, (), (this))
+    VIRTUAL_METHOD(void, setModelIndex, 75, (int index), (this, index))
+    VIRTUAL_METHOD(bool, getAttachment, 84, (int index, Vector& origin), (this, index, std::ref(origin)))
+    VIRTUAL_METHOD(Team, getTeamNumber, 88, (), (this))
+    VIRTUAL_METHOD(int, health, 122, (), (this))
+    VIRTUAL_METHOD(bool, isAlive, 156, (), (this))
+    VIRTUAL_METHOD(bool, isPlayer, 158, (), (this))
+    VIRTUAL_METHOD(bool, isWeapon, 166, (), (this))
+    VIRTUAL_METHOD(Entity*, getActiveWeapon, 268, (), (this))
+    VIRTUAL_METHOD(int, getWeaponSubType, 282, (), (this))
+    VIRTUAL_METHOD(ObsMode, getObserverMode, 294, (), (this))
+    VIRTUAL_METHOD(Entity*, getObserverTarget, 295, (), (this))
+    VIRTUAL_METHOD(WeaponType, getWeaponType, 455, (), (this))
+    VIRTUAL_METHOD(WeaponInfo*, getWeaponData, 461, (), (this))
+    VIRTUAL_METHOD(int, getMuzzleAttachmentIndex1stPerson, 468, (Entity* viewModel), (this, viewModel))
+    VIRTUAL_METHOD(int, getMuzzleAttachmentIndex3rdPerson, 469, (), (this))
+    VIRTUAL_METHOD(float, getInaccuracy, 483, (), (this))
 
-#if IS_WIN32()
     auto getEyePosition() noexcept
     {
         Vector v;
@@ -114,10 +113,6 @@ public:
         VirtualMethod::call<void, 346>(this, std::ref(v));
         return v;
     }
-#else
-    VIRTUAL_METHOD(Vector, getEyePosition, 348, (), (this))
-    VIRTUAL_METHOD(Vector, getAimPunch, 409, (), (this))
-#endif
 
     auto isPistol() noexcept { return getWeaponType() == WeaponType::Pistol; }
     auto isSniperRifle() noexcept { return getWeaponType() == WeaponType::SniperRifle; }
@@ -148,23 +143,19 @@ public:
 
     VarMap& getVarMap() noexcept
     {
-        return *reinterpret_cast<VarMap*>(std::uintptr_t(this) + WIN32_LINUX(0x24, 0x48));
+        return *reinterpret_cast<VarMap*>(std::uintptr_t(this) + 0x24);
     }
    
     AnimState* getAnimstate() noexcept
     {
-#ifdef _WIN32
         return *reinterpret_cast<AnimState**>(this + 0x3914);
-#else
-        return nullptr;
-#endif
     }
 
     float getMaxDesyncAngle() noexcept;
 
     bool isInReload() noexcept
     {
-        return *reinterpret_cast<bool*>(uintptr_t(&clip()) + WIN32_LINUX(0x41, 0x45));
+        return *reinterpret_cast<bool*>(uintptr_t(&clip()) + 0x41);
     }
 
     int getUserId() noexcept;

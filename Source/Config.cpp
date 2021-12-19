@@ -4,12 +4,9 @@
 #include <iomanip>
 #include <iterator>
 #include <system_error>
-
-#ifdef _WIN32
 #include <Windows.h>
 #include <shellapi.h>
 #include <ShlObj.h>
-#endif
 
 #include "nlohmann/json.hpp"
 
@@ -26,7 +23,6 @@
 #include "Hacks/Troll.h"
 #include "Hacks/Tickbase.h"
 
-#ifdef _WIN32
 int CALLBACK fontCallback(const LOGFONTW* lpelfe, const TEXTMETRICW*, DWORD, LPARAM lParam)
 {
     const wchar_t* const fontName = reinterpret_cast<const ENUMLOGFONTEXW*>(lpelfe)->elfFullName;
@@ -57,20 +53,15 @@ int CALLBACK fontCallback(const LOGFONTW* lpelfe, const TEXTMETRICW*, DWORD, LPA
     }
     return TRUE;
 }
-#endif
 
 [[nodiscard]] static std::filesystem::path buildConfigsFolderPath() noexcept
 {
     std::filesystem::path path;
-#ifdef _WIN32
+
     if (PWSTR pathToDocuments; SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &pathToDocuments))) {
         path = pathToDocuments;
         CoTaskMemFree(pathToDocuments);
     }
-#else
-    if (const char* homeDir = getenv("HOME"))
-        path = homeDir;
-#endif
 
     path /= "Spatial";
     return path;
@@ -82,14 +73,12 @@ Config::Config() noexcept : path{ buildConfigsFolderPath() }
 
     load(u8"default.json", false);
 
-#ifdef _WIN32
     LOGFONTW logfont;
     logfont.lfCharSet = ANSI_CHARSET;
     logfont.lfPitchAndFamily = DEFAULT_PITCH;
     logfont.lfFaceName[0] = L'\0';
 
     EnumFontFamiliesExW(GetDC(nullptr), &logfont, fontCallback, (LPARAM)&systemFonts, 0);
-#endif
 
     std::sort(std::next(systemFonts.begin()), systemFonts.end());
 }
@@ -598,11 +587,7 @@ void Config::createConfigDir() const noexcept
 void Config::openConfigDir() const noexcept
 {
     createConfigDir();
-#ifdef _WIN32
     ShellExecuteW(nullptr, L"open", path.wstring().c_str(), nullptr, nullptr, SW_SHOWNORMAL);
-#else
-    int ret = std::system(("xdg-open " + path.string()).c_str());
-#endif
 }
 
 void Config::scheduleFontLoad(const std::string& name) noexcept
@@ -610,7 +595,6 @@ void Config::scheduleFontLoad(const std::string& name) noexcept
     scheduledFonts.push_back(name);
 }
 
-#ifdef _WIN32
 static auto getFontData(const std::string& fontName) noexcept
 {
     HFONT font = CreateFontA(0, 0, 0, 0,
@@ -642,7 +626,6 @@ static auto getFontData(const std::string& fontName) noexcept
     }
     return std::make_pair(std::move(data), dataSize);
 }
-#endif
 
 bool Config::loadScheduledFonts() noexcept
 {
@@ -672,8 +655,7 @@ bool Config::loadScheduledFonts() noexcept
             }
             continue;
         }
-
-#ifdef _WIN32
+        
         const auto [fontData, fontDataSize] = getFontData(fontName);
         if (fontDataSize == GDI_ERROR)
             continue;
@@ -691,7 +673,6 @@ bool Config::loadScheduledFonts() noexcept
             fonts.emplace(fontName, newFont);
             result = true;
         }
-#endif
     }
     scheduledFonts.clear();
     return result;

@@ -12,7 +12,7 @@ public:
     template <typename... Args>
     void printf(int filter, const char* fmt, Args... args) noexcept
     {
-        (*reinterpret_cast<void(__CDECL***)(void*, int, const char*, ...)>(this))[WIN32_LINUX(26, 29)](this, filter, fmt, args...);
+        (*reinterpret_cast<void(__CDECL***)(void*, int, const char*, ...)>(this))[26](this, filter, fmt, args...);
     }
 };
 
@@ -22,6 +22,6 @@ public:
 
     auto getHudChat() noexcept
     {
-        return *reinterpret_cast<HudChat**>(std::uintptr_t(this) + WIN32_LINUX(28, 48));
+        return *reinterpret_cast<HudChat**>(std::uintptr_t(this) + 28);
     }
 };

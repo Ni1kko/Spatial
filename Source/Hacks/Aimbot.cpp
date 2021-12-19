@@ -44,7 +44,7 @@ Vector Aimbot::calculateRelativeAngle(const Vector& source, const Vector& destin
 static bool traceToExit(const Trace& enterTrace, const Vector& start, const Vector& direction, Vector& end, Trace& exitTrace)
 {
     bool result = false;
-#if defined(_WIN32)
+    
     const auto traceToExitFn = memory->traceToExit;
     __asm {
         push 0
@@ -65,7 +65,7 @@ static bool traceToExit(const Trace& enterTrace, const Vector& start, const Vect
         add esp, 40
         mov result, al
     }
-#endif
+
     return result;
 }
 

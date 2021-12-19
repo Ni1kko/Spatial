@@ -1,10 +1,6 @@
 #include "Texture.h"
 
-#ifdef _WIN32
 #include "Menu/imgui/imgui_impl_dx9.h"
-#else
-#include "Menu/imgui/imgui_impl_opengl3.h"
-#endif
 
 void Texture::init(int width, int height, const std::uint8_t* data) noexcept
 {
