@@ -5,8 +5,11 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+#ifdef _WIN32
 #include <ShlObj.h>
 #include <Windows.h>
+#endif
 
 #include <Menu/imgui/imgui.h>
 #include <Menu/imgui/imgui_stdlib.h>
@@ -90,7 +93,8 @@ Menu::Menu() noexcept
 
     ImFontConfig cfg;
     cfg.SizePixels = 15.0f;
-    
+
+#ifdef _WIN32
     if (PWSTR pathToFonts; SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Fonts, 0, nullptr, &pathToFonts))) {
         const std::filesystem::path path{ pathToFonts };
         CoTaskMemFree(pathToFonts);
@@ -107,7 +111,9 @@ Menu::Menu() noexcept
         io.Fonts->AddFontFromFileTTF((path / "seguisym.ttf").string().c_str(), 15.0f, &cfg, symbol);
         cfg.MergeMode = false;
     }
-
+#else
+    fonts.normal15px = addFontFromVFONT("csgo/panorama/fonts/notosans-regular.vfont", 15.0f, Helpers::getFontGlyphRanges(), false);
+#endif
     if (!fonts.normal15px)
         io.Fonts->AddFontDefault(&cfg);
     addFontFromVFONT("csgo/panorama/fonts/notosanskr-regular.vfont", 15.0f, io.Fonts->GetGlyphRangesKorean(), true);

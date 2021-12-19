@@ -267,8 +267,8 @@ static bool hudUpdateRequired{ false };
 
 static void updateHud() noexcept
 {
-    if (auto hud_weapons = memory->findHudElement(memory->hud, "CCSGO_HudWeaponSelection") - 0x28) {
-        for (int i = 0; i < *(hud_weapons + 32); i++)
+    if (auto hud_weapons = memory->findHudElement(memory->hud, "CCSGO_HudWeaponSelection") - WIN32_LINUX(0x28, 62)) {
+        for (int i = 0; i < *(hud_weapons + WIN32_LINUX(32, 52)); i++)
             i = memory->clearHudWeapon(hud_weapons, i);
     }
     hudUpdateRequired = false;
@@ -914,7 +914,7 @@ void InventoryChanger::onItemEquip(Team team, int slot, std::uint64_t itemID) no
 void InventoryChanger::onSoUpdated(SharedObject* object) noexcept
 {
     if (lastEquippedCount > 0 && object->getTypeID() == 43 /* = k_EEconTypeDefaultEquippedDefinitionInstanceClient */) {
-        *reinterpret_cast<WeaponId*>(std::uintptr_t(object) + 0x10) = WeaponId::None;
+        *reinterpret_cast<WeaponId*>(std::uintptr_t(object) + WIN32_LINUX(0x10, 0x1C)) = WeaponId::None;
         --lastEquippedCount;
     }
 }

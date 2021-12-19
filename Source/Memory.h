@@ -45,8 +45,13 @@ class Memory {
 public:
     Memory() noexcept;
 
+#ifdef _WIN32
     std::uintptr_t present;
     std::uintptr_t reset;
+#else
+    std::uintptr_t pollEvent;
+    std::uintptr_t swapWindow;
+#endif
 
     ClientMode* clientMode;
     Input* input;
@@ -139,12 +144,20 @@ public:
 
     bool submitReport(const char* xuid, const char* report) const noexcept
     {
+#ifdef _WIN32
         return reinterpret_cast<bool(__stdcall*)(const char*, const char*)>(submitReportFunction)(xuid, report);
+#else
+        return reinterpret_cast<bool(*)(void*, const char*, const char*)>(submitReportFunction)(nullptr, xuid, report);
+#endif
     }
 
     void setDynamicAttributeValue(EconItem* thisptr, EconItemAttributeDefinition* attribute, void* value) const noexcept
     {
+#ifdef _WIN32
         reinterpret_cast<void(__thiscall*)(EconItem*, EconItemAttributeDefinition*, void*)>(setDynamicAttributeValueFn)(thisptr, attribute, value);
+#else
+        reinterpret_cast<void(*)(void*, EconItem*, EconItemAttributeDefinition*, void*)>(setDynamicAttributeValueFn)(nullptr, thisptr, attribute, value);
+#endif
     }
 
 private:

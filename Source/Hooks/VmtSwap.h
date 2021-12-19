@@ -33,7 +33,7 @@ public:
     }
 
 private:
-    static constexpr auto dynamicCastInfoLength = 1;
+    static constexpr auto dynamicCastInfoLength = WIN32_LINUX(1, 2);
 
     void* base = nullptr;
     std::uintptr_t* oldVmt = nullptr;

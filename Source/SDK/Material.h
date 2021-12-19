@@ -10,7 +10,7 @@ public:
     INCONSTRUCTIBLE(MaterialVar)
 
     VIRTUAL_METHOD(void, setValue, 4, (float value), (this, value))
-    VIRTUAL_METHOD(void, setVectorValue, 11, (float x, float y, float z), (this, x, y, z))
+    VIRTUAL_METHOD(void, setVectorValue, WIN32_LINUX(11, 12), (float x, float y, float z), (this, x, y, z))
     VIRTUAL_METHOD(void, setVecComponentValue, 26, (float value, int component), (this, value, component))
 };
 

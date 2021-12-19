@@ -8,7 +8,12 @@
 #include <span>
 #include <string_view>
 #include <unordered_map>
+
+#ifdef _WIN32
 #include <Windows.h>
+#else
+#include <SDL2/SDL_messagebox.h>
+#endif
 
 #include <Encryption/xorstr.hpp>
 #include <Encryption/cx_strenc.h>
@@ -183,11 +188,14 @@ std::vector<char> Helpers::loadBinaryFile(const std::string& path) noexcept
 std::size_t Helpers::calculateVmtLength(const std::uintptr_t* vmt) noexcept
 {
     std::size_t length = 0;
-
+#ifdef _WIN32
     MEMORY_BASIC_INFORMATION memoryInfo;
     while (VirtualQuery(LPCVOID(vmt[length]), &memoryInfo, sizeof(memoryInfo)) && memoryInfo.Protect & (PAGE_EXECUTE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY))
         ++length;
-
+#else
+    while (vmt[length])
+        ++length;
+#endif
     return length;
 }
 
@@ -220,17 +228,21 @@ void Helpers::messageBox(std::string_view title, std::string_view msg, const int
     const auto flags = [type]() {
         switch (type) {
         case 1:
-            return MB_OK | MB_ICONWARNING;
+            return WIN32_LINUX(MB_OK | MB_ICONWARNING, SDL_MESSAGEBOX_WARNING);
             break;
         case 2:
-            return MB_OK | MB_ICONINFORMATION;
+            return WIN32_LINUX(MB_OK | MB_ICONINFORMATION, SDL_MESSAGEBOX_INFORMATION);
             break;
         default:
-            return MB_OK | MB_ICONERROR;
+            return WIN32_LINUX(MB_OK | MB_ICONERROR, SDL_MESSAGEBOX_ERROR);
             break;
         }
     }();
+#ifdef _WIN32
     MessageBoxA(nullptr, msg.data(), title.data(), flags);
+#else
+    SDL_ShowSimpleMessageBox(flags, title.data(), msg.data(), nullptr);
+#endif
 }
 
 Vector Helpers::calculateRelativeAngle(const Vector& source, const Vector& destination) noexcept

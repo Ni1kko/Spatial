@@ -55,7 +55,7 @@ struct StaticAttrib {
     AttributeDataUnion value;
     bool forceGCToGenerate;
 };
-static_assert(sizeof(StaticAttrib) == 12);
+static_assert(sizeof(StaticAttrib) == WIN32_LINUX(12, 24));
 
 struct EconTool {
     INCONSTRUCTIBLE(EconTool)
@@ -79,17 +79,17 @@ public:
 
     std::uint8_t getQuality() noexcept
     {
-        return *reinterpret_cast<std::uint8_t*>(std::uintptr_t(this) + 0x2B);
+        return *reinterpret_cast<std::uint8_t*>(std::uintptr_t(this) + WIN32_LINUX(0x2B, 0x4B));
     }
 
     int getCapabilities() noexcept
     {
-        return *reinterpret_cast<int*>(this + 0x148);
+        return *reinterpret_cast<int*>(this + WIN32_LINUX(0x148, 0x1F8));
     }
 
     int getItemType() noexcept
     {
-        return *reinterpret_cast<int*>(std::uintptr_t(this) + 0x130);
+        return *reinterpret_cast<int*>(std::uintptr_t(this) + WIN32_LINUX(0x130, 0x1C8));
     }
 
     bool isServiceMedal() noexcept
@@ -104,7 +104,7 @@ public:
 
     const UtlVector<StaticAttrib>& getStaticAttributes() noexcept
     {
-        return *reinterpret_cast<const UtlVector<StaticAttrib>*>(std::uintptr_t(this) + 0x30);
+        return *reinterpret_cast<const UtlVector<StaticAttrib>*>(std::uintptr_t(this) + WIN32_LINUX(0x30, 0x50));
     }
 
     std::uint32_t getAttributeValue(std::uint16_t attributeDefinitionIndex) noexcept
@@ -147,19 +147,19 @@ public:
 
     const char* getDefinitionName() noexcept
     {
-        return *reinterpret_cast<const char**>(this + 0x1DC);
+        return *reinterpret_cast<const char**>(this + WIN32_LINUX(0x1DC, 0x2E0));
     }
 
     EconTool* getEconTool() noexcept
     {
-        return *reinterpret_cast<EconTool**>(std::uintptr_t(this) + 0x140);
+        return *reinterpret_cast<EconTool**>(std::uintptr_t(this) + WIN32_LINUX(0x140, 0x1E8));
     }
 
     int getLoadoutSlot(Team team) noexcept
     {
         if (team >= Team::None && team <= Team::CT)
-            return reinterpret_cast<int*>(std::uintptr_t(this) + 0x28C)[static_cast<int>(team)];
-        return *reinterpret_cast<int*>(std::uintptr_t(this) + 0x268);
+            return reinterpret_cast<int*>(std::uintptr_t(this) + WIN32_LINUX(0x28C, 0x3F4))[static_cast<int>(team)];
+        return *reinterpret_cast<int*>(std::uintptr_t(this) + WIN32_LINUX(0x268, 0x3BC));
     }
 };
 
@@ -189,7 +189,7 @@ public:
 
     bool willProduceStatTrak() noexcept
     {
-        return *reinterpret_cast<bool*>(std::uintptr_t(this) + 0x36);
+        return *reinterpret_cast<bool*>(std::uintptr_t(this) + WIN32_LINUX(0x36, 0x56));
     }
 };
 
@@ -217,7 +217,7 @@ struct AlternateIconData {
     UtlString largeSimpleName;
     UtlString iconURLSmall;
     UtlString iconURLLarge;
-    PAD(28)
+    PAD(WIN32_LINUX(28, 48))
 };
 
 struct EconMusicDefinition {
@@ -234,18 +234,18 @@ class ItemSchema {
 public:
     INCONSTRUCTIBLE(ItemSchema)
 
-    PAD(0x88)
+    PAD(WIN32_LINUX(0x88, 0xB8))
     UtlMap<int, EconItemQualityDefinition> qualities;
-    PAD(0x48)
+    PAD(WIN32_LINUX(0x48, 0x60))
     UtlMap<int, EconItemDefinition*> itemsSorted;
-    PAD(0x60)
+    PAD(WIN32_LINUX(0x60, 0x88))
     UtlMap<int, const char*> revolvingLootLists;
-    PAD(0x80)
+    PAD(WIN32_LINUX(0x80, 0xB0))
     UtlMap<std::uint64_t, AlternateIconData> alternateIcons;
-    PAD(0x48)
+    PAD(WIN32_LINUX(0x48, 0x60))
     UtlMap<int, PaintKit*> paintKits;
     UtlMap<int, StickerKit*> stickerKits;
-    PAD(0x11C)
+    PAD(WIN32_LINUX(0x11C, 0x1A0))
     UtlMap<int, EconMusicDefinition*> musicKits;
 
     VIRTUAL_METHOD(EconItemDefinition*, getItemDefinitionInterface, 4, (int id), (this, id))
@@ -610,8 +610,12 @@ enum ProPlayer {
 class EconItem {
 public:
     INCONSTRUCTIBLE(EconItem)
-    
+
+#ifdef _WIN32
     VIRTUAL_METHOD(void, destructor, 0, (), (this, true))
+#else
+    VIRTUAL_METHOD(void, destructor, 1, (), (this))
+#endif
 
     PAD(2 * sizeof(std::uintptr_t))
 
@@ -684,9 +688,9 @@ public:
 
     PAD(sizeof(std::uintptr_t))
     T** objects;
-    PAD(16)
+    PAD(WIN32_LINUX(16, 24))
     int objectCount;
-    PAD(4)
+    PAD(WIN32_LINUX(4, 12))
     int classID; // https://github.com/perilouswithadollarsign/cstrike15_src/blob/f82112a2388b841d72cb62ca48ab1846dfcc11c8/game/shared/econ/econ_item_constants.h#L39
 };
 
@@ -724,7 +728,7 @@ public:
 
     auto getSOC() noexcept
     {
-        return *reinterpret_cast<ClientSharedObjectCache<EconItem>**>(std::uintptr_t(this) + 0x90);
+        return *reinterpret_cast<ClientSharedObjectCache<EconItem>**>(std::uintptr_t(this) + WIN32_LINUX(0x90, 0xC8));
     }
 
     SharedObjectTypeCache<EconItem>* getItemBaseTypeCache() noexcept
@@ -761,12 +765,12 @@ public:
 
     auto getAccountID() noexcept
     {
-        return *reinterpret_cast<std::uint32_t*>(std::uintptr_t(this) + 0x8);
+        return *reinterpret_cast<std::uint32_t*>(std::uintptr_t(this) + WIN32_LINUX(0x8, 0x10));
     }
 
     auto getSOID() noexcept
     {
-        return *reinterpret_cast<SOID*>(std::uintptr_t(this) + 0x8);
+        return *reinterpret_cast<SOID*>(std::uintptr_t(this) + WIN32_LINUX(0x8, 0x10));
     }
 };
 

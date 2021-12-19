@@ -12,7 +12,7 @@ public:
     VIRTUAL_METHOD(bool, hasClass, 139, (const char* name), (this, name))
     VIRTUAL_METHOD(void, setHasClass, 145, (const char* name, bool hasClass), (this, name, hasClass))
     VIRTUAL_METHOD(float, getAttributeFloat, 278, (const char* name, float defaultValue), (this, name, defaultValue))
-    VIRTUAL_METHOD(void, setAttributeFloat, 288, (const char* name, float value), (this, name, value))
+    VIRTUAL_METHOD(void, setAttributeFloat, WIN32_LINUX(288, 283), (const char* name, float value), (this, name, value))
 };
 
 struct PanoramaEventRegistration {
@@ -20,7 +20,7 @@ struct PanoramaEventRegistration {
     PAD(4)
     void* (__CDECL* makeEvent)(void*);
     void* (__CDECL* createEventFromString)(void*, const char* args, const char** result);
-    PAD(24)
+    PAD(WIN32_LINUX(24, 48))
 };
 
 class UIEngine {

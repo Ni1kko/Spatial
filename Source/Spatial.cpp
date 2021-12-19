@@ -1,18 +1,23 @@
 #include <memory>
 
+#ifdef _WIN32
 #include <clocale>
 #include <Windows.h>
+#endif
 
 #include "VMP/def.h"
 #include "Encryption/xorstr.hpp"
 #include "AntiDetection.h"
 
-#ifndef _DEBUG
-    AntiDetection antiDetection;
+#ifdef _WIN32
+    #ifndef _DEBUG
+       AntiDetection antiDetection;
+    #endif
 #endif
 
 #include "Hooks.h"
 
+#ifdef _WIN32
 extern "C" BOOL WINAPI _CRT_INIT(HMODULE moduleHandle, DWORD reason, LPVOID reserved);
 
 BOOL APIENTRY DllEntryPoint(HMODULE moduleHandle, DWORD reason, LPVOID reserved)
@@ -29,3 +34,14 @@ BOOL APIENTRY DllEntryPoint(HMODULE moduleHandle, DWORD reason, LPVOID reserved)
     return TRUE;
     VMP_END;
 }
+
+#else
+
+void __attribute__((constructor)) DllEntryPoint()
+{
+    VMP_ULTRA(xorstr_("DllMain"));
+    hooks = std::make_unique<Hooks>();
+    VMP_END;
+}
+
+#endif
