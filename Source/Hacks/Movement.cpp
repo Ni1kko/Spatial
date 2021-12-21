@@ -313,7 +313,6 @@ void Movement::autoPeek(UserCmd* cmd, Vector currentViewAngles) noexcept
     
     if (!movementConfig.autoPeek || !localPlayer || !localPlayer->isAlive() || !movementConfig.autoPeekKey.isSet() || !movementConfig.autoPeekKey.isDown())
     {
-
         Movement::AutoPeekHasShot = false;
         Movement::AutoPeekPosition = Vector{};
         return;
@@ -322,7 +321,10 @@ void Movement::autoPeek(UserCmd* cmd, Vector currentViewAngles) noexcept
     if (const auto mt = localPlayer->moveType(); mt == MoveType::LADDER || mt == MoveType::NOCLIP || !(localPlayer->flags() & 1))
         return;
 
-    if (movementConfig.autoPeekKey.isDown())
+    auto alwayson = !movementConfig.autoPeekKey.isSet();
+    auto bindpressed = !alwayson && movementConfig.autoPeekKey.isDown();
+     
+    if (bindpressed || alwayson)
     {
         if (Movement::AutoPeekPosition.null())
             Movement::AutoPeekPosition = localPlayer->getRenderOrigin();
