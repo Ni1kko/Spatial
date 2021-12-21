@@ -5,11 +5,30 @@
 #include "../InputUtil.h"
 
 
+struct MovementConfig {
+    bool fixMouseDelta{ false };
+    bool fixMovement{ false };
+    bool fixBoneMatrix{ false };
+
+
+    bool autoStrafe{ false };
+    bool fastStop{ false };
+    bool moonwalk{ false };
+    bool fastCrouch{ false };
+    bool bunnyHop{ false };
+    bool edgejump{ false }; KeyBind edgejumpkey;
+    bool slowwalk{ false }; KeyBind slowwalkKey;
+    bool setMaxAngleDelta{ false }; float maxAngleDelta{ 255.0f };
+    bool fastPlant{ false };
+
+    bool autoPeek{ false }; KeyBindToggle autoPeekKey;
+} movementConfig;
 
 namespace Movement
 {
     // Vars
     float defaultMaxAngleDelta = 255.0f;
+    Vector AutoPeekPosition {};
 
 	// Functions
     void fixMouseDelta(UserCmd* cmd) noexcept;
@@ -25,6 +44,7 @@ namespace Movement
     void slowwalk(UserCmd* cmd) noexcept;
     float maxAngleDelta() noexcept;
     void fastPlant(UserCmd*) noexcept;
+    void autoPeek(UserCmd* cmd, Vector currentViewAngles) noexcept;
 
     // GUI
     void menuBarItem() noexcept;

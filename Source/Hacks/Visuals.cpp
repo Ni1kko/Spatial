@@ -32,6 +32,7 @@
 #include "../SDK/Material.h"
 #include "../SDK/MaterialSystem.h" 
 #include "../SDK/ViewRenderBeams.h"
+#include <Hacks/Movement.h>
 
 struct BulletTracers : ColorToggle {
     BulletTracers() : ColorToggle{ 0.0f, 0.75f, 1.0f, 1.0f } {}
@@ -53,6 +54,7 @@ struct VisualsConfig {
     bool noGrass{ false };
     bool noShadows{ false };
     bool wireframeSmoke{ false };
+    ColorToggle autoPeekToggle{ 1.0f, 1.0f, 1.0f, 1.0f };
     bool zoom{ false };
     KeyBindToggle zoomKey;
     bool thirdperson{ false };
@@ -100,7 +102,23 @@ struct VisualsConfig {
 
 } visualsConfig;
 
- 
+
+static bool worldToScreen(const Vector& in, ImVec2& out) noexcept
+{
+    const auto& matrix = GameData::toScreenMatrix();
+
+    const auto w = matrix._41 * in.x + matrix._42 * in.y + matrix._43 * in.z + matrix._44;
+    if (w < 0.001f)
+        return false;
+
+    out = ImGui::GetIO().DisplaySize / 2.0f;
+    out.x *= 1.0f + (matrix._11 * in.x + matrix._12 * in.y + matrix._13 * in.z + matrix._14) / w;
+    out.y *= 1.0f - (matrix._21 * in.x + matrix._22 * in.y + matrix._23 * in.z + matrix._24) / w;
+    out = ImFloor(out);
+    return true;
+}
+
+
 static void from_json(const json& j, VisualsConfig::ColorCorrection& c)
 {
     read(j, "Enabled", c.enabled);
@@ -172,6 +190,7 @@ static void from_json(const json& j, VisualsConfig& v)
     read<value_t::object>(j, "Bullet Tracers", v.bulletTracers);
     read<value_t::object>(j, "Molotov Hull", v.molotovHull); 
     read<value_t::object>(j, "Smoke timer", v.smokeTimer);
+    read<value_t::object>(j, "Auto Peek Toggle", v.autoPeekToggle);
 }
 
 static void to_json(json& j, const VisualsConfig::ColorCorrection& o, const VisualsConfig::ColorCorrection& dummy)
@@ -246,6 +265,7 @@ static void to_json(json& j, const VisualsConfig& o)
     WRITE("Bullet Tracers", bulletTracers);
     WRITE("Molotov Hull", molotovHull);
     WRITE("Smoke timer", smokeTimer);
+    WRITE("Auto Peek Toggle", autoPeekToggle);
 }
 
 
@@ -833,6 +853,29 @@ void Visuals::viewModel() noexcept
     }
 }
 
+void Visuals::drawAutoPeek(ImDrawList* drawList) noexcept
+{
+    if (!movementConfig.autoPeek || !visualsConfig.autoPeekToggle.enabled || Movement::AutoPeekPosition.null())
+        return;
+ 
+    constexpr float step = 3.141592654f * 2.0f / 20.0f;
+    std::vector<ImVec2> points;
+    for (float lat = 0.f; lat <= 3.141592654f * 2.0f; lat += step)
+    {
+        const auto& point3d = Vector{ std::sin(lat), std::cos(lat), 0.f } *15.f;
+        ImVec2 point2d;
+        if (worldToScreen(Movement::AutoPeekPosition + point3d, point2d))
+            points.push_back(point2d);
+    }
+
+    const ImU32 color = Helpers::calculateColor(visualsConfig.autoPeekToggle.asColor4());
+    auto flags_backup = drawList->Flags;
+    drawList->Flags |= ImDrawListFlags_AntiAliasedFill;
+    drawList->AddConvexPolyFilled(points.data(), points.size(), color);
+    drawList->AddPolyline(points.data(), points.size(), color, true, 2.f);
+    drawList->Flags = flags_backup; 
+}
+
 void Visuals::updateEventListeners(bool forceRemove) noexcept
 {
     class ImpactEventListener : public GameEventListener {
@@ -903,6 +946,8 @@ void Visuals::drawGUI(bool contentOnly) noexcept
     ImGui::Checkbox("No grass", &visualsConfig.noGrass);
     ImGui::Checkbox("No shadows", &visualsConfig.noShadows);
     ImGui::Checkbox("Wireframe smoke", &visualsConfig.wireframeSmoke);
+    if(movementConfig.autoPeek) 
+        ImGuiCustom::colorPicker("Draw Autopeek", visualsConfig.autoPeekToggle);
     ImGui::NextColumn();
     ImGui::Checkbox("Zoom", &visualsConfig.zoom);
     ImGui::SameLine();

@@ -139,6 +139,7 @@ static void swapWindow(SDL_Window * window) noexcept
         Visuals::drawMolotovHull(ImGui::GetBackgroundDrawList());
         Visuals::drawSmokeTimer(ImGui::GetBackgroundDrawList());
         Misc::watermark(ImGui::GetBackgroundDrawList());
+        Visuals::drawAutoPeek(ImGui::GetBackgroundDrawList());
         Aimbot::drawFov(ImGui::GetBackgroundDrawList());
         Aimbot::updateInput();
         Visuals::updateInput();
@@ -221,6 +222,7 @@ static bool __STDCALL createMove(LINUX_ARGS(void* thisptr,) float inputSampleTim
     Aimbot::run(cmd);
     Triggerbot::run(cmd);
     Backtrack::run(cmd);
+    Movement::autoPeek(cmd, currentViewAngles);
     Movement::edgejump(cmd);
     Movement::moonwalk(cmd);
     Movement::fastPlant(cmd);

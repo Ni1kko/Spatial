@@ -67,29 +67,6 @@
 
 static bool windowOpen = false;
 
-  
-/////////////////////////////////////////////////////////////////
-// Structs
-/////////////////////////////////////////////////////////////////
-
-struct MovementConfig {
-    bool fixMouseDelta{ false };
-    bool fixMovement{ false };
-    bool fixBoneMatrix{ false };
-
-
-    bool autoStrafe{ false };
-    bool fastStop{ false };
-    bool moonwalk{ false }; 
-    bool fastCrouch{ false };
-    bool bunnyHop{ false };
-    bool edgejump{ false }; KeyBind edgejumpkey;
-    bool slowwalk{ false }; KeyBind slowwalkKey;
-    bool setMaxAngleDelta{ false }; float maxAngleDelta{ 255.0f };
-    bool fastPlant{ false };
-
-} movementConfig;
-
 
 /////////////////////////////////////////////////////////////////
 // Functions
@@ -331,6 +308,67 @@ void Movement::fastPlant(UserCmd* cmd) noexcept
         cmd->buttons &= ~UserCmd::IN_USE;
 }
 
+void Movement::autoPeek(UserCmd* cmd, Vector currentViewAngles) noexcept
+{
+    static bool hasShot = false;
+
+    if (!movementConfig.autoPeek)
+    {
+        hasShot = false;
+        Movement::AutoPeekPosition = Vector{};
+        return;
+    }
+
+    if (!localPlayer)
+        return;
+
+    if (!localPlayer->isAlive())
+    {
+        hasShot = false;
+        Movement::AutoPeekPosition = Vector{};
+        return;
+    }
+
+    if (const auto mt = localPlayer->moveType(); mt == MoveType::LADDER || mt == MoveType::NOCLIP || !(localPlayer->flags() & 1))
+        return;
+
+    if (movementConfig.autoPeekKey.isToggled() && movementConfig.autoPeekKey.isSet())
+    {
+        if (Movement::AutoPeekPosition.null())
+            Movement::AutoPeekPosition = localPlayer->getRenderOrigin();
+
+        if (cmd->buttons & UserCmd::IN_ATTACK)
+            hasShot = true;
+
+        if (hasShot)
+        {
+            const float yaw = currentViewAngles.y;
+            const auto difference = localPlayer->getRenderOrigin() - Movement::AutoPeekPosition;
+
+            if (difference.length2D() > 5.0f)
+            {
+                const auto velocity = Vector{
+                    difference.x * std::cos(yaw / 180.0f * 3.141592654f) + difference.y * std::sin(yaw / 180.0f * 3.141592654f),
+                    difference.y * std::cos(yaw / 180.0f * 3.141592654f) - difference.x * std::sin(yaw / 180.0f * 3.141592654f),
+                    difference.z };
+
+                cmd->forwardmove = -velocity.x * 20.f;
+                cmd->sidemove = velocity.y * 20.f;
+            }
+            else
+            {
+                hasShot = false;
+                Movement::AutoPeekPosition = Vector{};
+                movementConfig.autoPeekKey.setToggle(false);
+            }
+        }
+    }
+    else
+    {
+        hasShot = false;
+        Movement::AutoPeekPosition = Vector{};
+    }
+}
 
 /////////////////////////////////////////////////////////////////
 // GUI Functions
@@ -373,21 +411,37 @@ void Movement::drawGUI(bool contentOnly) noexcept
     }
     
     ImGui::Checkbox(xorstr_("Auto Strafe"), &movementConfig.autoStrafe);
+    ImGui::Checkbox(xorstr_("Auto Peek"), &movementConfig.autoPeek);
+    if (movementConfig.autoPeek) 
+    {
+        ImGui::SameLine();
+        ImGui::PushID(xorstr_("Auto Peek Key"));
+        ImGui::hotkey("", movementConfig.autoPeekKey);
+        ImGui::PopID();
+    }
+
     ImGui::Checkbox(xorstr_("Fast Stop"), &movementConfig.fastStop);
     ImGui::Checkbox(xorstr_("Fast plant"), &movementConfig.fastPlant);
     ImGui::Checkbox(xorstr_("Fast Crouch"), &movementConfig.fastCrouch);
     ImGui::Checkbox(xorstr_("Moon Walk"), &movementConfig.moonwalk);
     ImGui::Checkbox(xorstr_("Bunny hop"), &movementConfig.bunnyHop);
+    
     ImGui::Checkbox(xorstr_("Edge Jump"), &movementConfig.edgejump);
-    ImGui::SameLine();
-    ImGui::PushID(xorstr_("Edge Jump Key"));
-    ImGui::hotkey("", movementConfig.edgejumpkey);
-    ImGui::PopID();
+    if (movementConfig.edgejump) {
+        ImGui::SameLine();
+        ImGui::PushID(xorstr_("Edge Jump Key"));
+        ImGui::hotkey("", movementConfig.edgejumpkey);
+        ImGui::PopID();
+    }
+    
     ImGui::Checkbox(xorstr_("Slowwalk"), &movementConfig.slowwalk);
-    ImGui::SameLine();
-    ImGui::PushID(xorstr_("Slowwalk Key"));
-    ImGui::hotkey("", movementConfig.slowwalkKey);
-    ImGui::PopID();
+    if (movementConfig.slowwalk) {
+        ImGui::SameLine();
+        ImGui::PushID(xorstr_("Slowwalk Key"));
+        ImGui::hotkey("", movementConfig.slowwalkKey);
+        ImGui::PopID();
+    }
+    
 
     if (!contentOnly)
         ImGui::End();
@@ -413,7 +467,8 @@ static void from_json(const json& j, MovementConfig& m)
     read(j, "Slow Walk Key", m.slowwalkKey);
     read(j, "Set Max angle delta", m.setMaxAngleDelta);
     read(j, "Max angle delta", m.maxAngleDelta); 
-    read(j, "Fast plant", m.fastPlant);
+    read(j, "Auto Peek Key", m.autoPeek);
+    read(j, "Auto Peek Key", m.autoPeekKey);
 }
 
 static void to_json(json& j, const MovementConfig& o)
@@ -434,6 +489,8 @@ static void to_json(json& j, const MovementConfig& o)
     WRITE("Set Max angle delta", setMaxAngleDelta);
     WRITE("Max angle delta", maxAngleDelta);
     WRITE("Fast plant", fastPlant);
+    WRITE("Auto Peek Key", autoPeek);
+    WRITE("Auto Peek Key", autoPeekKey);
 }
 
 json Movement::toJson() noexcept

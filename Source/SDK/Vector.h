@@ -15,6 +15,11 @@ struct Vector {
     {
         return x || y || z;
     }
+
+    constexpr auto null() const noexcept
+    {
+        return !notNull();
+    }
     
     friend constexpr auto operator==(const Vector& a, const Vector& b) noexcept
     {
