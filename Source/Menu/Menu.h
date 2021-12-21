@@ -47,6 +47,7 @@ private:
     void renderAntiAimWindow() noexcept;
     void renderTriggerbotWindow() noexcept;
     void renderBackTrackWindow() noexcept;
+    void renderMovementWindow() noexcept;
     void renderNetworkWindow() noexcept;
     void renderGlowWindow() noexcept;
     void renderChamsWindow() noexcept;

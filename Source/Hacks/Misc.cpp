@@ -99,16 +99,10 @@ struct MiscConfig {
 
     KeyBind menuKey{ KeyBind::INSERT };
     bool antiAfkKick{ false };
-    bool autoStrafe{ false };
     bool autoDisconnect{ false };
-    bool bunnyHop{ false };
     bool customClanTag{ false };
     bool clocktag{ false };
     bool animatedClanTag{ false };
-    bool fastDuck{ false };
-    bool moonwalk{ false };
-    bool edgejump{ false };
-    bool slowwalk{ false }; 
     bool autoPistol{ false };
     bool autoReload{ false };
     bool autoAccept{ false };
@@ -117,9 +111,7 @@ struct MiscConfig {
     bool revealMoney{ false };
     bool revealSuspect{ false };
     bool revealVotes{ false };
-    bool fixAnimationLOD{ false };
-    bool fixBoneMatrix{ false };
-    bool fixMovement{ false };
+    bool fixAnimationLOD{ false }; 
     bool disableModelOcclusion{ false };
     bool nameStealer{ false };
     bool fakePrime{ false };
@@ -127,16 +119,12 @@ struct MiscConfig {
     bool killMessage{ false };
     bool nadePredict{ false };
     bool fixTabletSignal{ false };
-    bool fastPlant{ false };
-    bool fastStop{ false };
     bool quickReload{ false };
     bool prepareRevolver{ false };
     bool oppositeHandKnife = false;
 
     PreserveKillfeed preserveKillfeed;
     char clanTag[16];
-    KeyBind edgejumpkey;
-    KeyBind slowwalkKey;
     ColorToggleThickness noscopeCrosshair;
     ColorToggleThickness recoilCrosshair;
 
@@ -160,7 +148,6 @@ struct MiscConfig {
     KeyBind prepareRevolverKey;
     int hitSound{ 0 };
     int quickHealthshotKey{ 0 };
-    float maxAngleDelta{ 255.0f };
     int killSound{ 0 };
     std::string customKillSound;
     std::string customHitSound;
@@ -200,11 +187,6 @@ bool Misc::shouldDisableModelOcclusion() noexcept
     return miscConfig.disableModelOcclusion;
 }
 
-bool Misc::shouldFixBoneMatrix() noexcept
-{
-    return miscConfig.fixBoneMatrix;
-}
-
 bool Misc::isRadarHackOn() noexcept
 {
     return miscConfig.radarHack;
@@ -220,58 +202,9 @@ bool Misc::isMenuKeyPressed() noexcept
     return menuKeyBind().isPressed();
 }
 
-float Misc::maxAngleDelta() noexcept
-{
-    return miscConfig.maxAngleDelta;
-}
-
 float Misc::aspectRatio() noexcept
 {
     return miscConfig.aspectratio;
-}
-
-void Misc::edgejump(UserCmd* cmd) noexcept
-{
-    if (!miscConfig.edgejump || !miscConfig.edgejumpkey.isDown())
-        return;
-
-    if (!localPlayer || !localPlayer->isAlive())
-        return;
-
-    if (const auto mt = localPlayer->moveType(); mt == MoveType::LADDER || mt == MoveType::NOCLIP)
-        return;
-
-    if ((EnginePrediction::getFlags() & 1) && !(localPlayer->flags() & 1))
-        cmd->buttons |= UserCmd::IN_JUMP;
-}
-
-void Misc::slowwalk(UserCmd* cmd) noexcept
-{
-    if (!miscConfig.slowwalk || !miscConfig.slowwalkKey.isDown())
-        return;
-
-    if (!localPlayer || !localPlayer->isAlive())
-        return;
-
-    const auto activeWeapon = localPlayer->getActiveWeapon();
-    if (!activeWeapon)
-        return;
-
-    const auto weaponData = activeWeapon->getWeaponData();
-    if (!weaponData)
-        return;
-
-    const float maxSpeed = (localPlayer->isScoped() ? weaponData->maxSpeedAlt : weaponData->maxSpeed) / 3;
-
-    if (cmd->forwardmove && cmd->sidemove) {
-        const float maxSpeedRoot = maxSpeed * static_cast<float>(M_SQRT1_2);
-        cmd->forwardmove = cmd->forwardmove < 0.0f ? -maxSpeedRoot : maxSpeedRoot;
-        cmd->sidemove = cmd->sidemove < 0.0f ? -maxSpeedRoot : maxSpeedRoot;
-    } else if (cmd->forwardmove) {
-        cmd->forwardmove = cmd->forwardmove < 0.0f ? -maxSpeed : maxSpeed;
-    } else if (cmd->sidemove) {
-        cmd->sidemove = cmd->sidemove < 0.0f ? -maxSpeed : maxSpeed;
-    }
 }
 
 void Misc::updateClanTag(bool tagChanged) noexcept
@@ -541,60 +474,6 @@ void Misc::prepareRevolver(UserCmd* cmd) noexcept
     }
 }
 
-void Misc::fastPlant(UserCmd* cmd) noexcept
-{
-    if (!miscConfig.fastPlant)
-        return;
-
-    if (static auto plantAnywhere = interfaces->cvar->findVar("mp_plant_c4_anywhere"); plantAnywhere->getInt())
-        return;
-
-    if (!localPlayer || !localPlayer->isAlive() || (localPlayer->inBombZone() && localPlayer->flags() & 1))
-        return;
-
-    if (const auto activeWeapon = localPlayer->getActiveWeapon(); !activeWeapon || activeWeapon->getClientClass()->classId != ClassId::CC4)
-        return;
-
-    cmd->buttons &= ~UserCmd::IN_ATTACK;
-
-    constexpr auto doorRange = 200.0f;
-
-    Trace trace;
-    const auto startPos = localPlayer->getEyePosition();
-    const auto endPos = startPos + Vector::fromAngle(cmd->viewangles) * doorRange;
-    interfaces->engineTrace->traceRay({ startPos, endPos }, 0x46004009, localPlayer.get(), trace);
-
-    if (!trace.entity || trace.entity->getClientClass()->classId != ClassId::CPropDoorRotating)
-        cmd->buttons &= ~UserCmd::IN_USE;
-}
-
-void Misc::fastStop(UserCmd* cmd) noexcept
-{
-    if (!miscConfig.fastStop)
-        return;
-
-    if (!localPlayer || !localPlayer->isAlive())
-        return;
-
-    if (localPlayer->moveType() == MoveType::NOCLIP || localPlayer->moveType() == MoveType::LADDER || !(localPlayer->flags() & 1) || cmd->buttons & UserCmd::IN_JUMP)
-        return;
-
-    if (cmd->buttons & (UserCmd::IN_MOVELEFT | UserCmd::IN_MOVERIGHT | UserCmd::IN_FORWARD | UserCmd::IN_BACK))
-        return;
-    
-    const auto velocity = localPlayer->velocity();
-    const auto speed = velocity.length2D();
-    if (speed < 15.0f)
-        return;
-    
-    Vector direction = velocity.toAngle();
-    direction.y = cmd->viewangles.y - direction.y;
-
-    const auto negatedDirection = Vector::fromAngle(direction) * -speed;
-    cmd->forwardmove = negatedDirection.x;
-    cmd->sidemove = negatedDirection.y;
-}
-
 void Misc::drawBombTimer() noexcept
 {
     if (!miscConfig.bombTimer.enabled)
@@ -759,19 +638,6 @@ bool Misc::changeName(bool reconnect, const char* newName, float delay) noexcept
     return false;
 }
 
-void Misc::bunnyHop(UserCmd* cmd) noexcept
-{
-    if (!localPlayer)
-        return;
-
-    static auto wasLastTimeOnGround{ localPlayer->flags() & 1 };
-
-    if (miscConfig.bunnyHop && !(localPlayer->flags() & 1) && localPlayer->moveType() != MoveType::LADDER && !wasLastTimeOnGround)
-        cmd->buttons &= ~UserCmd::IN_JUMP;
-
-    wasLastTimeOnGround = localPlayer->flags() & 1;
-}
-
 void Misc::fakeBan(bool set) noexcept
 {
     static bool shouldSet = false;
@@ -814,21 +680,6 @@ void Misc::killMessage(GameEvent& event) noexcept
     cmd += miscConfig.killMessageString;
     cmd += '"';
     interfaces->engine->clientCmdUnrestricted(cmd.c_str());
-}
-
-void Misc::fixMovement(UserCmd* cmd, float yaw) noexcept
-{
-    if (miscConfig.fixMovement) {
-        float oldYaw = yaw + (yaw < 0.0f ? 360.0f : 0.0f);
-        float newYaw = cmd->viewangles.y + (cmd->viewangles.y < 0.0f ? 360.0f : 0.0f);
-        float yawDelta = newYaw < oldYaw ? fabsf(newYaw - oldYaw) : 360.0f - fabsf(newYaw - oldYaw);
-        yawDelta = 360.0f - yawDelta;
-
-        const float forwardmove = cmd->forwardmove;
-        const float sidemove = cmd->sidemove;
-        cmd->forwardmove = std::cos(Helpers::deg2rad(yawDelta)) * forwardmove + std::cos(Helpers::deg2rad(yawDelta + 90.0f)) * sidemove;
-        cmd->sidemove = std::sin(Helpers::deg2rad(yawDelta)) * forwardmove + std::sin(Helpers::deg2rad(yawDelta + 90.0f)) * sidemove;
-    }
 }
 
 void Misc::antiAfkKick(UserCmd* cmd) noexcept
@@ -881,35 +732,10 @@ void Misc::revealRanks(UserCmd* cmd) noexcept
         interfaces->client->dispatchUserMessage(50, 0, 0, nullptr);
 }
 
-void Misc::autoStrafe(UserCmd* cmd) noexcept
-{
-    if (localPlayer
-        && miscConfig.autoStrafe
-        && !(localPlayer->flags() & 1)
-        && localPlayer->moveType() != MoveType::NOCLIP) {
-        if (cmd->mousedx < 0)
-            cmd->sidemove = -450.0f;
-        else if (cmd->mousedx > 0)
-            cmd->sidemove = 450.0f;
-    }
-}
-
 void Misc::autoDisconnect() noexcept
 {
     if (miscConfig.autoDisconnect)
         interfaces->engine->clientCmdUnrestricted(xorstr_("disconnect"));
-}
-
-void Misc::removeCrouchCooldown(UserCmd* cmd) noexcept
-{
-    if (miscConfig.fastDuck)
-        cmd->buttons |= UserCmd::IN_BULLRUSH;
-}
-
-void Misc::moonwalk(UserCmd* cmd) noexcept
-{
-    if (miscConfig.moonwalk && localPlayer && localPlayer->moveType() != MoveType::LADDER)
-        cmd->buttons ^= UserCmd::IN_FORWARD | UserCmd::IN_BACK | UserCmd::IN_MOVELEFT | UserCmd::IN_MOVERIGHT;
 }
 
 void Misc::playHitSound(GameEvent& event) noexcept
@@ -1337,83 +1163,6 @@ void Misc::autoAccept(const char* soundEntry) noexcept
 #endif
 }
 
-void Misc::fixMouseDelta(UserCmd* cmd) noexcept
-{
-    if (!cmd)
-        return;
-
-    static Vector delta_viewangles{ };
-    Vector delta = cmd->viewangles - delta_viewangles;
-
-    delta.x = std::clamp(delta.x, -89.0f, 89.0f);
-    delta.y = std::clamp(delta.y, -180.0f, 180.0f);
-    delta.z = 0.0f;
-    static ConVar* sensitivity;
-    if (!sensitivity)
-        sensitivity = interfaces->cvar->findVar("sensitivity");;
-    if (delta.x != 0.f) {
-        static ConVar* m_pitch;
-
-        if (!m_pitch)
-            m_pitch = interfaces->cvar->findVar("m_pitch");
-
-        int final_dy = static_cast<int>((delta.x / m_pitch->getFloat()) / sensitivity->getFloat());
-        if (final_dy <= 32767) {
-            if (final_dy >= -32768) {
-                if (final_dy >= 1 || final_dy < 0) {
-                    if (final_dy <= -1 || final_dy > 0)
-                        final_dy = final_dy;
-                    else
-                        final_dy = -1;
-                }
-                else {
-                    final_dy = 1;
-                }
-            }
-            else {
-                final_dy = 32768;
-            }
-        }
-        else {
-            final_dy = 32767;
-        }
-
-        cmd->mousedy = static_cast<short>(final_dy);
-    }
-
-    if (delta.y != 0.f) {
-        static ConVar* m_yaw;
-
-        if (!m_yaw)
-            m_yaw = interfaces->cvar->findVar("m_yaw");
-
-        int final_dx = static_cast<int>((delta.y / m_yaw->getFloat()) / sensitivity->getFloat());
-        if (final_dx <= 32767) {
-            if (final_dx >= -32768) {
-                if (final_dx >= 1 || final_dx < 0) {
-                    if (final_dx <= -1 || final_dx > 0)
-                        final_dx = final_dx;
-                    else
-                        final_dx = -1;
-                }
-                else {
-                    final_dx = 1;
-                }
-            }
-            else {
-                final_dx = 32768;
-            }
-        }
-        else {
-            final_dx = 32767;
-        }
-
-        cmd->mousedx = static_cast<short>(final_dx);
-    }
-
-    delta_viewangles = cmd->viewangles;
-}
-
 void Misc::fakePrime() noexcept
 {
     static bool lastState = false;
@@ -1501,45 +1250,26 @@ void Misc::drawGUI(bool contentOnly) noexcept
     ImGui::SetColumnOffset(1, 230.0f);
     ImGui::hotkey("Menu Key", miscConfig.menuKey);
     ImGui::Checkbox("Anti AFK kick", &miscConfig.antiAfkKick);
-    ImGui::Checkbox("Auto strafe", &miscConfig.autoStrafe);
     ImGui::Checkbox(xorstr_("Auto Disconnect"), &miscConfig.autoDisconnect);
-    ImGui::Checkbox("Bunny hop", &miscConfig.bunnyHop);
-    ImGui::Checkbox("Fast duck", &miscConfig.fastDuck);
-    ImGui::Checkbox("Moonwalk", &miscConfig.moonwalk);
-    ImGui::Checkbox("Edge Jump", &miscConfig.edgejump);
-    ImGui::SameLine();
-    ImGui::PushID("Edge Jump Key");
-    ImGui::hotkey("", miscConfig.edgejumpkey);
-    ImGui::PopID();
-    ImGui::Checkbox("Slowwalk", &miscConfig.slowwalk);
-    ImGui::SameLine();
-    ImGui::PushID("Slowwalk Key");
-    ImGui::hotkey("", miscConfig.slowwalkKey);
-    ImGui::PopID();
     ImGuiCustom::colorPicker("Noscope crosshair", miscConfig.noscopeCrosshair);
     ImGuiCustom::colorPicker("Recoil crosshair", miscConfig.recoilCrosshair);
     ImGui::Checkbox("Auto pistol", &miscConfig.autoPistol);
     ImGui::Checkbox("Auto reload", &miscConfig.autoReload);
     ImGui::Checkbox("Auto accept", &miscConfig.autoAccept);
+    ImGui::Checkbox("Nade Prediction", &miscConfig.nadePredict);
     ImGui::Checkbox("Radar hack", &miscConfig.radarHack);
     ImGui::Checkbox("Reveal ranks", &miscConfig.revealRanks);
     ImGui::Checkbox("Reveal money", &miscConfig.revealMoney);
     ImGui::Checkbox("Reveal suspect", &miscConfig.revealSuspect);
-    ImGui::Checkbox("Reveal votes", &miscConfig.revealVotes);
-
-    ImGui::Checkbox("Spectator list", &miscConfig.spectatorList.enabled);
+    ImGui::Checkbox("Reveal votes", &miscConfig.revealVotes); 
+    ImGui::Checkbox("Fake Prime status", &miscConfig.fakePrime);
+    ImGuiCustom::colorPicker("Bomb timer", miscConfig.bombTimer);
+    ImGui::Checkbox("Quick reload", &miscConfig.quickReload);
+    ImGui::Checkbox("Prepare revolver", &miscConfig.prepareRevolver);
     ImGui::SameLine();
-
-    ImGui::PushID("Spectator list");
-    if (ImGui::Button("..."))
-        ImGui::OpenPopup("");
-
-    if (ImGui::BeginPopup("")) {
-        ImGui::Checkbox("No Title Bar", &miscConfig.spectatorList.noTitleBar);
-        ImGui::EndPopup();
-    }
+    ImGui::PushID("Prepare revolver Key");
+    ImGui::hotkey("", miscConfig.prepareRevolverKey);
     ImGui::PopID();
-
     ImGui::Checkbox("Watermark", &miscConfig.watermark.enabled);
     ImGuiCustom::colorPicker("Offscreen Enemies", miscConfig.offscreenEnemies.asColor4(), &miscConfig.offscreenEnemies.enabled);
     ImGui::SameLine();
@@ -1559,13 +1289,19 @@ void Misc::drawGUI(bool contentOnly) noexcept
         ImGui::EndPopup();
     }
     ImGui::PopID();
-    ImGui::Checkbox("Fix animation LOD", &miscConfig.fixAnimationLOD);
-    ImGui::Checkbox("Fix bone matrix", &miscConfig.fixBoneMatrix);
-    ImGui::Checkbox("Fix movement", &miscConfig.fixMovement);
+    ImGui::Checkbox("Fix animation LOD", &miscConfig.fixAnimationLOD); 
     ImGui::Checkbox("Disable model occlusion", &miscConfig.disableModelOcclusion);
     ImGui::SliderFloat("Aspect Ratio", &miscConfig.aspectratio, 0.0f, 5.0f, "%.2f");
-    ImGui::NextColumn();
+    ImGui::Checkbox("Fix tablet signal", &miscConfig.fixTabletSignal);
+    ImGui::Checkbox("Opposite Hand Knife", &miscConfig.oppositeHandKnife);
     ImGui::Checkbox("Disable HUD blur", &miscConfig.disablePanoramablur);
+
+    ImGui::SetNextItemWidth(140);
+    ImGui::Combo("Force region", &miscConfig.forceRelayCluster, "Off\0Australia\0Austria\0Brazil\0Chile\0Dubai\0France\0Germany\0Hong Kong\0India (Chennai)\0India (Mumbai)\0Japan\0Luxembourg\0Netherlands\0Peru\0Philipines\0Poland\0Singapore\0South Africa\0Spain\0Sweden\0UK\0USA (Atlanta)\0USA (Seattle)\0USA (Chicago)\0USA (Los Angeles)\0USA (Moses Lake)\0USA (Oklahoma)\0USA (Seattle)\0USA (Washington DC)\0");
+
+    ImGui::NextColumn();
+
+    
     ImGui::Checkbox("Animated clan tag", &miscConfig.animatedClanTag);
     ImGui::Checkbox("Clock tag", &miscConfig.clocktag);
     ImGui::Checkbox("Custom clantag", &miscConfig.customClanTag);
@@ -1582,7 +1318,6 @@ void Misc::drawGUI(bool contentOnly) noexcept
     ImGui::PushID(1);
     ImGui::InputText("", &miscConfig.killMessageString);
     ImGui::PopID();
-    ImGui::Checkbox("Fake Prime status", &miscConfig.fakePrime);
     ImGui::Checkbox("Name stealer", &miscConfig.nameStealer);
     ImGui::PushID(3);
     ImGui::SetNextItemWidth(100.0f);
@@ -1595,15 +1330,7 @@ void Misc::drawGUI(bool contentOnly) noexcept
     ImGui::SameLine();
     if (ImGui::Button("Setup fake ban"))
         Misc::fakeBan(true);
-    ImGui::Checkbox("Fast plant", &miscConfig.fastPlant);
-    ImGui::Checkbox("Fast Stop", &miscConfig.fastStop);
-    ImGuiCustom::colorPicker("Bomb timer", miscConfig.bombTimer);
-    ImGui::Checkbox("Quick reload", &miscConfig.quickReload);
-    ImGui::Checkbox("Prepare revolver", &miscConfig.prepareRevolver);
-    ImGui::SameLine();
-    ImGui::PushID("Prepare revolver Key");
-    ImGui::hotkey("", miscConfig.prepareRevolverKey);
-    ImGui::PopID();
+    
     ImGui::Combo("Hit Sound", &miscConfig.hitSound, "None\0Metal\0Gamesense\0Bell\0Glass\0Custom\0");
     if (miscConfig.hitSound == 5) {
         ImGui::InputText("Hit Sound filename", &miscConfig.customHitSound);
@@ -1623,18 +1350,10 @@ void Misc::drawGUI(bool contentOnly) noexcept
     ImGui::SameLine();
     hotkey(miscConfig.quickHealthshotKey);
     */
-    ImGui::Checkbox("Grenade Prediction", &miscConfig.nadePredict);
-    ImGui::Checkbox("Fix tablet signal", &miscConfig.fixTabletSignal);
-    ImGui::SetNextItemWidth(120.0f);
-    ImGui::SliderFloat("Max angle delta", &miscConfig.maxAngleDelta, 0.0f, 255.0f, "%.2f");
-    ImGui::Checkbox("Opposite Hand Knife", &miscConfig.oppositeHandKnife);
     ImGui::Checkbox("Preserve Killfeed", &miscConfig.preserveKillfeed.enabled);
     ImGui::SameLine();
-
     ImGui::PushID("Preserve Killfeed");
-    if (ImGui::Button("..."))
-        ImGui::OpenPopup("");
-
+    if (ImGui::Button("...")) ImGui::OpenPopup("");
     if (ImGui::BeginPopup("")) {
         ImGui::Checkbox("Only Headshots", &miscConfig.preserveKillfeed.onlyHeadshots);
         ImGui::EndPopup();
@@ -1643,11 +1362,8 @@ void Misc::drawGUI(bool contentOnly) noexcept
 
     ImGui::Checkbox("Purchase List", &miscConfig.purchaseList.enabled);
     ImGui::SameLine();
-
     ImGui::PushID("Purchase List");
-    if (ImGui::Button("..."))
-        ImGui::OpenPopup("");
-
+    if (ImGui::Button("...")) ImGui::OpenPopup("");
     if (ImGui::BeginPopup("")) {
         ImGui::SetNextItemWidth(75.0f);
         ImGui::Combo("Mode", &miscConfig.purchaseList.mode, "Details\0Summary\0");
@@ -1658,13 +1374,20 @@ void Misc::drawGUI(bool contentOnly) noexcept
     }
     ImGui::PopID();
 
+    ImGui::Checkbox("Spectator list", &miscConfig.spectatorList.enabled);
+    ImGui::SameLine();
+    ImGui::PushID("Spectator list");
+    if (ImGui::Button("...")) ImGui::OpenPopup("");
+    if (ImGui::BeginPopup("")) {
+        ImGui::Checkbox("No Title Bar", &miscConfig.spectatorList.noTitleBar);
+        ImGui::EndPopup();
+    }
+    ImGui::PopID();
+
     ImGui::Checkbox("Reportbot", &miscConfig.reportbot.enabled);
     ImGui::SameLine();
     ImGui::PushID("Reportbot");
-
-    if (ImGui::Button("..."))
-        ImGui::OpenPopup("");
-
+    if (ImGui::Button("...")) ImGui::OpenPopup("");
     if (ImGui::BeginPopup("")) {
         ImGui::PushItemWidth(80.0f);
         ImGui::Combo("Target", &miscConfig.reportbot.target, "Enemies\0Allies\0All\0");
@@ -1684,8 +1407,6 @@ void Misc::drawGUI(bool contentOnly) noexcept
     }
     ImGui::PopID();
     
-    ImGui::SetNextItemWidth(140);
-    ImGui::Combo("Force region", &miscConfig.forceRelayCluster, "Off\0Australia\0Austria\0Brazil\0Chile\0Dubai\0France\0Germany\0Hong Kong\0India (Chennai)\0India (Mumbai)\0Japan\0Luxembourg\0Netherlands\0Peru\0Philipines\0Poland\0Singapore\0South Africa\0Spain\0Sweden\0UK\0USA (Atlanta)\0USA (Seattle)\0USA (Chicago)\0USA (Los Angeles)\0USA (Moses Lake)\0USA (Oklahoma)\0USA (Seattle)\0USA (Washington DC)\0");
     
     #ifdef _DEBUG
         if (ImGui::Button(xorstr_("Unhook"))) hooks->uninstall();
@@ -1746,19 +1467,11 @@ static void from_json(const json& j, MiscConfig& m)
 {
     read(j, "Menu key", m.menuKey);
     read(j, "Anti AFK kick", m.antiAfkKick);
-    read(j, "Auto strafe", m.autoStrafe);
     read(j, xorstr_("Auto disconnect"), m.autoDisconnect);
-    read(j, "Bunny hop", m.bunnyHop);
     read(j, "Custom clan tag", m.customClanTag);
     read(j, "Clock tag", m.clocktag);
     read(j, "Clan tag", m.clanTag, sizeof(m.clanTag));
     read(j, "Animated clan tag", m.animatedClanTag);
-    read(j, "Fast duck", m.fastDuck);
-    read(j, "Moonwalk", m.moonwalk);
-    read(j, "Edge Jump", m.edgejump);
-    read(j, "Edge Jump Key", m.edgejumpkey);
-    read(j, "Slowwalk", m.slowwalk);
-    read(j, "Slowwalk key", m.slowwalkKey);  
     read<value_t::object>(j, "Noscope crosshair", m.noscopeCrosshair);
     read<value_t::object>(j, "Recoil crosshair", m.recoilCrosshair);
     read(j, "Auto pistol", m.autoPistol);
@@ -1773,8 +1486,6 @@ static void from_json(const json& j, MiscConfig& m)
     read<value_t::object>(j, "Watermark", m.watermark);
     read<value_t::object>(j, "Offscreen Enemies", m.offscreenEnemies);
     read(j, "Fix animation LOD", m.fixAnimationLOD);
-    read(j, "Fix bone matrix", m.fixBoneMatrix);
-    read(j, "Fix movement", m.fixMovement);
     read(j, "Disable model occlusion", m.disableModelOcclusion);
     read(j, "Aspect Ratio", m.aspectratio);
     read(j, "Kill message", m.killMessage);
@@ -1784,8 +1495,6 @@ static void from_json(const json& j, MiscConfig& m)
     read(j, "Disable HUD blur", m.disablePanoramablur);
     read(j, "Ban color", m.banColor);
     read<value_t::string>(j, "Ban text", m.banText);
-    read(j, "Fast plant", m.fastPlant);
-    read(j, "Fast Stop", m.fastStop);
     read<value_t::object>(j, "Bomb timer", m.bombTimer);
     read(j, "Quick reload", m.quickReload);
     read(j, "Prepare revolver", m.prepareRevolver);
@@ -1793,8 +1502,6 @@ static void from_json(const json& j, MiscConfig& m)
     read(j, "Hit sound", m.hitSound);
     read(j, "Quick healthshot key", m.quickHealthshotKey);
     read(j, "Grenade predict", m.nadePredict);
-    read(j, "Fix tablet signal", m.fixTabletSignal);
-    read(j, "Max angle delta", m.maxAngleDelta);
     read(j, "Fix tablet signal", m.fixTabletSignal);
     read<value_t::string>(j, "Custom Hit Sound", m.customHitSound);
     read(j, "Kill sound", m.killSound);
@@ -1882,9 +1589,7 @@ static void to_json(json& j, const MiscConfig& o)
 
     WRITE("Menu key", menuKey);
     WRITE("Anti AFK kick", antiAfkKick);
-    WRITE("Auto strafe", autoStrafe);
     WRITE(xorstr_("Auto disconnect"), autoDisconnect);
-    WRITE("Bunny hop", bunnyHop);
     WRITE("Custom clan tag", customClanTag);
     WRITE("Clock tag", clocktag);
 
@@ -1892,12 +1597,6 @@ static void to_json(json& j, const MiscConfig& o)
         j["Clan tag"] = o.clanTag;
 
     WRITE("Animated clan tag", animatedClanTag);
-    WRITE("Fast duck", fastDuck);
-    WRITE("Moonwalk", moonwalk);
-    WRITE("Edge Jump", edgejump);
-    WRITE("Edge Jump Key", edgejumpkey);
-    WRITE("Slowwalk", slowwalk);
-    WRITE("Slowwalk key", slowwalkKey);  
     WRITE("Noscope crosshair", noscopeCrosshair);
     WRITE("Recoil crosshair", recoilCrosshair);
     WRITE("Auto pistol", autoPistol);
@@ -1912,8 +1611,6 @@ static void to_json(json& j, const MiscConfig& o)
     WRITE("Watermark", watermark);
     WRITE("Offscreen Enemies", offscreenEnemies);
     WRITE("Fix animation LOD", fixAnimationLOD);
-    WRITE("Fix bone matrix", fixBoneMatrix);
-    WRITE("Fix movement", fixMovement);
     WRITE("Disable model occlusion", disableModelOcclusion);
     WRITE("Aspect Ratio", aspectratio);
     WRITE("Kill message", killMessage);
@@ -1923,8 +1620,6 @@ static void to_json(json& j, const MiscConfig& o)
     WRITE("Disable HUD blur", disablePanoramablur);
     WRITE("Ban color", banColor);
     WRITE("Ban text", banText);
-    WRITE("Fast plant", fastPlant);
-    WRITE("Fast Stop", fastStop);
     WRITE("Bomb timer", bombTimer);
     WRITE("Quick reload", quickReload);
     WRITE("Prepare revolver", prepareRevolver);
@@ -1932,8 +1627,6 @@ static void to_json(json& j, const MiscConfig& o)
     WRITE("Hit sound", hitSound);
     WRITE("Quick healthshot key", quickHealthshotKey);
     WRITE("Grenade predict", nadePredict);
-    WRITE("Fix tablet signal", fixTabletSignal);
-    WRITE("Max angle delta", maxAngleDelta);
     WRITE("Fix tablet signal", fixTabletSignal);
     WRITE("Custom Hit Sound", customHitSound);
     WRITE("Kill sound", killSound);

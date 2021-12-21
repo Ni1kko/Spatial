@@ -269,6 +269,9 @@
     <ClCompile Include="Menu\imgui\imgui.cpp">
       <Filter>Menu\ImGUI</Filter>
     </ClCompile>
+    <ClCompile Include="Hacks\Movement.cpp">
+      <Filter>Hacks</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Hooks.h">
@@ -678,6 +681,9 @@
     </ClInclude>
     <ClInclude Include="Menu\imgui\imgui.h">
       <Filter>Menu\ImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Hacks\Movement.h">
+      <Filter>Hacks</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

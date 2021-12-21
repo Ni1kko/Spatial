@@ -37,6 +37,7 @@
 #include <Hacks/Misc.h>
 #include <Hacks/Troll.h>
 #include <Hacks/Tickbase.h>
+#include <Hacks/Movement.h>
 
 
 constexpr auto windowFlags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar;
@@ -282,6 +283,10 @@ void Menu::renderNodes() noexcept
     }
     if (ImGui::TreeNode(xorstr_("BackTrack"))) {
         renderBackTrackWindow();
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode(xorstr_("Movement"))) {
+        renderMovementWindow();
         ImGui::TreePop();
     }
     if (ImGui::TreeNode(xorstr_("Network"))) {
@@ -586,6 +591,11 @@ void Menu::renderTriggerbotWindow() noexcept
     ImGui::SliderFloat("Burst Time", &config->triggerbot[currentWeapon].burstTime, 0.0f, 0.5f, "%.3f s");
 }
 
+void Menu::renderMovementWindow() noexcept
+{
+    Movement::drawGUI(true);
+}
+
 void Menu::renderBackTrackWindow() noexcept
 {
     Backtrack::drawGUI(true);
@@ -752,26 +762,27 @@ void Menu::renderConfigWindow() noexcept
             ImGui::OpenPopup("Config to reset");
 
         if (ImGui::BeginPopup("Config to reset")) {
-            static constexpr const char* names[]{ "Whole", "Aimbot", "Triggerbot", "Backtrack", "Anti aim", "Glow", "Chams", "ESP", "Visuals", "Inventory Changer", "Sound", "Style", "Misc", "Troll", "TickFucker" };
+            static constexpr const char* names[]{ "Whole", "Aimbot", "Triggerbot", "Backtrack", "Movement", "Anti aim", "Glow", "Chams", "ESP", "Visuals", "Inventory Changer", "Sound", "Style", "Misc", "Troll", "TickFucker" };
             for (int i = 0; i < IM_ARRAYSIZE(names); i++) {
                 if (i == 1) ImGui::Separator();
 
                 if (ImGui::Selectable(names[i])) {
                     switch (i) {
-                    case 0: config->reset(); updateColors(); Misc::updateClanTag(true); InventoryChanger::scheduleHudUpdate(); break;
-                    case 1: config->aimbot = { }; break;
-                    case 2: config->triggerbot = { }; break;
-                    case 3: Backtrack::resetConfig(); break;
-                    case 4: AntiAim::resetConfig(); break;
-                    case 5: Glow::resetConfig(); break;
-                    case 6: config->chams = { }; break;
-                    case 7: config->streamProofESP = { }; break;
-                    case 8: Visuals::resetConfig(); break;
-                    case 9: InventoryChanger::resetConfig(); InventoryChanger::scheduleHudUpdate(); break;
-                    case 10: Sound::resetConfig(); break;
-                    case 11: config->style = { }; updateColors(); break;
-                    case 12: Troll::resetConfig(); break;
-                    case 13: Tickbase::resetConfig(); break;
+                        case 0: config->reset(); updateColors(); Misc::updateClanTag(true); InventoryChanger::scheduleHudUpdate(); break;
+                        case 1: config->aimbot = { }; break;
+                        case 2: config->triggerbot = { }; break;
+                        case 3: Backtrack::resetConfig(); break;
+                        case 4: Movement::resetConfig(); break;
+                        case 5: AntiAim::resetConfig(); break;
+                        case 6: Glow::resetConfig(); break;
+                        case 7: config->chams = { }; break;
+                        case 8: config->streamProofESP = { }; break;
+                        case 9: Visuals::resetConfig(); break;
+                        case 10: InventoryChanger::resetConfig(); InventoryChanger::scheduleHudUpdate(); break;
+                        case 11: Sound::resetConfig(); break;
+                        case 12: config->style = { }; updateColors(); break;
+                        case 13: Troll::resetConfig(); break;
+                        case 14: Tickbase::resetConfig(); break;
                     }
                 }
             }

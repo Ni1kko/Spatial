@@ -28,6 +28,7 @@
 #include "../SDK/Cvar.h"
 #include "../GameData.h"
 #include "../Hacks/Misc.h"
+#include <Hacks/Movement.h>
 
 struct Cvars {
     ConVar* accelerate;
@@ -242,9 +243,9 @@ void Aimbot::run(UserCmd* cmd) noexcept
             auto angle = calculateRelativeAngle(localPlayerEyePosition, bestTarget, cmd->viewangles + aimPunch);
             bool clamped{ false };
 
-            if (std::abs(angle.x) > Misc::maxAngleDelta() || std::abs(angle.y) > Misc::maxAngleDelta()) {
-                    angle.x = std::clamp(angle.x, -Misc::maxAngleDelta(), Misc::maxAngleDelta());
-                    angle.y = std::clamp(angle.y, -Misc::maxAngleDelta(), Misc::maxAngleDelta());
+            if (std::abs(angle.x) > Movement::maxAngleDelta() || std::abs(angle.y) > Movement::maxAngleDelta()) {
+                    angle.x = std::clamp(angle.x, -Movement::maxAngleDelta(), Movement::maxAngleDelta());
+                    angle.y = std::clamp(angle.y, -Movement::maxAngleDelta(), Movement::maxAngleDelta());
                     clamped = true;
             }
             

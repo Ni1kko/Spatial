@@ -10,11 +10,12 @@
 #include "Engine.h"
 #include "EngineTrace.h"
 #include "LocalPlayer.h"
+#include <Hacks/Movement.h>
 
 bool Entity::setupBones(matrix3x4* out, int maxBones, int boneMask, float currentTime) noexcept
 {
 #ifdef _WIN32
-    if (Misc::shouldFixBoneMatrix()) {
+    if (Movement::fixBoneMatrix()) {
         int* render = reinterpret_cast<int*>(this + 0x278);
         int backup = *render;
         Vector absOrigin = getAbsOrigin();

@@ -118,6 +118,7 @@
     <ClCompile Include="Hacks\Chams.cpp" />
     <ClCompile Include="Hacks\EnginePrediction.cpp" />
     <ClCompile Include="Hacks\Glow.cpp" />
+    <ClCompile Include="Hacks\Movement.cpp" />
     <ClCompile Include="Hacks\Sound.cpp" />
     <ClCompile Include="Hacks\StreamProofESP.cpp" />
     <ClCompile Include="Hacks\Tickbase.cpp" />
@@ -220,6 +221,7 @@
     <ClInclude Include="Hacks\EnginePrediction.h" />
     <ClInclude Include="Hacks\Glow.h" />
     <ClInclude Include="Hacks\Misc.h" />
+    <ClInclude Include="Hacks\Movement.h" />
     <ClInclude Include="Hacks\Sound.h" />
     <ClInclude Include="Hacks\StreamProofESP.h" />
     <ClInclude Include="Hacks\Tickbase.h" />

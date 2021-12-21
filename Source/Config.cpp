@@ -25,6 +25,7 @@
 #include "Hacks/Misc.h"
 #include "Hacks/Troll.h"
 #include "Hacks/Tickbase.h"
+#include <Hacks/Movement.h>
 
 #ifdef _WIN32
 int CALLBACK fontCallback(const LOGFONTW* lpelfe, const TEXTMETRICW*, DWORD, LPARAM lParam)
@@ -93,6 +94,10 @@ Config::Config() noexcept : path{ buildConfigsFolderPath() }
 
     std::sort(std::next(systemFonts.begin()), systemFonts.end());
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Read functions
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void from_json(const json& j, ColorToggleRounding& ctr)
 {
@@ -272,49 +277,9 @@ static void from_json(const json& j, Config::Style& s)
     }
 }
 
-void Config::load(size_t id, bool incremental) noexcept
-{
-    load(configs[id].c_str(), incremental);
-}
-
-void Config::load(const char8_t* name, bool incremental) noexcept
-{
-    json j;
-
-    if (std::ifstream in{ path / name }; in.good()) {
-        j = json::parse(in, nullptr, false, true);
-        if (j.is_discarded())
-            return;
-    } else {
-        return;
-    }
-
-    if (!incremental)
-        reset();
-
-    read(j, "Aimbot", aimbot);
-    read(j, "Aimbot On key", aimbotOnKey);
-    read(j, "Aimbot Key", aimbotKey);
-    read(j, "Aimbot Key mode", aimbotKeyMode);
-
-    read(j, "Triggerbot", triggerbot);
-    read(j, "Triggerbot Key", triggerbotHoldKey);
-
-    read(j, "Chams", chams);
-    read(j["Chams"], "Toggle Key", chamsToggleKey);
-    read(j["Chams"], "Hold Key", chamsHoldKey);
-    read<value_t::object>(j, "Draw Aimbot FOV", drawaimbotFov);
-    read<value_t::object>(j, "ESP", streamProofESP);
-    read<value_t::object>(j, "Style", style);
-
-    AntiAim::fromJson(j["Anti aim"]);
-    Backtrack::fromJson(j["Backtrack"]);
-    Glow::fromJson(j["Glow"]);
-    Visuals::fromJson(j["Visuals"]);
-    InventoryChanger::fromJson(j["Inventory Changer"]);
-    Sound::fromJson(j["Sound"]);
-    Misc::fromJson(j["Misc"]);
-}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Write functions
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void to_json(json& j, const ColorToggleRounding& o, const ColorToggleRounding& dummy = {})
 {
@@ -492,6 +457,10 @@ static void to_json(json& j, const Config::Style& o)
         colors[ImGui::GetStyleColorName(i)] = style.Colors[i];
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Other functions
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void removeEmptyObjects(json& j) noexcept
 {
     for (auto it = j.begin(); it != j.end();) {
@@ -505,6 +474,65 @@ void removeEmptyObjects(json& j) noexcept
     }
 }
 
+void Config::load(size_t id, bool incremental) noexcept
+{
+    load(configs[id].c_str(), incremental);
+}
+
+/// <summary>
+/// Main Config Load Function
+/// </summary>
+/// <param name="name"></param>
+/// <param name="incremental"></param>
+/// <returns></returns>
+void Config::load(const char8_t* name, bool incremental) noexcept
+{
+    json j;
+
+    if (std::ifstream in{ path / name }; in.good()) {
+        j = json::parse(in, nullptr, false, true);
+        if (j.is_discarded())
+            return;
+    }
+    else {
+        return;
+    }
+
+    if (!incremental)
+        reset();
+
+    read(j, "Aimbot", aimbot);
+    read(j, "Aimbot On key", aimbotOnKey);
+    read(j, "Aimbot Key", aimbotKey);
+    read(j, "Aimbot Key mode", aimbotKeyMode);
+
+    read(j, "Triggerbot", triggerbot);
+    read(j, "Triggerbot Key", triggerbotHoldKey);
+
+    read(j, "Chams", chams);
+    read(j["Chams"], "Toggle Key", chamsToggleKey);
+    read(j["Chams"], "Hold Key", chamsHoldKey);
+    read<value_t::object>(j, "Draw Aimbot FOV", drawaimbotFov);
+    read<value_t::object>(j, "ESP", streamProofESP);
+    read<value_t::object>(j, "Style", style);
+
+    AntiAim::fromJson(j["Anti aim"]);
+    Backtrack::fromJson(j["Backtrack"]);
+    Movement::fromJson(j["Movement"]);
+    Glow::fromJson(j["Glow"]);
+    Visuals::fromJson(j["Visuals"]);
+    InventoryChanger::fromJson(j["Inventory Changer"]);
+    Sound::fromJson(j["Sound"]);
+    Misc::fromJson(j["Misc"]);
+    Troll::fromJson(j["Troll"]);
+    Tickbase::fromJson(j["Tick Base"]);
+}
+
+/// <summary>
+/// Main Config Save Function
+/// </summary>
+/// <param name="id"></param>
+/// <returns></returns>
 void Config::save(size_t id) const noexcept
 {
     json j;
@@ -518,6 +546,7 @@ void Config::save(size_t id) const noexcept
     to_json(j["Triggerbot Key"], triggerbotHoldKey, {});
 
     j["Backtrack"] = Backtrack::toJson();
+    j["Movement"] = Movement::toJson();
     j["Anti aim"] = AntiAim::toJson();
     j["Glow"] = Glow::toJson();
     j["Chams"] = chams;
@@ -528,14 +557,40 @@ void Config::save(size_t id) const noexcept
     j["Sound"] = Sound::toJson();
     j["Visuals"] = Visuals::toJson();
     j["Misc"] = Misc::toJson();
+    j["Troll"] = Troll::toJson();
     j["Style"] = style;
     j["Inventory Changer"] = InventoryChanger::toJson();
+    j["Tick Base"] = Tickbase::toJson();
 
     removeEmptyObjects(j);
 
     createConfigDir();
     if (std::ofstream out{ path / configs[id] }; out.good())
         out << std::setw(2) << j;
+}
+
+/// <summary>
+/// Main Config Reset Function
+/// </summary>
+/// <returns></returns>
+void Config::reset() noexcept
+{
+    aimbot = { };
+    triggerbot = { };
+    chams = { };
+    streamProofESP = { };
+    style = { };
+
+    AntiAim::resetConfig();
+    Backtrack::resetConfig();
+    Movement::resetConfig();
+    Glow::resetConfig();
+    Visuals::resetConfig();
+    InventoryChanger::resetConfig();
+    Sound::resetConfig();
+    Misc::resetConfig();
+    Troll::resetConfig();
+    Tickbase::resetConfig();
 }
 
 void Config::add(const char8_t* name) noexcept
@@ -558,25 +613,6 @@ void Config::rename(size_t item, std::u8string_view newName) noexcept
     std::error_code ec;
     std::filesystem::rename(path / configs[item], path / newName, ec);
     configs[item] = newName;
-}
-
-void Config::reset() noexcept
-{
-    aimbot = { };
-    triggerbot = { };
-    chams = { };
-    streamProofESP = { };
-    style = { };
-
-    AntiAim::resetConfig();
-    Backtrack::resetConfig();
-    Glow::resetConfig();
-    Visuals::resetConfig();
-    InventoryChanger::resetConfig();
-    Sound::resetConfig();
-    Misc::resetConfig();
-    Troll::resetConfig();
-    Tickbase::resetConfig();
 }
 
 void Config::listConfigs() noexcept
