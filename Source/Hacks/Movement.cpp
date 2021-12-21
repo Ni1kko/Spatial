@@ -310,21 +310,11 @@ void Movement::fastPlant(UserCmd* cmd) noexcept
 
 void Movement::autoPeek(UserCmd* cmd, Vector currentViewAngles) noexcept
 {
-    static bool hasShot = false;
-
-    if (!movementConfig.autoPeek)
+    
+    if (!movementConfig.autoPeek || !localPlayer || !localPlayer->isAlive() || !movementConfig.autoPeekKey.isSet() || !movementConfig.autoPeekKey.isDown())
     {
-        hasShot = false;
-        Movement::AutoPeekPosition = Vector{};
-        return;
-    }
 
-    if (!localPlayer)
-        return;
-
-    if (!localPlayer->isAlive())
-    {
-        hasShot = false;
+        Movement::AutoPeekHasShot = false;
         Movement::AutoPeekPosition = Vector{};
         return;
     }
@@ -332,15 +322,15 @@ void Movement::autoPeek(UserCmd* cmd, Vector currentViewAngles) noexcept
     if (const auto mt = localPlayer->moveType(); mt == MoveType::LADDER || mt == MoveType::NOCLIP || !(localPlayer->flags() & 1))
         return;
 
-    if (movementConfig.autoPeekKey.isToggled() && movementConfig.autoPeekKey.isSet())
+    if (movementConfig.autoPeekKey.isDown())
     {
         if (Movement::AutoPeekPosition.null())
             Movement::AutoPeekPosition = localPlayer->getRenderOrigin();
 
         if (cmd->buttons & UserCmd::IN_ATTACK)
-            hasShot = true;
+            Movement::AutoPeekHasShot = true;
 
-        if (hasShot)
+        if (Movement::AutoPeekHasShot)
         {
             const float yaw = currentViewAngles.y;
             const auto difference = localPlayer->getRenderOrigin() - Movement::AutoPeekPosition;
@@ -357,7 +347,7 @@ void Movement::autoPeek(UserCmd* cmd, Vector currentViewAngles) noexcept
             }
             else
             {
-                hasShot = false;
+                Movement::AutoPeekHasShot = false;
                 Movement::AutoPeekPosition = Vector{};
                 movementConfig.autoPeekKey.setToggle(false);
             }
@@ -365,7 +355,7 @@ void Movement::autoPeek(UserCmd* cmd, Vector currentViewAngles) noexcept
     }
     else
     {
-        hasShot = false;
+        Movement::AutoPeekHasShot = false;
         Movement::AutoPeekPosition = Vector{};
     }
 }

@@ -27,8 +27,9 @@ struct MovementConfig {
 namespace Movement
 {
     // Vars
-    float defaultMaxAngleDelta = 255.0f;
-    Vector AutoPeekPosition {};
+    const float defaultMaxAngleDelta = 255.0f;
+    static Vector AutoPeekPosition {};
+    static bool AutoPeekHasShot = false;
 
 	// Functions
     void fixMouseDelta(UserCmd* cmd) noexcept;
