@@ -217,7 +217,7 @@ void Menu::render() noexcept
     ImGui::Begin(xorstr_("Spatial"), &open, windowFlags); {
         renderNodes();
         ImGui::Separator();
-        ImGui::TextUnformatted(std::string{ (xorstr_("Spatial | Compiled On The : ") + std::string { __DATE__ }) }.c_str());
+        ImGui::TextUnformatted(std::string{ (xorstr_("Spatial V1.4 | Compiled Date : ") + std::string { __DATE__ }) }.c_str());
     }
     ImGui::End();
 }
