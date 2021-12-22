@@ -121,6 +121,8 @@ public:
 
     auto isPistol() noexcept { return getWeaponType() == WeaponType::Pistol; }
     auto isSniperRifle() noexcept { return getWeaponType() == WeaponType::SniperRifle; }
+    auto isScopedRifle() noexcept { return ID() == WeaponId::Aug || ID() == WeaponId::Sg553; }
+    auto hasScope() noexcept { return isSniperRifle() || isScopedRifle(); } 
     auto isGrenade() noexcept { return getWeaponType() == WeaponType::Grenade; }
     auto isKnife() noexcept { return getWeaponType() == WeaponType::Knife; }
 
