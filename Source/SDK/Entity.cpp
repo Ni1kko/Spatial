@@ -15,7 +15,7 @@
 bool Entity::setupBones(matrix3x4* out, int maxBones, int boneMask, float currentTime) noexcept
 {
 #ifdef _WIN32
-    if (Movement::fixBoneMatrix()) {
+    if (movement->fixBoneMatrix()) {
         int* render = reinterpret_cast<int*>(this + 0x278);
         int backup = *render;
         Vector absOrigin = getAbsOrigin();

@@ -30,6 +30,4 @@ namespace Troll
     json toJson() noexcept;
     void fromJson(const json& j) noexcept;
     void resetConfig() noexcept;
-
-    long chatTimestamp { 0 };
 }

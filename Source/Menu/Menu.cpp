@@ -584,7 +584,7 @@ void Menu::renderTriggerbotWindow() noexcept
     ImGui::SetNextItemWidth(85.0f);
     ImGui::Combo("Hitgroup", &config->triggerbot[currentWeapon].hitgroup, "All\0Head\0Chest\0Stomach\0Left arm\0Right arm\0Left leg\0Right leg\0");
     ImGui::PushItemWidth(220.0f);
-    ImGui::SliderInt("Shot delay", &config->triggerbot[currentWeapon].shotDelay, 0, 250, "%d ms");
+    ImGui::SliderFloat("Shot delay", &config->triggerbot[currentWeapon].shotDelay, 0.0f, 0.5f, "%.3f s");
     ImGui::InputInt("Min damage", &config->triggerbot[currentWeapon].minDamage);
     config->triggerbot[currentWeapon].minDamage = std::clamp(config->triggerbot[currentWeapon].minDamage, 0, 250);
     ImGui::Checkbox("Killshot", &config->triggerbot[currentWeapon].killshot);
@@ -593,7 +593,7 @@ void Menu::renderTriggerbotWindow() noexcept
 
 void Menu::renderMovementWindow() noexcept
 {
-    Movement::drawGUI(true);
+    movement->drawGUI(true);
 }
 
 void Menu::renderBackTrackWindow() noexcept
@@ -772,7 +772,7 @@ void Menu::renderConfigWindow() noexcept
                         case 1: config->aimbot = { }; break;
                         case 2: config->triggerbot = { }; break;
                         case 3: Backtrack::resetConfig(); break;
-                        case 4: Movement::resetConfig(); break;
+                        case 4: movement->resetConfig(); break;
                         case 5: AntiAim::resetConfig(); break;
                         case 6: Glow::resetConfig(); break;
                         case 7: config->chams = { }; break;

@@ -69,7 +69,7 @@ public:
         bool ignoreSmoke = false;
         bool killshot = false;
         int hitgroup = 0;
-        int shotDelay = 0;
+        float shotDelay = 0.0f;
         int minDamage = 1;
         float burstTime = 0.0f;
     };

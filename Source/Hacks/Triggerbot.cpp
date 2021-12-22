@@ -53,13 +53,13 @@ void Triggerbot::run(UserCmd* cmd) noexcept
     if (!keyPressed)
         return;
 
-    if (now - lastTime < cfg.shotDelay / 1000.0f)
+    if (now - lastTime < cfg.shotDelay)
         return;
 
     if (!cfg.ignoreFlash && localPlayer->isFlashed())
         return;
 
-    if (cfg.scopedOnly && activeWeapon->isSniperRifle() && !localPlayer->isScoped())
+    if (cfg.scopedOnly && activeWeapon->hasScope() && (!localPlayer->isScoped() || !activeWeapon->zoomLevel()))
         return;
 
     const auto weaponData = activeWeapon->getWeaponData();

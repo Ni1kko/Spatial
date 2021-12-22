@@ -157,123 +157,141 @@ void Aimbot::updateInput() noexcept
 
 void Aimbot::run(UserCmd* cmd) noexcept
 {
-    Vector bestTarget{ };
+    if (!localPlayer || localPlayer->nextAttack() > memory->globalVars->serverTime() || localPlayer->isDefusing() || localPlayer->waitForNoAttack()) return;
 
-    if (!localPlayer || localPlayer->nextAttack() > memory->globalVars->serverTime() || localPlayer->isDefusing() || localPlayer->waitForNoAttack())
-        return;
-
+    // get weapon in use
     const auto activeWeapon = localPlayer->getActiveWeapon();
-    if (!activeWeapon || !activeWeapon->clip())
-        return;
+    if (!activeWeapon) return;
+    
+    // reloading or out of bullets
+    if (!activeWeapon->clip()) return;
 
-    if (localPlayer->shotsFired() > 0 && !activeWeapon->isFullAuto())
-        return;
+    // semi-auto, bolt-action, burst-fire or single fire
+    if (localPlayer->shotsFired() > 0 && !activeWeapon->isFullAuto()) return;
 
+    // get weapon index
     auto weaponIndex = getWeaponIndex(activeWeapon->itemDefinitionIndex());
-    if (!weaponIndex)
-        return;
+    if (!weaponIndex) return;
 
+    // get weapon class
     auto weaponClass = getWeaponClass(activeWeapon->itemDefinitionIndex());
-    if (!config->aimbot[weaponIndex].enabled)
-        weaponIndex = weaponClass;
+     
+    // aimbot config
+    const auto& aCfg = config->aimbot;
 
-    //enabled
-    if (!config->aimbot[weaponIndex].enabled)
-        weaponIndex = 0;
+    // weapon config
+    auto wCfg = aCfg[weaponIndex];
+
+    //enable toggle
+    if (!wCfg.enabled) wCfg = aCfg[weaponClass]; 
+    if (!wCfg.enabled) wCfg = aCfg[0];
 
     //between shots
-    if (!config->aimbot[weaponIndex].betweenShots && (activeWeapon->nextPrimaryAttack() > memory->globalVars->serverTime() || (activeWeapon->isFullAuto() && localPlayer->shotsFired() > 1)))
-        return;
+    if (!wCfg.betweenShots && (activeWeapon->nextPrimaryAttack() > memory->globalVars->serverTime() || (activeWeapon->isFullAuto() && localPlayer->shotsFired() > 1))) return;
 
     //ignore flash
-    if (!config->aimbot[weaponIndex].ignoreFlash && localPlayer->isFlashed())
-        return;
+    if (!wCfg.ignoreFlash && localPlayer->isFlashed()) return;
 
-    if (config->aimbotOnKey && !keyPressed)
-        return;
+    //on key
+    if (config->aimbotOnKey && !keyPressed) return;
 
     //weapon config
-    if (config->aimbot[weaponIndex].enabled && (cmd->buttons & UserCmd::IN_ATTACK || config->aimbot[weaponIndex].autoShot || config->aimbot[weaponIndex].aimlock) && activeWeapon->getInaccuracy() <= config->aimbot[weaponIndex].maxAimInaccuracy) {
-
-        //scoped only
-        if (config->aimbot[weaponIndex].scopedOnly && !config->aimbot[weaponIndex].autoScope && activeWeapon->isSniperRifle() && !localPlayer->isScoped())
-            return;
-
-        auto bestFov = config->aimbot[weaponIndex].fov; 
-        const auto localPlayerEyePosition = localPlayer->getEyePosition(); 
+    if (wCfg.enabled && (cmd->buttons & UserCmd::IN_ATTACK || wCfg.autoShot || wCfg.aimlock) && activeWeapon->getInaccuracy() <= wCfg.maxAimInaccuracy)
+    {
+        Vector bestTarget{ };
+        auto bestFov = wCfg.fov;
+        const auto localPlayerEyePosition = localPlayer->getEyePosition();
         const auto aimPunch = activeWeapon->requiresRecoilControl() ? localPlayer->getAimPunch() : Vector{ };
 
+        //scoped only
+        if (wCfg.scopedOnly && !wCfg.autoScope && activeWeapon->hasScope() && (!localPlayer->isScoped() || !activeWeapon->zoomLevel()))
+            return;
+        
         //each target
         for (int i = 1; i <= interfaces->engine->getMaxClients(); i++) {
             auto entity = interfaces->entityList->getEntity(i);
 
-            if (!entity || entity == localPlayer.get() || entity->isDormant() || !entity->isAlive() || !entity->isOtherEnemy(localPlayer.get()) && !config->aimbot[weaponIndex].friendlyFire || entity->gunGameImmunity())
+            if (!entity || entity == localPlayer.get() || entity->isDormant() || !entity->isAlive() || !entity->isOtherEnemy(localPlayer.get()) && !wCfg.friendlyFire || entity->gunGameImmunity())
                 continue;
 
             for (auto bone : { 8, 4, 3, 7, 6, 5 }) {
-                const auto bonePosition = entity->getBonePosition(config->aimbot[weaponIndex].bone > 1 ? 10 - config->aimbot[weaponIndex].bone : bone);
+                const auto bonePosition = entity->getBonePosition(wCfg.bone > 1 ? 10 - wCfg.bone : bone);
                 const auto angle = calculateRelativeAngle(localPlayerEyePosition, bonePosition, cmd->viewangles + aimPunch);
                 
                 const auto fov = std::hypot(angle.x, angle.y);
                 if (fov > bestFov)
                     continue;
 
-                if (!config->aimbot[weaponIndex].ignoreSmoke && memory->lineGoesThroughSmoke(localPlayerEyePosition, bonePosition, 1))
+                if (!wCfg.ignoreSmoke && memory->lineGoesThroughSmoke(localPlayerEyePosition, bonePosition, 1))
                     continue;
 
-                if (!entity->isVisible(bonePosition) && (config->aimbot[weaponIndex].visibleOnly || !canScan(entity, bonePosition, activeWeapon->getWeaponData(), config->aimbot[weaponIndex].killshot ? entity->health() : config->aimbot[weaponIndex].minDamage, config->aimbot[weaponIndex].friendlyFire)))
+                const bool visible = entity->isVisible(bonePosition);
+
+                if (!visible && (wCfg.visibleOnly || !canScan(entity, bonePosition, activeWeapon->getWeaponData(), wCfg.killshot ? entity->health() : wCfg.minDamage, wCfg.friendlyFire)))
                     continue;
 
                 if (fov < bestFov) {
                     bestFov = fov;
                     bestTarget = bonePosition;
 
-                    if (config->aimbot[weaponIndex].autoStop)
+                    if (wCfg.autoStop && visible)
                         autoStop(cmd);
-
-                    if (config->aimbot[weaponIndex].autoScope && activeWeapon->isSniperRifle() && !localPlayer->isScoped() && !activeWeapon->zoomLevel() && localPlayer->flags() & 1 && !(cmd->buttons & UserCmd::IN_JUMP)) {
-                        cmd->buttons |= UserCmd::IN_ATTACK2;
-                        break;
-                    }
                 }
-                if (config->aimbot[weaponIndex].bone)
+                if (wCfg.bone)
                     break;
             }
         }
 
-        if (bestTarget.notNull()) {
-            static Vector lastAngles{ cmd->viewangles };
-            static int lastCommand{ };
+        //no target
+        if (bestTarget.null()) 
+            return;
 
-            if (lastCommand == cmd->commandNumber - 1 && lastAngles.notNull() && config->aimbot[weaponIndex].silent)
-                cmd->viewangles = lastAngles;
+        // auto Scope
+        if (wCfg.autoScope)
+            autoScope(cmd);
 
-            auto angle = calculateRelativeAngle(localPlayerEyePosition, bestTarget, cmd->viewangles + aimPunch);
-            bool clamped{ false };
+        static Vector lastAngles{ cmd->viewangles };
+        static int lastCommand{ };
+        bool clamped{ false };
 
-            if (std::abs(angle.x) > Movement::maxAngleDelta() || std::abs(angle.y) > Movement::maxAngleDelta()) {
-                    angle.x = std::clamp(angle.x, -Movement::maxAngleDelta(), Movement::maxAngleDelta());
-                    angle.y = std::clamp(angle.y, -Movement::maxAngleDelta(), Movement::maxAngleDelta());
-                    clamped = true;
-            }
+        //Silent Aim
+        if (lastCommand == cmd->commandNumber - 1 && lastAngles.notNull() && wCfg.silent)
+            cmd->viewangles = lastAngles;
+           
+        //Current Calculated Angle
+        auto angle = calculateRelativeAngle(localPlayerEyePosition, bestTarget, cmd->viewangles + aimPunch);
             
-            angle /= config->aimbot[weaponIndex].smooth;
-            cmd->viewangles += angle;
-            if (!config->aimbot[weaponIndex].silent)
-                interfaces->engine->setViewAngles(cmd->viewangles);
-               
-             
-            if (config->aimbot[weaponIndex].autoShot && activeWeapon->nextPrimaryAttack() <= memory->globalVars->serverTime() && !clamped && activeWeapon->getInaccuracy() <= config->aimbot[weaponIndex].maxShotInaccuracy)
-                cmd->buttons |= UserCmd::IN_ATTACK;
-
-            if (clamped)
-                cmd->buttons &= ~UserCmd::IN_ATTACK;
-
-            if (clamped || config->aimbot[weaponIndex].smooth > 1.0f) lastAngles = cmd->viewangles;
-            else lastAngles = Vector{ };
-
-            lastCommand = cmd->commandNumber;
+        //Max Angle Delta
+        if (std::abs(angle.x) > movement->maxAngleDelta() || std::abs(angle.y) > movement->maxAngleDelta()) {
+                angle.x = std::clamp(angle.x, -movement->maxAngleDelta(), movement->maxAngleDelta());
+                angle.y = std::clamp(angle.y, -movement->maxAngleDelta(), movement->maxAngleDelta());
+                clamped = true;
         }
+            
+        //Add smoth aim to view angle
+        angle /= wCfg.smooth;
+
+        //Adjust View angles
+        cmd->viewangles += angle;
+            
+        //Set angles too aim at target
+        if (!wCfg.silent)
+            interfaces->engine->setViewAngles(cmd->viewangles);
+            
+        //Auto Attack
+        if (wCfg.autoShot && activeWeapon->nextPrimaryAttack() <= memory->globalVars->serverTime() && !clamped && activeWeapon->getInaccuracy() <= wCfg.maxShotInaccuracy)
+            cmd->buttons |= UserCmd::IN_ATTACK;
+
+        //Cancel attack
+        if (clamped)
+            cmd->buttons &= ~UserCmd::IN_ATTACK;
+
+        //Save Last Angles
+        if (clamped || wCfg.smooth > 1.0f) lastAngles = cmd->viewangles;
+        else lastAngles = Vector{ };
+
+        //Save Command Number
+        lastCommand = cmd->commandNumber;
     }
 }
 
@@ -314,6 +332,17 @@ void Aimbot::autoStop(UserCmd* cmd) noexcept
 
     cmd->forwardmove = ndir.x * wishSpeed;
     cmd->sidemove = ndir.y * wishSpeed;
+}
+
+void Aimbot::autoScope(UserCmd* cmd) noexcept
+{
+    if (!localPlayer) return;
+
+    const auto activeWeapon = localPlayer->getActiveWeapon();
+    if (!activeWeapon) return;
+
+    if (activeWeapon->hasScope() && (!localPlayer->isScoped() || !activeWeapon->zoomLevel()))
+        cmd->buttons |= UserCmd::IN_ZOOM;
 }
 
 void Aimbot::init() noexcept

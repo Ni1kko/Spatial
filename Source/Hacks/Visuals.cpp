@@ -855,7 +855,7 @@ void Visuals::viewModel() noexcept
 
 void Visuals::drawAutoPeek(ImDrawList* drawList) noexcept
 {
-    if (!movementConfig.autoPeek || !visualsConfig.autoPeekToggle.enabled || Movement::AutoPeekPosition.null())
+    if (!movement->config.autoPeek || !visualsConfig.autoPeekToggle.enabled || movement->AutoPeekPosition.null())
         return;
  
     constexpr float step = 3.141592654f * 2.0f / 20.0f;
@@ -864,7 +864,7 @@ void Visuals::drawAutoPeek(ImDrawList* drawList) noexcept
     {
         const auto& point3d = Vector{ std::sin(lat), std::cos(lat), 0.f } *15.f;
         ImVec2 point2d;
-        if (worldToScreen(Movement::AutoPeekPosition + point3d, point2d))
+        if (worldToScreen(movement->AutoPeekPosition + point3d, point2d))
             points.push_back(point2d);
     }
 
@@ -946,7 +946,7 @@ void Visuals::drawGUI(bool contentOnly) noexcept
     ImGui::Checkbox("No grass", &visualsConfig.noGrass);
     ImGui::Checkbox("No shadows", &visualsConfig.noShadows);
     ImGui::Checkbox("Wireframe smoke", &visualsConfig.wireframeSmoke);
-    if(movementConfig.autoPeek) 
+    if(movement->config.autoPeek)
         ImGuiCustom::colorPicker("Draw Autopeek", visualsConfig.autoPeekToggle);
     ImGui::NextColumn();
     ImGui::Checkbox("Zoom", &visualsConfig.zoom);

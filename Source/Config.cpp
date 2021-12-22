@@ -518,7 +518,7 @@ void Config::load(const char8_t* name, bool incremental) noexcept
 
     AntiAim::fromJson(j["Anti aim"]);
     Backtrack::fromJson(j["Backtrack"]);
-    Movement::fromJson(j["Movement"]);
+    movement->fromJson(j["Movement"]);
     Glow::fromJson(j["Glow"]);
     Visuals::fromJson(j["Visuals"]);
     InventoryChanger::fromJson(j["Inventory Changer"]);
@@ -546,7 +546,7 @@ void Config::save(size_t id) const noexcept
     to_json(j["Triggerbot Key"], triggerbotHoldKey, {});
 
     j["Backtrack"] = Backtrack::toJson();
-    j["Movement"] = Movement::toJson();
+    j["Movement"] = movement->toJson();
     j["Anti aim"] = AntiAim::toJson();
     j["Glow"] = Glow::toJson();
     j["Chams"] = chams;
@@ -583,7 +583,7 @@ void Config::reset() noexcept
 
     AntiAim::resetConfig();
     Backtrack::resetConfig();
-    Movement::resetConfig();
+    movement->resetConfig();
     Glow::resetConfig();
     Visuals::resetConfig();
     InventoryChanger::resetConfig();

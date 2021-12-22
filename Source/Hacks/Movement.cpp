@@ -73,7 +73,7 @@ static bool windowOpen = false;
 /////////////////////////////////////////////////////////////////
 void Movement::fixMouseDelta(UserCmd* cmd) noexcept
 {
-    if (!cmd || !movementConfig.fixMouseDelta) return;
+    if (!cmd || !config.fixMouseDelta) return;
 
     static Vector delta_viewangles{ };
     Vector delta = cmd->viewangles - delta_viewangles;
@@ -149,7 +149,7 @@ void Movement::fixMouseDelta(UserCmd* cmd) noexcept
 
 void Movement::fixMovement(UserCmd* cmd, float yaw) noexcept
 {
-    if (!cmd || !movementConfig.fixMouseDelta) return;
+    if (!cmd || !config.fixMouseDelta) return;
     float oldYaw = yaw + (yaw < 0.0f ? 360.0f : 0.0f);
     float newYaw = cmd->viewangles.y + (cmd->viewangles.y < 0.0f ? 360.0f : 0.0f);
     float yawDelta = newYaw < oldYaw ? fabsf(newYaw - oldYaw) : 360.0f - fabsf(newYaw - oldYaw);
@@ -163,13 +163,13 @@ void Movement::fixMovement(UserCmd* cmd, float yaw) noexcept
 
 bool Movement::fixBoneMatrix() noexcept
 {
-    return movementConfig.fixBoneMatrix;
+    return config.fixBoneMatrix;
 }
 
 void Movement::autoStrafe(UserCmd* cmd) noexcept
 {
     if (localPlayer
-        && movementConfig.autoStrafe
+        && config.autoStrafe
         && !(localPlayer->flags() & 1)
         && localPlayer->moveType() != MoveType::NOCLIP) {
         if (cmd->mousedx < 0)
@@ -181,7 +181,7 @@ void Movement::autoStrafe(UserCmd* cmd) noexcept
 
 void Movement::fastStop(UserCmd* cmd) noexcept
 {
-    if (!movementConfig.fastStop)
+    if (!config.fastStop)
         return;
 
     if (!localPlayer || !localPlayer->isAlive())
@@ -208,13 +208,13 @@ void Movement::fastStop(UserCmd* cmd) noexcept
 
 void Movement::moonwalk(UserCmd* cmd) noexcept
 {
-    if (movementConfig.moonwalk && localPlayer && localPlayer->moveType() != MoveType::LADDER)
+    if (config.moonwalk && localPlayer && localPlayer->moveType() != MoveType::LADDER)
         cmd->buttons ^= UserCmd::IN_FORWARD | UserCmd::IN_BACK | UserCmd::IN_MOVELEFT | UserCmd::IN_MOVERIGHT;
 }
 
 void Movement::fastCrouch(UserCmd* cmd) noexcept
 {
-    if (movementConfig.fastCrouch)
+    if (config.fastCrouch)
         cmd->buttons |= UserCmd::IN_BULLRUSH;
 }
 
@@ -224,7 +224,7 @@ void Movement::bunnyHop(UserCmd* cmd) noexcept
 
     static auto wasLastTimeOnGround{ localPlayer->flags() & 1 };
 
-    if (movementConfig.bunnyHop && !(localPlayer->flags() & 1) && localPlayer->moveType() != MoveType::LADDER && !wasLastTimeOnGround)
+    if (config.bunnyHop && !(localPlayer->flags() & 1) && localPlayer->moveType() != MoveType::LADDER && !wasLastTimeOnGround)
         cmd->buttons &= ~UserCmd::IN_JUMP;
 
     wasLastTimeOnGround = localPlayer->flags() & 1;
@@ -232,7 +232,7 @@ void Movement::bunnyHop(UserCmd* cmd) noexcept
 
 void Movement::edgejump(UserCmd* cmd) noexcept
 {
-    if (!movementConfig.edgejump || !movementConfig.edgejumpkey.isDown())
+    if (!config.edgejump || !config.edgejumpkey.isDown())
         return;
 
     if (!localPlayer || !localPlayer->isAlive())
@@ -247,7 +247,7 @@ void Movement::edgejump(UserCmd* cmd) noexcept
 
 void Movement::slowwalk(UserCmd* cmd) noexcept
 {
-    if (!movementConfig.slowwalk || !movementConfig.slowwalkKey.isDown())
+    if (!config.slowwalk || !config.slowwalkKey.isDown())
         return;
 
     if (!localPlayer || !localPlayer->isAlive())
@@ -278,12 +278,12 @@ void Movement::slowwalk(UserCmd* cmd) noexcept
 
 float Movement::maxAngleDelta() noexcept
 {
-    return movementConfig.setMaxAngleDelta ? movementConfig.maxAngleDelta : Movement::defaultMaxAngleDelta;
+    return config.setMaxAngleDelta ? config.maxAngleDelta : Movement::defaultMaxAngleDelta;
 }
 
 void Movement::fastPlant(UserCmd* cmd) noexcept
 {
-    if (!movementConfig.fastPlant)
+    if (!config.fastPlant)
         return;
 
     if (static auto plantAnywhere = interfaces->cvar->findVar("mp_plant_c4_anywhere"); plantAnywhere->getInt())
@@ -311,7 +311,7 @@ void Movement::fastPlant(UserCmd* cmd) noexcept
 void Movement::autoPeek(UserCmd* cmd, Vector currentViewAngles) noexcept
 {
     
-    if (!movementConfig.autoPeek || !localPlayer || !localPlayer->isAlive() || !movementConfig.autoPeekKey.isSet() || !movementConfig.autoPeekKey.isDown())
+    if (!config.autoPeek || !localPlayer || !localPlayer->isAlive() || !config.autoPeekKey.isSet() || !config.autoPeekKey.isDown())
     {
         Movement::AutoPeekHasShot = false;
         Movement::AutoPeekPosition = Vector{};
@@ -321,8 +321,8 @@ void Movement::autoPeek(UserCmd* cmd, Vector currentViewAngles) noexcept
     if (const auto mt = localPlayer->moveType(); mt == MoveType::LADDER || mt == MoveType::NOCLIP || !(localPlayer->flags() & 1))
         return;
 
-    auto alwayson = !movementConfig.autoPeekKey.isSet();
-    auto bindpressed = !alwayson && movementConfig.autoPeekKey.isDown();
+    auto alwayson = !config.autoPeekKey.isSet();
+    auto bindpressed = !alwayson && config.autoPeekKey.isDown();
      
     if (bindpressed || alwayson)
     {
@@ -351,7 +351,7 @@ void Movement::autoPeek(UserCmd* cmd, Vector currentViewAngles) noexcept
             {
                 Movement::AutoPeekHasShot = false;
                 Movement::AutoPeekPosition = Vector{};
-                movementConfig.autoPeekKey.setToggle(false);
+                config.autoPeekKey.setToggle(false);
             }
         }
     }
@@ -392,45 +392,45 @@ void Movement::drawGUI(bool contentOnly) noexcept
     }
 
     //col 1
-    ImGui::Checkbox(xorstr_("Fix Mouse Delta"), &movementConfig.fixMouseDelta);
-    ImGui::Checkbox(xorstr_("Fix Bone Matrix"), &movementConfig.fixBoneMatrix);
-    ImGui::Checkbox(xorstr_("Fix Movement"), &movementConfig.fixMovement);
-    ImGui::Checkbox(xorstr_("Custom Angle Delta"), &movementConfig.setMaxAngleDelta);
-    if (movementConfig.setMaxAngleDelta)
+    ImGui::Checkbox(xorstr_("Fix Mouse Delta"), &config.fixMouseDelta);
+    ImGui::Checkbox(xorstr_("Fix Bone Matrix"), &config.fixBoneMatrix);
+    ImGui::Checkbox(xorstr_("Fix Movement"), &config.fixMovement);
+    ImGui::Checkbox(xorstr_("Custom Angle Delta"), &config.setMaxAngleDelta);
+    if (config.setMaxAngleDelta)
     {
         ImGui::SetNextItemWidth(120.0f);
-        ImGui::SliderFloat(xorstr_("Max Angle Delta"), &movementConfig.maxAngleDelta, 0.0f, 255.0f, "%.2f");
+        ImGui::SliderFloat(xorstr_("Max Angle Delta"), &config.maxAngleDelta, 0.0f, 255.0f, "%.2f");
     }
     
-    ImGui::Checkbox(xorstr_("Auto Strafe"), &movementConfig.autoStrafe);
-    ImGui::Checkbox(xorstr_("Auto Peek"), &movementConfig.autoPeek);
-    if (movementConfig.autoPeek) 
+    ImGui::Checkbox(xorstr_("Auto Strafe"), &config.autoStrafe);
+    ImGui::Checkbox(xorstr_("Auto Peek"), &config.autoPeek);
+    if (config.autoPeek) 
     {
         ImGui::SameLine();
         ImGui::PushID(xorstr_("Auto Peek Key"));
-        ImGui::hotkey("", movementConfig.autoPeekKey);
+        ImGui::hotkey("", config.autoPeekKey);
         ImGui::PopID();
     }
 
-    ImGui::Checkbox(xorstr_("Fast Stop"), &movementConfig.fastStop);
-    ImGui::Checkbox(xorstr_("Fast plant"), &movementConfig.fastPlant);
-    ImGui::Checkbox(xorstr_("Fast Crouch"), &movementConfig.fastCrouch);
-    ImGui::Checkbox(xorstr_("Moon Walk"), &movementConfig.moonwalk);
-    ImGui::Checkbox(xorstr_("Bunny hop"), &movementConfig.bunnyHop);
+    ImGui::Checkbox(xorstr_("Fast Stop"), &config.fastStop);
+    ImGui::Checkbox(xorstr_("Fast plant"), &config.fastPlant);
+    ImGui::Checkbox(xorstr_("Fast Crouch"), &config.fastCrouch);
+    ImGui::Checkbox(xorstr_("Moon Walk"), &config.moonwalk);
+    ImGui::Checkbox(xorstr_("Bunny hop"), &config.bunnyHop);
     
-    ImGui::Checkbox(xorstr_("Edge Jump"), &movementConfig.edgejump);
-    if (movementConfig.edgejump) {
+    ImGui::Checkbox(xorstr_("Edge Jump"), &config.edgejump);
+    if (config.edgejump) {
         ImGui::SameLine();
         ImGui::PushID(xorstr_("Edge Jump Key"));
-        ImGui::hotkey("", movementConfig.edgejumpkey);
+        ImGui::hotkey("", config.edgejumpkey);
         ImGui::PopID();
     }
     
-    ImGui::Checkbox(xorstr_("Slowwalk"), &movementConfig.slowwalk);
-    if (movementConfig.slowwalk) {
+    ImGui::Checkbox(xorstr_("Slowwalk"), &config.slowwalk);
+    if (config.slowwalk) {
         ImGui::SameLine();
         ImGui::PushID(xorstr_("Slowwalk Key"));
-        ImGui::hotkey("", movementConfig.slowwalkKey);
+        ImGui::hotkey("", config.slowwalkKey);
         ImGui::PopID();
     }
     
@@ -443,7 +443,7 @@ void Movement::drawGUI(bool contentOnly) noexcept
 // Config Functions
 /////////////////////////////////////////////////////////////////
 
-static void from_json(const json& j, MovementConfig& m)
+static void from_json(const json& j, Movement::Config& m)
 {
     read(j, "Fix MouseDelta", m.fixMouseDelta);
     read(j, "Fix bone Matrix", m.fixBoneMatrix);
@@ -463,9 +463,9 @@ static void from_json(const json& j, MovementConfig& m)
     read(j, "Auto Peek Key", m.autoPeekKey);
 }
 
-static void to_json(json& j, const MovementConfig& o)
+static void to_json(json& j, const Movement::Config& o)
 {
-    const MovementConfig dummy;
+    const Movement::Config dummy;
     WRITE("Fix MouseDelta", fixMouseDelta);
     WRITE("Fix Bone Matrix", fixBoneMatrix);
     WRITE("Fix Movement", fixMovement);
@@ -488,16 +488,16 @@ static void to_json(json& j, const MovementConfig& o)
 json Movement::toJson() noexcept
 {
     json j;
-    to_json(j, movementConfig);
+    to_json(j, config);
     return j;
 }
 
 void Movement::fromJson(const json& j) noexcept
 {
-    from_json(j, movementConfig);
+    from_json(j, config);
 }
 
 void Movement::resetConfig() noexcept
 {
-    movementConfig = {};
+    config = {};
 }

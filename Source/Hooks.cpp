@@ -85,7 +85,7 @@ static LRESULT __stdcall wndProc(HWND window, UINT msg, WPARAM wParam, LPARAM lP
         ImGui_ImplWin32_Init(window);
         config = std::make_unique<Config>();
         gui = std::make_unique<Menu>();
-
+        movement = std::make_unique<Movement>();
         hooks->install();
 
         return true;
@@ -198,13 +198,13 @@ static bool __STDCALL createMove(LINUX_ARGS(void* thisptr,) float inputSampleTim
     memory->globalVars->serverTime(cmd);
     Misc::nadePredict();
     Misc::antiAfkKick(cmd);
-    Movement::fastStop(cmd);
+    movement->fastStop(cmd);
     Misc::prepareRevolver(cmd);
     Visuals::removeShadows();
     Misc::runReportbot();
-    Movement::bunnyHop(cmd);
-    Movement::autoStrafe(cmd);
-    Movement::fastCrouch(cmd);
+    movement->bunnyHop(cmd);
+    movement->autoStrafe(cmd);
+    movement->fastCrouch(cmd);
     Misc::autoPistol(cmd);
     Misc::autoReload(cmd);
     Misc::updateClanTag();
@@ -213,7 +213,7 @@ static bool __STDCALL createMove(LINUX_ARGS(void* thisptr,) float inputSampleTim
     Misc::revealRanks(cmd);
     Misc::quickReload(cmd);
     Misc::fixTabletSignal();
-    Movement::slowwalk(cmd);
+    movement->slowwalk(cmd);
     Troll::blockbot(cmd);
     Visuals::viewModel();
 
@@ -222,10 +222,10 @@ static bool __STDCALL createMove(LINUX_ARGS(void* thisptr,) float inputSampleTim
     Aimbot::run(cmd);
     Triggerbot::run(cmd);
     Backtrack::run(cmd);
-    Movement::autoPeek(cmd, currentViewAngles);
-    Movement::edgejump(cmd);
-    Movement::moonwalk(cmd);
-    Movement::fastPlant(cmd);
+    movement->autoPeek(cmd, currentViewAngles);
+    movement->edgejump(cmd);
+    movement->moonwalk(cmd);
+    movement->fastPlant(cmd);
     Troll::doorSpam(cmd);
 
     if (!(cmd->buttons & (UserCmd::IN_ATTACK | UserCmd::IN_ATTACK2))) {
@@ -235,13 +235,13 @@ static bool __STDCALL createMove(LINUX_ARGS(void* thisptr,) float inputSampleTim
 
     auto viewAnglesDelta{ cmd->viewangles - previousViewAngles };
     viewAnglesDelta.normalize();
-    viewAnglesDelta.x = std::clamp(viewAnglesDelta.x, -Movement::maxAngleDelta(), Movement::maxAngleDelta());
-    viewAnglesDelta.y = std::clamp(viewAnglesDelta.y, -Movement::maxAngleDelta(), Movement::maxAngleDelta());
+    viewAnglesDelta.x = std::clamp(viewAnglesDelta.x, -movement->maxAngleDelta(), movement->maxAngleDelta());
+    viewAnglesDelta.y = std::clamp(viewAnglesDelta.y, -movement->maxAngleDelta(), movement->maxAngleDelta());
 
     cmd->viewangles = previousViewAngles + viewAnglesDelta;
 
     cmd->viewangles.normalize();
-    Movement::fixMovement(cmd, currentViewAngles.y);
+    movement->fixMovement(cmd, currentViewAngles.y);
 
     cmd->viewangles.x = std::clamp(cmd->viewangles.x, -89.0f, 89.0f);
     cmd->viewangles.y = std::clamp(cmd->viewangles.y, -180.0f, 180.0f);
@@ -249,7 +249,7 @@ static bool __STDCALL createMove(LINUX_ARGS(void* thisptr,) float inputSampleTim
     cmd->forwardmove = std::clamp(cmd->forwardmove, -450.0f, 450.0f);
     cmd->sidemove = std::clamp(cmd->sidemove, -450.0f, 450.0f);
 
-    Movement::fixMouseDelta(cmd);
+    movement->fixMouseDelta(cmd);
 
     previousViewAngles = cmd->viewangles;
 
