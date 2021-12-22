@@ -146,11 +146,7 @@ struct MiscConfig {
     std::string banText{ "Cheater has been permanently banned from official CS:GO servers." };
     ColorToggle3 bombTimer{ 1.0f, 0.55f, 0.0f };
     KeyBind prepareRevolverKey;
-    int hitSound{ 0 };
     int quickHealthshotKey{ 0 };
-    int killSound{ 0 };
-    std::string customKillSound;
-    std::string customHitSound;
     PurchaseList purchaseList;
 
     struct Reportbot {
@@ -738,54 +734,6 @@ void Misc::autoDisconnect() noexcept
         interfaces->engine->clientCmdUnrestricted(xorstr_("disconnect"));
 }
 
-void Misc::playHitSound(GameEvent& event) noexcept
-{
-    if (!miscConfig.hitSound)
-        return;
-
-    if (!localPlayer)
-        return;
-
-    if (const auto localUserId = localPlayer->getUserId(); event.getInt("attacker") != localUserId || event.getInt("userid") == localUserId)
-        return;
-
-    constexpr std::array hitSounds{
-        "play physics/metal/metal_solid_impact_bullet2",
-        "play buttons/arena_switch_press_02",
-        "play training/timer_bell",
-        "play physics/glass/glass_impact_bullet1"
-    };
-
-    if (static_cast<std::size_t>(miscConfig.hitSound - 1) < hitSounds.size())
-        interfaces->engine->clientCmdUnrestricted(hitSounds[miscConfig.hitSound - 1]);
-    else if (miscConfig.hitSound == 5)
-        interfaces->engine->clientCmdUnrestricted(("play " + miscConfig.customHitSound).c_str());
-}
-
-void Misc::killSound(GameEvent& event) noexcept
-{
-    if (!miscConfig.killSound)
-        return;
-
-    if (!localPlayer || !localPlayer->isAlive())
-        return;
-
-    if (const auto localUserId = localPlayer->getUserId(); event.getInt("attacker") != localUserId || event.getInt("userid") == localUserId)
-        return;
-
-    constexpr std::array killSounds{
-        "play physics/metal/metal_solid_impact_bullet2",
-        "play buttons/arena_switch_press_02",
-        "play training/timer_bell",
-        "play physics/glass/glass_impact_bullet1"
-    };
-
-    if (static_cast<std::size_t>(miscConfig.killSound - 1) < killSounds.size())
-        interfaces->engine->clientCmdUnrestricted(killSounds[miscConfig.killSound - 1]);
-    else if (miscConfig.killSound == 5)
-        interfaces->engine->clientCmdUnrestricted(("play " + miscConfig.customKillSound).c_str());
-}
-
 void Misc::purchaseList(GameEvent* event) noexcept
 {
     static std::mutex mtx;
@@ -1331,20 +1279,6 @@ void Misc::drawGUI(bool contentOnly) noexcept
     if (ImGui::Button("Setup fake ban"))
         Misc::fakeBan(true);
     
-    ImGui::Combo("Hit Sound", &miscConfig.hitSound, "None\0Metal\0Gamesense\0Bell\0Glass\0Custom\0");
-    if (miscConfig.hitSound == 5) {
-        ImGui::InputText("Hit Sound filename", &miscConfig.customHitSound);
-        if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("audio file must be put in csgo/sound/ directory");
-    }
-    ImGui::PushID(5);
-    ImGui::Combo("Kill Sound", &miscConfig.killSound, "None\0Metal\0Gamesense\0Bell\0Glass\0Custom\0");
-    if (miscConfig.killSound == 5) {
-        ImGui::InputText("Kill Sound filename", &miscConfig.customKillSound);
-        if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("audio file must be put in csgo/sound/ directory");
-    }
-    ImGui::PopID();
     /*
     ImGui::Text("Quick healthshot");
     ImGui::SameLine();
@@ -1499,13 +1433,9 @@ static void from_json(const json& j, MiscConfig& m)
     read(j, "Quick reload", m.quickReload);
     read(j, "Prepare revolver", m.prepareRevolver);
     read(j, "Prepare revolver key", m.prepareRevolverKey);
-    read(j, "Hit sound", m.hitSound);
     read(j, "Quick healthshot key", m.quickHealthshotKey);
     read(j, "Grenade predict", m.nadePredict);
     read(j, "Fix tablet signal", m.fixTabletSignal);
-    read<value_t::string>(j, "Custom Hit Sound", m.customHitSound);
-    read(j, "Kill sound", m.killSound);
-    read<value_t::string>(j, "Custom Kill Sound", m.customKillSound);
     read<value_t::object>(j, "Purchase List", m.purchaseList);
     read<value_t::object>(j, "Reportbot", m.reportbot);
     read(j, "Opposite Hand Knife", m.oppositeHandKnife);
@@ -1624,13 +1554,9 @@ static void to_json(json& j, const MiscConfig& o)
     WRITE("Quick reload", quickReload);
     WRITE("Prepare revolver", prepareRevolver);
     WRITE("Prepare revolver key", prepareRevolverKey);
-    WRITE("Hit sound", hitSound);
     WRITE("Quick healthshot key", quickHealthshotKey);
     WRITE("Grenade predict", nadePredict);
     WRITE("Fix tablet signal", fixTabletSignal);
-    WRITE("Custom Hit Sound", customHitSound);
-    WRITE("Kill sound", killSound);
-    WRITE("Custom Kill Sound", customKillSound);
     WRITE("Purchase List", purchaseList);
     WRITE("Reportbot", reportbot);
     WRITE("Opposite Hand Knife", oppositeHandKnife);

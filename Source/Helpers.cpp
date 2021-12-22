@@ -286,6 +286,16 @@ void Helpers::excuteSayCommand(const char* message, bool fromConsoleOrKeybind) n
     interfaces->engine->clientCmdUnrestricted(command.c_str(), fromConsoleOrKeybind);
 }
 
+void Helpers::excutePlayCommand(const char* file, bool fromConsoleOrKeybind) noexcept
+{
+    //build command
+    std::string command = charenc("play ");
+    command.append(file);
+
+    //excute command
+    interfaces->engine->clientCmdUnrestricted(command.c_str(), fromConsoleOrKeybind);
+}
+
 long Helpers::getCurrentTime() noexcept
 {
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();  

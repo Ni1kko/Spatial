@@ -39,8 +39,6 @@ namespace Misc
     void autoReload(UserCmd* cmd) noexcept;
     void autoDisconnect() noexcept;
     void revealRanks(UserCmd* cmd) noexcept;
-    void playHitSound(GameEvent& event) noexcept;
-    void killSound(GameEvent& event) noexcept;
     void purchaseList(GameEvent* event = nullptr) noexcept;
     void oppositeHandKnife(FrameStage stage) noexcept;
     void runReportbot() noexcept;

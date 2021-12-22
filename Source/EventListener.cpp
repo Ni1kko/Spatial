@@ -17,6 +17,7 @@
 #include "SDK/LocalPlayer.h"
 #include "SDK/Entity.h"
 #include <Hacks/Troll.h>
+#include <Hacks/Sound.h>
 
 namespace
 {
@@ -92,7 +93,7 @@ void EventListener::OnKilledEvent(GameEvent &event) noexcept
 
     if (DeathByPlayer) {
         Misc::killMessage(event);
-        Misc::killSound(event);
+        Sound::playKillSound(event);
         InventoryChanger::updateStatTrak(event); 
         Troll::chatSpam(ChatSpamEvents::OnKill);
     }
@@ -103,7 +104,7 @@ void EventListener::OnKilledEvent(GameEvent &event) noexcept
 
 void EventListener::OnDamgeEvent(GameEvent &event) noexcept
 {
-    Misc::playHitSound(event);
+    Sound::playHitSound(event);
     Visuals::hitEffect(&event);
     Visuals::hitMarker(&event);
     Troll::chatSpam(ChatSpamEvents::OnDMG);
