@@ -196,7 +196,7 @@ void Aimbot::run(UserCmd* cmd) noexcept
     if (config->aimbot[weaponIndex].enabled && (cmd->buttons & UserCmd::IN_ATTACK || config->aimbot[weaponIndex].autoShot || config->aimbot[weaponIndex].aimlock) && activeWeapon->getInaccuracy() <= config->aimbot[weaponIndex].maxAimInaccuracy) {
 
         //scoped only
-        if (config->aimbot[weaponIndex].scopedOnly && activeWeapon->isSniperRifle() && !localPlayer->isScoped())
+        if (config->aimbot[weaponIndex].scopedOnly && !config->aimbot[weaponIndex].autoScope && activeWeapon->isSniperRifle() && !localPlayer->isScoped())
             return;
 
         auto bestFov = config->aimbot[weaponIndex].fov; 
@@ -227,6 +227,14 @@ void Aimbot::run(UserCmd* cmd) noexcept
                 if (fov < bestFov) {
                     bestFov = fov;
                     bestTarget = bonePosition;
+
+                    if (config->aimbot[weaponIndex].autoStop)
+                        autoStop(cmd);
+
+                    if (config->aimbot[weaponIndex].autoScope && activeWeapon->isSniperRifle() && !localPlayer->isScoped() && !activeWeapon->zoomLevel() && localPlayer->flags() & 1 && !(cmd->buttons & UserCmd::IN_JUMP)) {
+                        cmd->buttons |= UserCmd::IN_ATTACK2;
+                        break;
+                    }
                 }
                 if (config->aimbot[weaponIndex].bone)
                     break;
@@ -253,13 +261,8 @@ void Aimbot::run(UserCmd* cmd) noexcept
             cmd->viewangles += angle;
             if (!config->aimbot[weaponIndex].silent)
                 interfaces->engine->setViewAngles(cmd->viewangles);
-
-            if (config->aimbot[weaponIndex].autoStop)
-                autoStop(cmd);
-
-            if (config->aimbot[weaponIndex].autoScope && activeWeapon->nextPrimaryAttack() <= memory->globalVars->serverTime() && activeWeapon->isSniperRifle() && !localPlayer->isScoped())
-                cmd->buttons |= UserCmd::IN_ATTACK2;
-
+               
+             
             if (config->aimbot[weaponIndex].autoShot && activeWeapon->nextPrimaryAttack() <= memory->globalVars->serverTime() && !clamped && activeWeapon->getInaccuracy() <= config->aimbot[weaponIndex].maxShotInaccuracy)
                 cmd->buttons |= UserCmd::IN_ATTACK;
 

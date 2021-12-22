@@ -262,6 +262,8 @@ public:
     NETVAR(fireIsBurning, "CInferno", "m_bFireIsBurning", bool[100])
     NETVAR(fireCount, "CInferno", "m_fireCount", int)
         
+    NETVAR(zoomLevel, "CWeaponCSBaseGun", "m_zoomLevel", int)
+
     bool isFlashed() noexcept
     {
         return flashDuration() > 75.0f;
