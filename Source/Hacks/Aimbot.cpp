@@ -29,6 +29,7 @@
 #include "../GameData.h"
 #include "../Hacks/Misc.h"
 #include <Hacks/Movement.h>
+#include <Menu/imguiCustom.h>
 
 struct Cvars {
     ConVar* accelerate;
@@ -412,4 +413,139 @@ void Aimbot::drawFov(ImDrawList* drawList) noexcept
 
     if (ImVec2 pos; worldToScreen(aimPunchAngle, pos))
         drawList->AddCircle(localPlayer->shotsFired() > 1 ? pos : screen_mid, radius, Helpers::calculateColor(config->drawaimbotFov.asColor4()), 360);
+}
+
+void Aimbot::drawGUI() noexcept
+{
+    ImGui::Checkbox("On key", &config->aimbotOnKey);
+    ImGui::SameLine();
+    ImGui::PushID("Aimbot Key");
+    ImGui::hotkey("", config->aimbotKey);
+    ImGui::PopID();
+    ImGui::SameLine();
+    ImGui::PushID(2);
+    ImGui::PushItemWidth(70.0f);
+    ImGui::Combo("", &config->aimbotKeyMode, "Hold\0Toggle\0");
+    ImGui::PopItemWidth();
+    ImGui::PopID();
+    ImGui::SameLine();
+    ImGuiCustom::colorPicker("Draw AimBot FOV", config->drawaimbotFov);
+    static int currentCategory{ 0 };
+    ImGui::PushItemWidth(110.0f);
+    ImGui::PushID(0);
+    ImGui::Combo("", &currentCategory, "All\0Pistols\0Heavy\0SMG\0Rifles\0");
+    ImGui::PopID();
+    ImGui::SameLine();
+    static int currentWeapon{ 0 };
+    ImGui::PushID(1);
+
+    switch (currentCategory) {
+    case 0:
+        currentWeapon = 0;
+        ImGui::NewLine();
+        break;
+    case 1: {
+        static int currentPistol{ 0 };
+        static constexpr const char* pistols[]{ "All", "Glock-18", "P2000", "USP-S", "Dual Berettas", "P250", "Tec-9", "Five-Seven", "CZ-75", "Desert Eagle", "Revolver" };
+
+        ImGui::Combo("", &currentPistol, [](void*, int idx, const char** out_text) {
+            if (config->aimbot[idx ? idx : 35].enabled) {
+                static std::string name;
+                name = pistols[idx];
+                *out_text = name.append(" *").c_str();
+            }
+            else {
+                *out_text = pistols[idx];
+            }
+            return true;
+            }, nullptr, IM_ARRAYSIZE(pistols));
+
+        currentWeapon = currentPistol ? currentPistol : 35;
+        break;
+    }
+    case 2: {
+        static int currentHeavy{ 0 };
+        static constexpr const char* heavies[]{ "All", "Nova", "XM1014", "Sawed-off", "MAG-7", "M249", "Negev" };
+
+        ImGui::Combo("", &currentHeavy, [](void*, int idx, const char** out_text) {
+            if (config->aimbot[idx ? idx + 10 : 36].enabled) {
+                static std::string name;
+                name = heavies[idx];
+                *out_text = name.append(" *").c_str();
+            }
+            else {
+                *out_text = heavies[idx];
+            }
+            return true;
+            }, nullptr, IM_ARRAYSIZE(heavies));
+
+        currentWeapon = currentHeavy ? currentHeavy + 10 : 36;
+        break;
+    }
+    case 3: {
+        static int currentSmg{ 0 };
+        static constexpr const char* smgs[]{ "All", "Mac-10", "MP9", "MP7", "MP5-SD", "UMP-45", "P90", "PP-Bizon" };
+
+        ImGui::Combo("", &currentSmg, [](void*, int idx, const char** out_text) {
+            if (config->aimbot[idx ? idx + 16 : 37].enabled) {
+                static std::string name;
+                name = smgs[idx];
+                *out_text = name.append(" *").c_str();
+            }
+            else {
+                *out_text = smgs[idx];
+            }
+            return true;
+            }, nullptr, IM_ARRAYSIZE(smgs));
+
+        currentWeapon = currentSmg ? currentSmg + 16 : 37;
+        break;
+    }
+    case 4: {
+        static int currentRifle{ 0 };
+        static constexpr const char* rifles[]{ "All", "Galil AR", "Famas", "AK-47", "M4A4", "M4A1-S", "SSG-08", "SG-553", "AUG", "AWP", "G3SG1", "SCAR-20" };
+
+        ImGui::Combo("", &currentRifle, [](void*, int idx, const char** out_text) {
+            if (config->aimbot[idx ? idx + 23 : 38].enabled) {
+                static std::string name;
+                name = rifles[idx];
+                *out_text = name.append(" *").c_str();
+            }
+            else {
+                *out_text = rifles[idx];
+            }
+            return true;
+            }, nullptr, IM_ARRAYSIZE(rifles));
+
+        currentWeapon = currentRifle ? currentRifle + 23 : 38;
+        break;
+    }
+    }
+    ImGui::PopID();
+    ImGui::SameLine();
+    ImGui::Checkbox("Enabled", &config->aimbot[currentWeapon].enabled);
+    ImGui::Columns(2, nullptr, false);
+    ImGui::SetColumnOffset(1, 220.0f);
+    ImGui::Checkbox("Aimlock", &config->aimbot[currentWeapon].aimlock);
+    ImGui::Checkbox("Silent", &config->aimbot[currentWeapon].silent);
+    ImGui::Checkbox("Friendly fire", &config->aimbot[currentWeapon].friendlyFire);
+    ImGui::Checkbox("Visible only", &config->aimbot[currentWeapon].visibleOnly);
+    ImGui::Checkbox("Scoped only", &config->aimbot[currentWeapon].scopedOnly);
+    ImGui::Checkbox("Ignore flash", &config->aimbot[currentWeapon].ignoreFlash);
+    ImGui::Checkbox("Ignore smoke", &config->aimbot[currentWeapon].ignoreSmoke);
+    ImGui::Checkbox("Auto shot", &config->aimbot[currentWeapon].autoShot);
+    ImGui::Checkbox("Auto scope", &config->aimbot[currentWeapon].autoScope);
+    ImGui::Checkbox("Auto stop", &config->aimbot[currentWeapon].autoStop);
+    ImGui::Combo("Bone", &config->aimbot[currentWeapon].bone, "Nearest\0Best damage\0Head\0Neck\0Sternum\0Chest\0Stomach\0Pelvis\0");
+    ImGui::NextColumn();
+    ImGui::PushItemWidth(240.0f);
+    ImGui::SliderFloat("Fov", &config->aimbot[currentWeapon].fov, 0.0f, 255.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
+    ImGui::SliderFloat("Smooth", &config->aimbot[currentWeapon].smooth, 1.0f, 100.0f, "%.2f");
+    ImGui::SliderFloat("Max aim inaccuracy", &config->aimbot[currentWeapon].maxAimInaccuracy, 0.0f, 1.0f, "%.5f", ImGuiSliderFlags_Logarithmic);
+    ImGui::SliderFloat("Max shot inaccuracy", &config->aimbot[currentWeapon].maxShotInaccuracy, 0.0f, 1.0f, "%.5f", ImGuiSliderFlags_Logarithmic);
+    ImGui::InputInt("Min damage", &config->aimbot[currentWeapon].minDamage);
+    config->aimbot[currentWeapon].minDamage = std::clamp(config->aimbot[currentWeapon].minDamage, 0, 250);
+    ImGui::Checkbox("Killshot", &config->aimbot[currentWeapon].killshot);
+    ImGui::Checkbox("Between shots", &config->aimbot[currentWeapon].betweenShots);
+    ImGui::Columns(1);
 }

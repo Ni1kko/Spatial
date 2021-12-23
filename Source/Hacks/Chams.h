@@ -11,7 +11,8 @@ class matrix3x4;
 class Chams {
 public:
     bool render(void*, void*, const ModelRenderInfo&, matrix3x4*) noexcept;
-    static void updateInput() noexcept;
+    void updateInput() noexcept;
+    void drawGUI() noexcept;
 private:
     void renderPlayer(Entity* player) noexcept;
     void renderWeapons() noexcept;
@@ -26,3 +27,5 @@ private:
 
     void applyChams(const std::array<Config::Chams::Material, 7>& chams, int health = 0, const matrix3x4* customMatrix = nullptr) noexcept;
 };
+
+inline std::unique_ptr<Chams> chams;

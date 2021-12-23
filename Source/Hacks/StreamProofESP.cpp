@@ -969,7 +969,7 @@ void StreamProofESP::drawGUI() noexcept
         ImGui::SetNextItemWidth(95.0f);
         ImGui::InputFloat("Text Cull Distance", &sharedConfig.textCullDistance, 0.4f, 0.8f, "%.1fm");
         sharedConfig.textCullDistance = std::clamp(sharedConfig.textCullDistance, 0.0f, 999.9f);
+         
+        ImGui::EndChild();
     }
-
-    ImGui::EndChild();
 }

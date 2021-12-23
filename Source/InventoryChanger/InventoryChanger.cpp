@@ -805,7 +805,7 @@ void InventoryChanger::drawGUI() noexcept
             return true;
         };
 
-        if (ImGui::BeginChild("##scrollarea", ImVec2{ 0.0f, 100.0f})) {
+        if (ImGui::BeginChild("##scrollarea", ImVec2{ 0.0f, 200.0f})) {
             const auto& gameItems = StaticData::gameItems();
             const std::wstring filterWide = Helpers::toUpper(Helpers::toWideString(filter));
             for (std::size_t i = 0; i < gameItems.size(); ++i) {

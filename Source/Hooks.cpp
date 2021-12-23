@@ -85,6 +85,7 @@ static LRESULT __stdcall wndProc(HWND window, UINT msg, WPARAM wParam, LPARAM lP
         ImGui_ImplWin32_Init(window);
         config = std::make_unique<Config>();
         gui = std::make_unique<Menu>();
+        chams = std::make_unique<Chams>();
         movement = std::make_unique<Movement>();
         hooks->install();
 
@@ -146,7 +147,7 @@ static void swapWindow(SDL_Window * window) noexcept
         StreamProofESP::updateInput();
         Misc::updateInput();
         Triggerbot::updateInput();
-        Chams::updateInput();
+        chams->updateInput();
         Glow::updateInput();
         Troll::chatSpam(ChatSpamEvents::Timed);
 
@@ -290,7 +291,7 @@ static void __STDCALL drawModelExecute(LINUX_ARGS(void* thisptr,) void* ctx, voi
     if (Visuals::removeHands(info.model->name) || Visuals::removeSleeves(info.model->name) || Visuals::removeWeapons(info.model->name))
         return;
 
-    if (static Chams chams; !chams.render(ctx, state, info, customBoneToWorld))
+    if (!chams->render(ctx, state, info, customBoneToWorld))
         hooks->modelRender.callOriginal<void, 21>(ctx, state, std::cref(info), customBoneToWorld);
 
     interfaces->studioRender->forcedMaterialOverride(nullptr);

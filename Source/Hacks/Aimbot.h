@@ -13,4 +13,5 @@ namespace Aimbot
     void init() noexcept;
     void updateInput() noexcept;
     void drawFov(ImDrawList* drawList) noexcept;
+    void drawGUI() noexcept;
 }

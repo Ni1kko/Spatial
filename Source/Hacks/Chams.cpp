@@ -27,6 +27,7 @@
 #include "../SDK/StudioRender.h"
 #include "../SDK/KeyValues.h"
 #include "../SDK/Utils.h"
+#include <Menu/imguiCustom.h>
 
 static Material* normal;
 static Material* flat;
@@ -298,4 +299,55 @@ void Chams::applyChams(const std::array<Config::Chams::Material, 7>& chams, int 
         hooks->modelRender.callOriginal<void, 21>(ctx, state, info, customMatrix ? customMatrix : customBoneToWorld);
         appliedChams = true;
     }
+}
+
+void Chams::drawGUI() noexcept
+{
+    ImGui::hotkey("Toggle Key", config->chamsToggleKey, 110.0f);
+    ImGui::hotkey("Hold Key", config->chamsHoldKey, 110.0f);
+    ImGui::Separator();
+
+    static int currentCategory{ 0 };
+    ImGui::PushItemWidth(110.0f);
+    ImGui::PushID("Chams Category");
+
+    static int material = 1;
+
+    if (ImGui::Combo("", &currentCategory, "Allies\0Enemies\0Planting\0Defusing\0Local player\0Weapons\0Hands\0Backtrack\0Sleeves\0"))
+        material = 1;
+
+    ImGui::PopID();
+
+    ImGui::SameLine();
+
+    if (material <= 1)
+        ImGuiCustom::arrowButtonDisabled("##left", ImGuiDir_Left);
+    else if (ImGui::ArrowButton("##left", ImGuiDir_Left))
+        --material;
+
+    ImGui::SameLine();
+    ImGui::Text("%d", material);
+
+    constexpr std::array categories{ "Allies", "Enemies", "Planting", "Defusing", "Local player", "Weapons", "Hands", "Backtrack", "Sleeves" };
+
+    ImGui::SameLine();
+
+    if (material >= int(config->chams[categories[currentCategory]].materials.size()))
+        ImGuiCustom::arrowButtonDisabled("##right", ImGuiDir_Right);
+    else if (ImGui::ArrowButton("##right", ImGuiDir_Right))
+        ++material;
+
+    ImGui::SameLine();
+
+    auto& chams{ config->chams[categories[currentCategory]].materials[material - 1] };
+
+    ImGui::Checkbox("Enabled", &chams.enabled);
+    ImGui::Separator();
+    ImGui::Checkbox("Health based", &chams.healthBased);
+    ImGui::Checkbox("Blinking", &chams.blinking);
+    ImGui::Combo("Material", &chams.material, "Normal\0Flat\0Animated\0Platinum\0Glass\0Chrome\0Crystal\0Silver\0Gold\0Plastic\0Glow\0Pearlescent\0Metallic\0");
+    ImGui::Checkbox("Wireframe", &chams.wireframe);
+    ImGui::Checkbox("Cover", &chams.cover);
+    ImGui::Checkbox("Ignore-Z", &chams.ignorez);
+    ImGuiCustom::colorPicker("Color", chams);
 }

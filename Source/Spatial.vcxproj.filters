@@ -18,12 +18,6 @@
     <Filter Include="Hooks">
       <UniqueIdentifier>{8899dcd1-0468-4bfa-b60d-c2af1c97a39e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resources">
-      <UniqueIdentifier>{ad9f0ad1-ce71-4bc4-b5eb-dd6a018f4fae}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resources\Shaders">
-      <UniqueIdentifier>{6f1f2a48-d1e6-4e87-b967-4b7e41157a5b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Encryption">
       <UniqueIdentifier>{cb3a6c20-467c-4618-90ce-ed0df78af3e1}</UniqueIdentifier>
     </Filter>
@@ -48,11 +42,14 @@
     <Filter Include="Hooks\MinHook">
       <UniqueIdentifier>{d845b8dc-ce6b-48c5-b78d-1003a5a857e0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Menu\Resources">
+      <UniqueIdentifier>{ad9f0ad1-ce71-4bc4-b5eb-dd6a018f4fae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Menu\Resources\Shaders">
+      <UniqueIdentifier>{6f1f2a48-d1e6-4e87-b967-4b7e41157a5b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Hooks.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Memory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -272,11 +269,11 @@
     <ClCompile Include="Hacks\Movement.cpp">
       <Filter>Hacks</Filter>
     </ClCompile>
+    <ClCompile Include="Hooks.cpp">
+      <Filter>Hooks</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Hooks.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Memory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -545,13 +542,13 @@
       <Filter>SDK</Filter>
     </ClInclude>
     <ClInclude Include="Resources\Resource.h">
-      <Filter>Resources</Filter>
+      <Filter>Menu\Resources</Filter>
     </ClInclude>
     <ClInclude Include="Resources\avatar_ct.h">
-      <Filter>Resources</Filter>
+      <Filter>Menu\Resources</Filter>
     </ClInclude>
     <ClInclude Include="Resources\avatar_tt.h">
-      <Filter>Resources</Filter>
+      <Filter>Menu\Resources</Filter>
     </ClInclude>
     <ClInclude Include="SDK\ClientMode.h">
       <Filter>SDK</Filter>
@@ -685,15 +682,21 @@
     <ClInclude Include="Hacks\Movement.h">
       <Filter>Hacks</Filter>
     </ClInclude>
+    <ClInclude Include="Hooks.h">
+      <Filter>Hooks</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\default_vs.hlsl">
-      <Filter>Resources\Shaders</Filter>
+      <Filter>Menu\Resources\Shaders</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <Library Include="VMP\VMProtectSDK32.lib">
       <Filter>Encryption\VMP</Filter>
     </Library>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
 </Project>

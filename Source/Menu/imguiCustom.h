@@ -21,7 +21,8 @@ namespace ImGuiCustom
     void arrowButtonDisabled(const char* id, ImGuiDir dir) noexcept;
     void AddCircleImageFilled(ImTextureID user_texture_id, const ImVec2& centre, float radius, ImU32 col, int num_segments);
     void tooltip(const char* text) noexcept;
-    void updateColors(int style = 2) noexcept;
+    void updateColors(int style = -1) noexcept;
+    IMGUI_API void StyleSpatial(ImGuiStyle* dst = NULL);
 }
 
 class KeyBind;

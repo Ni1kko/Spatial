@@ -97,12 +97,19 @@ Config::Config() noexcept : path{ buildConfigsFolderPath() }
     std::sort(std::next(systemFonts.begin()), systemFonts.end());
 }
 
-
 void Config::drawGUI() noexcept
 {
+    ImGui::PushItemWidth(160.0f);
+    if (ImGui::Combo("Menu Theme", &config->style.menuColors, "Dark\0Light\0Classic\0Spatial\0")) {
+        ImGuiCustom::updateColors(config->style.menuColors);
+        ImGui::EndCombo();
+    }
+    ImGui::PopItemWidth();
+    ImGui::Separator();
+
     ImGui::Columns(2, nullptr, false);
     ImGui::SetColumnOffset(1, 170.0f);
-
+    
     static bool incrementalLoad = false;
     ImGui::Checkbox("Incremental Load", &incrementalLoad);
 
