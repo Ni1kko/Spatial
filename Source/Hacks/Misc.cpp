@@ -140,13 +140,11 @@ struct MiscConfig {
         bool enabled = false;
     };
     Watermark watermark;
-    float aspectratio{ 0 };
     std::string killMessageString{ "Gotcha!" };
-    int banColor{ 6 };
-    std::string banText{ "Cheater has been permanently banned from official CS:GO servers." };
+    bool fakeMsgToggled{ false }; int fakeMsgColor{ 6 }; std::string fakeMsgText{ "Cheater has been permanently banned from official CS:GO servers." };
     ColorToggle3 bombTimer{ 1.0f, 0.55f, 0.0f };
     KeyBind prepareRevolverKey;
-    int quickHealthshotKey{ 0 };
+    bool quickHealthshot = false; KeyBind quickHealthshotKey;
     PurchaseList purchaseList;
 
     struct Reportbot {
@@ -196,11 +194,6 @@ KeyBind Misc::menuKeyBind() noexcept
 bool Misc::isMenuKeyPressed() noexcept
 {
     return menuKeyBind().isPressed();
-}
-
-float Misc::aspectRatio() noexcept
-{
-    return miscConfig.aspectratio;
 }
 
 void Misc::updateClanTag(bool tagChanged) noexcept
@@ -634,14 +627,19 @@ bool Misc::changeName(bool reconnect, const char* newName, float delay) noexcept
     return false;
 }
 
-void Misc::fakeBan(bool set) noexcept
+void Misc::fakeMessage(bool set) noexcept
 {
     static bool shouldSet = false;
 
-    if (set)
-        shouldSet = set;
+    if (!miscConfig.fakeMsgToggled && shouldSet) {
+        changeName(false, "", 5.0f);
+        shouldSet = false;
+    }
 
-    if (shouldSet && interfaces->engine->isInGame() && changeName(false, std::string{ "\x1\xB" }.append(std::string{ static_cast<char>(miscConfig.banColor + 1) }).append(miscConfig.banText).append("\x1").c_str(), 5.0f))
+    if (set || miscConfig.fakeMsgToggled)
+        shouldSet = set;
+     
+    if (shouldSet && interfaces->engine->isInGame() && changeName(false, std::string{ "\x1\xB" }.append(std::string{ static_cast<char>(miscConfig.fakeMsgColor + 1) }).append(miscConfig.fakeMsgText).append("\x1").c_str(), 5.0f))
         shouldSet = false;
 }
 
@@ -1165,190 +1163,185 @@ void Misc::updateInput() noexcept
 
 
 /////////////////////////////////////////////////////////////////
-// GUI Functions
+// GUI Function
 /////////////////////////////////////////////////////////////////
 
-void Misc::menuBarItem() noexcept
+void Misc::drawGUI() noexcept
 {
-    if (ImGui::MenuItem("Misc")) {
-        windowOpen = true;
-        ImGui::SetWindowFocus("Misc");
-        ImGui::SetWindowPos("Misc", { 100.0f, 100.0f });
-    }
-}
-
-void Misc::tabItem() noexcept
-{
-    if (ImGui::BeginTabItem("Misc")) {
-        drawGUI(true);
-        ImGui::EndTabItem();
-    }
-}
-
-void Misc::drawGUI(bool contentOnly) noexcept
-{
-    if (!contentOnly) {
-        if (!windowOpen)
-            return;
-        ImGui::SetNextWindowSize({ 580.0f, 0.0f });
-        ImGui::Begin("Misc", &windowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize
-            | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-    }
     ImGui::Columns(2, nullptr, false);
     ImGui::SetColumnOffset(1, 230.0f);
     ImGui::hotkey("Menu Key", miscConfig.menuKey);
     ImGui::Checkbox("Anti AFK kick", &miscConfig.antiAfkKick);
     ImGui::Checkbox(xorstr_("Auto Disconnect"), &miscConfig.autoDisconnect);
-    ImGuiCustom::colorPicker("Noscope crosshair", miscConfig.noscopeCrosshair);
-    ImGuiCustom::colorPicker("Recoil crosshair", miscConfig.recoilCrosshair);
+    ImGuiCustom::colorPicker("Noscope crosshair", miscConfig.noscopeCrosshair);//TODO: move to visuals
+    ImGuiCustom::colorPicker("Recoil crosshair", miscConfig.recoilCrosshair);//TODO: move to visuals
     ImGui::Checkbox("Auto pistol", &miscConfig.autoPistol);
     ImGui::Checkbox("Auto reload", &miscConfig.autoReload);
     ImGui::Checkbox("Auto accept", &miscConfig.autoAccept);
-    ImGui::Checkbox("Nade Prediction", &miscConfig.nadePredict);
+    ImGui::Checkbox("Nade Prediction", &miscConfig.nadePredict);//TODO: move to visuals
     ImGui::Checkbox("Radar hack", &miscConfig.radarHack);
     ImGui::Checkbox("Reveal ranks", &miscConfig.revealRanks);
     ImGui::Checkbox("Reveal money", &miscConfig.revealMoney);
     ImGui::Checkbox("Reveal suspect", &miscConfig.revealSuspect);
-    ImGui::Checkbox("Reveal votes", &miscConfig.revealVotes); 
-    ImGui::Checkbox("Fake Prime status", &miscConfig.fakePrime);
-    ImGuiCustom::colorPicker("Bomb timer", miscConfig.bombTimer);
-    ImGui::Checkbox("Quick reload", &miscConfig.quickReload);
-    ImGui::Checkbox("Prepare revolver", &miscConfig.prepareRevolver);
-    ImGui::SameLine();
-    ImGui::PushID("Prepare revolver Key");
-    ImGui::hotkey("", miscConfig.prepareRevolverKey);
-    ImGui::PopID();
-    ImGui::Checkbox("Watermark", &miscConfig.watermark.enabled);
-    ImGuiCustom::colorPicker("Offscreen Enemies", miscConfig.offscreenEnemies.asColor4(), &miscConfig.offscreenEnemies.enabled);
-    ImGui::SameLine();
-    ImGui::PushID("Offscreen Enemies");
-    if (ImGui::Button("..."))
-        ImGui::OpenPopup("");
+    ImGui::Checkbox("Reveal votes", &miscConfig.revealVotes);
+    ImGui::Checkbox("Watermark", &miscConfig.watermark.enabled);//TODO: move to visuals
+    ImGuiCustom::colorPicker("Bomb timer", miscConfig.bombTimer);//TODO: move to visuals
 
-    if (ImGui::BeginPopup("")) {
-        ImGui::Checkbox("Health Bar", &miscConfig.offscreenEnemies.healthBar.enabled);
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(95.0f);
-        ImGui::Combo("Type", &miscConfig.offscreenEnemies.healthBar.type, "Gradient\0Solid\0Health-based\0");
-        if (miscConfig.offscreenEnemies.healthBar.type == HealthBar::Solid) {
-            ImGui::SameLine();
-            ImGuiCustom::colorPicker("", miscConfig.offscreenEnemies.healthBar.asColor4());
-        }
-        ImGui::EndPopup();
-    }
-    ImGui::PopID();
-    ImGui::Checkbox("Fix animation LOD", &miscConfig.fixAnimationLOD); 
-    ImGui::Checkbox("Disable model occlusion", &miscConfig.disableModelOcclusion);
-    ImGui::SliderFloat("Aspect Ratio", &miscConfig.aspectratio, 0.0f, 5.0f, "%.2f");
-    ImGui::Checkbox("Fix tablet signal", &miscConfig.fixTabletSignal);
-    ImGui::Checkbox("Opposite Hand Knife", &miscConfig.oppositeHandKnife);
-    ImGui::Checkbox("Disable HUD blur", &miscConfig.disablePanoramablur);
-
-    ImGui::SetNextItemWidth(140);
-    ImGui::Combo("Force region", &miscConfig.forceRelayCluster, "Off\0Australia\0Austria\0Brazil\0Chile\0Dubai\0France\0Germany\0Hong Kong\0India (Chennai)\0India (Mumbai)\0Japan\0Luxembourg\0Netherlands\0Peru\0Philipines\0Poland\0Singapore\0South Africa\0Spain\0Sweden\0UK\0USA (Atlanta)\0USA (Seattle)\0USA (Chicago)\0USA (Los Angeles)\0USA (Moses Lake)\0USA (Oklahoma)\0USA (Seattle)\0USA (Washington DC)\0");
-
+    ImGui::Checkbox("Fix animation LOD", &miscConfig.fixAnimationLOD); //TODO: move to visuals
+    ImGui::Checkbox("Disable model occlusion", &miscConfig.disableModelOcclusion);//TODO: move to visuals
+    ImGui::Checkbox("Opposite Hand Knife", &miscConfig.oppositeHandKnife);//TODO: move to visuals
+    ImGui::Checkbox("Disable HUD blur", &miscConfig.disablePanoramablur);//TODO: move to visuals
     ImGui::NextColumn();
 
+    ImGui::Checkbox("Fix tablet signal", &miscConfig.fixTabletSignal);
+    ImGui::Checkbox("Fake Prime", &miscConfig.fakePrime);
+    ImGui::Checkbox("Quick reload", &miscConfig.quickReload);
+    ImGui::Checkbox("Name stealer", &miscConfig.nameStealer);
     
     ImGui::Checkbox("Animated clan tag", &miscConfig.animatedClanTag);
     ImGui::Checkbox("Clock tag", &miscConfig.clocktag);
     ImGui::Checkbox("Custom clantag", &miscConfig.customClanTag);
-    ImGui::SameLine();
-    ImGui::PushItemWidth(120.0f);
-    ImGui::PushID(0);
+    if (miscConfig.customClanTag) {
+        ImGui::SameLine();
+        ImGui::PushItemWidth(120.0f);
+        ImGui::PushID("Custom clantag text");
+        if (ImGui::InputText("", miscConfig.clanTag, sizeof(miscConfig.clanTag)))
+            Misc::updateClanTag(true);
+        ImGui::PopID();
+    }
 
-    if (ImGui::InputText("", miscConfig.clanTag, sizeof(miscConfig.clanTag)))
-        Misc::updateClanTag(true);
-    ImGui::PopID();
     ImGui::Checkbox("Kill message", &miscConfig.killMessage);
-    ImGui::SameLine();
-    ImGui::PushItemWidth(120.0f);
-    ImGui::PushID(1);
-    ImGui::InputText("", &miscConfig.killMessageString);
-    ImGui::PopID();
-    ImGui::Checkbox("Name stealer", &miscConfig.nameStealer);
-    ImGui::PushID(3);
-    ImGui::SetNextItemWidth(100.0f);
-    ImGui::Combo("", &miscConfig.banColor, "White\0Red\0Purple\0Green\0Light green\0Turquoise\0Light red\0Gray\0Yellow\0Gray 2\0Light blue\0Gray/Purple\0Blue\0Pink\0Dark orange\0Orange\0");
-    ImGui::PopID();
-    ImGui::SameLine();
-    ImGui::PushID(4);
-    ImGui::InputText("", &miscConfig.banText);
-    ImGui::PopID();
-    ImGui::SameLine();
-    if (ImGui::Button("Setup fake ban"))
-        Misc::fakeBan(true);
+    if (miscConfig.killMessage) {
+        ImGui::SameLine();
+        ImGui::PushItemWidth(120.0f);
+        ImGui::PushID("Custom KillMessage Text");
+        ImGui::InputText("", &miscConfig.killMessageString);
+        ImGui::PopID();
+    }
+
+    ImGui::Checkbox("Fake Message", &miscConfig.fakeMsgToggled);
+    if (miscConfig.fakeMsgToggled) {
+        ImGui::SameLine();
+        ImGui::PushItemWidth(120.0f);
+        ImGui::PushID("Fake Message Color");
+        ImGui::Combo("", &miscConfig.fakeMsgColor, "White\0Red\0Purple\0Green\0Light green\0Turquoise\0Light red\0Gray\0Yellow\0Gray 2\0Light blue\0Gray/Purple\0Blue\0Pink\0Dark orange\0Orange\0");
+        ImGui::PopID();
+        ImGui::SameLine();
+        ImGui::PushID("Fake Message Text");
+        ImGui::InputText("", &miscConfig.fakeMsgText);
+        ImGui::PopID();
+        ImGui::SameLine();
+        if (ImGui::Button("Update"))
+            Misc::fakeMessage(true);
+    }
+
+    /*ImGui::Checkbox("Quick healthshot", &miscConfig.quickHealthshot);
+    if (miscConfig.quickHealthshot) {
+        ImGui::SameLine();
+        ImGui::PushID("Prepare revolver Key");
+        ImGui::hotkey("", miscConfig.quickHealthshotKey);
+    }*/
     
-    /*
-    ImGui::Text("Quick healthshot");
-    ImGui::SameLine();
-    hotkey(miscConfig.quickHealthshotKey);
-    */
-    ImGui::Checkbox("Preserve Killfeed", &miscConfig.preserveKillfeed.enabled);
-    ImGui::SameLine();
-    ImGui::PushID("Preserve Killfeed");
-    if (ImGui::Button("...")) ImGui::OpenPopup("");
-    if (ImGui::BeginPopup("")) {
-        ImGui::Checkbox("Only Headshots", &miscConfig.preserveKillfeed.onlyHeadshots);
-        ImGui::EndPopup();
-    }
-    ImGui::PopID();
+    ImGuiCustom::colorPicker("Offscreen Enemies", miscConfig.offscreenEnemies.asColor4(), &miscConfig.offscreenEnemies.enabled);//TODO: move to visuals
+    if (miscConfig.offscreenEnemies.enabled) {
+        ImGui::SameLine();
+        ImGui::PushID("Offscreen Enemies");
+        if (ImGui::Button("..."))
+            ImGui::OpenPopup("");
 
-    ImGui::Checkbox("Purchase List", &miscConfig.purchaseList.enabled);
-    ImGui::SameLine();
-    ImGui::PushID("Purchase List");
-    if (ImGui::Button("...")) ImGui::OpenPopup("");
-    if (ImGui::BeginPopup("")) {
-        ImGui::SetNextItemWidth(75.0f);
-        ImGui::Combo("Mode", &miscConfig.purchaseList.mode, "Details\0Summary\0");
-        ImGui::Checkbox("Only During Freeze Time", &miscConfig.purchaseList.onlyDuringFreezeTime);
-        ImGui::Checkbox("Show Prices", &miscConfig.purchaseList.showPrices);
-        ImGui::Checkbox("No Title Bar", &miscConfig.purchaseList.noTitleBar);
-        ImGui::EndPopup();
+        if (ImGui::BeginPopup("")) {
+            ImGui::Checkbox("Health Bar", &miscConfig.offscreenEnemies.healthBar.enabled);
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(95.0f);
+            ImGui::Combo("Type", &miscConfig.offscreenEnemies.healthBar.type, "Gradient\0Solid\0Health-based\0");
+            if (miscConfig.offscreenEnemies.healthBar.type == HealthBar::Solid) {
+                ImGui::SameLine();
+                ImGuiCustom::colorPicker("", miscConfig.offscreenEnemies.healthBar.asColor4());
+            }
+            ImGui::EndPopup();
+        }
+        ImGui::PopID();
     }
-    ImGui::PopID();
 
-    ImGui::Checkbox("Spectator list", &miscConfig.spectatorList.enabled);
-    ImGui::SameLine();
-    ImGui::PushID("Spectator list");
-    if (ImGui::Button("...")) ImGui::OpenPopup("");
-    if (ImGui::BeginPopup("")) {
-        ImGui::Checkbox("No Title Bar", &miscConfig.spectatorList.noTitleBar);
-        ImGui::EndPopup();
+    ImGui::Checkbox("Prepare revolver", &miscConfig.prepareRevolver);
+    if (miscConfig.prepareRevolver) {
+        ImGui::SameLine();
+        ImGui::PushID("Prepare revolver Key");
+        ImGui::hotkey("", miscConfig.prepareRevolverKey);
+        ImGui::PopID();
     }
-    ImGui::PopID();
 
+    ImGui::Checkbox("Preserve Killfeed", &miscConfig.preserveKillfeed.enabled);//TODO: move to visuals
+    if (miscConfig.preserveKillfeed.enabled) {
+        ImGui::SameLine();
+        ImGui::PushID("Preserve Killfeed");
+        if (ImGui::Button("...")) ImGui::OpenPopup("");
+        if (ImGui::BeginPopup("")) {
+            ImGui::Checkbox("Only Headshots", &miscConfig.preserveKillfeed.onlyHeadshots);
+            ImGui::EndPopup();
+        }
+        ImGui::PopID();
+    }
+    
+    ImGui::Checkbox("Purchase List", &miscConfig.purchaseList.enabled);//TODO: move to visuals
+    if (miscConfig.purchaseList.enabled) {
+        ImGui::SameLine();
+        ImGui::PushID("Purchase List");
+        if (ImGui::Button("...")) ImGui::OpenPopup("");
+        if (ImGui::BeginPopup("")) {
+            ImGui::SetNextItemWidth(75.0f);
+            ImGui::Combo("Mode", &miscConfig.purchaseList.mode, "Details\0Summary\0");
+            ImGui::Checkbox("Only During Freeze Time", &miscConfig.purchaseList.onlyDuringFreezeTime);
+            ImGui::Checkbox("Show Prices", &miscConfig.purchaseList.showPrices);
+            ImGui::Checkbox("No Title Bar", &miscConfig.purchaseList.noTitleBar);
+            ImGui::EndPopup();
+        }
+        ImGui::PopID();
+    }
+    
+    ImGui::Checkbox("Spectator list", &miscConfig.spectatorList.enabled);//TODO: move to visuals
+    if (miscConfig.spectatorList.enabled) {
+        ImGui::SameLine();
+        ImGui::PushID("Spectator list");
+        if (ImGui::Button("...")) ImGui::OpenPopup("");
+        if (ImGui::BeginPopup("")) {
+            ImGui::Checkbox("No Title Bar", &miscConfig.spectatorList.noTitleBar);
+            ImGui::EndPopup();
+        }
+        ImGui::PopID();
+    }
+    
     ImGui::Checkbox("Reportbot", &miscConfig.reportbot.enabled);
-    ImGui::SameLine();
-    ImGui::PushID("Reportbot");
-    if (ImGui::Button("...")) ImGui::OpenPopup("");
-    if (ImGui::BeginPopup("")) {
-        ImGui::PushItemWidth(80.0f);
-        ImGui::Combo("Target", &miscConfig.reportbot.target, "Enemies\0Allies\0All\0");
-        ImGui::InputInt("Delay (s)", &miscConfig.reportbot.delay);
-        miscConfig.reportbot.delay = (std::max)(miscConfig.reportbot.delay, 1);
-        ImGui::InputInt("Rounds", &miscConfig.reportbot.rounds);
-        miscConfig.reportbot.rounds = (std::max)(miscConfig.reportbot.rounds, 1);
-        ImGui::PopItemWidth();
-        ImGui::Checkbox("Abusive Communications", &miscConfig.reportbot.textAbuse);
-        ImGui::Checkbox("Griefing", &miscConfig.reportbot.griefing);
-        ImGui::Checkbox("Wall Hacking", &miscConfig.reportbot.wallhack);
-        ImGui::Checkbox("Aim Hacking", &miscConfig.reportbot.aimbot);
-        ImGui::Checkbox("Other Hacking", &miscConfig.reportbot.other);
-        if (ImGui::Button("Reset"))
-            Misc::resetReportbot();
-        ImGui::EndPopup();
+    if (miscConfig.reportbot.enabled) {
+        ImGui::SameLine();
+        ImGui::PushID("Reportbot");
+        if (ImGui::Button("...")) ImGui::OpenPopup("");
+        if (ImGui::BeginPopup("")) {
+            ImGui::PushItemWidth(80.0f);
+            ImGui::Combo("Target", &miscConfig.reportbot.target, "Enemies\0Allies\0All\0");
+            ImGui::InputInt("Delay (s)", &miscConfig.reportbot.delay);
+            miscConfig.reportbot.delay = (std::max)(miscConfig.reportbot.delay, 1);
+            ImGui::InputInt("Rounds", &miscConfig.reportbot.rounds);
+            miscConfig.reportbot.rounds = (std::max)(miscConfig.reportbot.rounds, 1);
+            ImGui::PopItemWidth();
+            ImGui::Checkbox("Abusive Communications", &miscConfig.reportbot.textAbuse);
+            ImGui::Checkbox("Griefing", &miscConfig.reportbot.griefing);
+            ImGui::Checkbox("Wall Hacking", &miscConfig.reportbot.wallhack);
+            ImGui::Checkbox("Aim Hacking", &miscConfig.reportbot.aimbot);
+            ImGui::Checkbox("Other Hacking", &miscConfig.reportbot.other);
+            if (ImGui::Button("Reset"))
+                Misc::resetReportbot();
+            ImGui::EndPopup();
+        }
+        ImGui::PopID();
     }
-    ImGui::PopID();
     
+    ImGui::SetNextItemWidth(140);
+    ImGui::Combo(xorstr_("Region"), &miscConfig.forceRelayCluster, "Default\0Australia\0Austria\0Brazil\0Chile\0Dubai\0France\0Germany\0Hong Kong\0India (Chennai)\0India (Mumbai)\0Japan\0Luxembourg\0Netherlands\0Peru\0Philipines\0Poland\0Singapore\0South Africa\0Spain\0Sweden\0UK\0USA (Atlanta)\0USA (Seattle)\0USA (Chicago)\0USA (Los Angeles)\0USA (Moses Lake)\0USA (Oklahoma)\0USA (Seattle)\0USA (Washington DC)\0");
+     
+    if (ImGui::Button(xorstr_("Unload DLL"))) hooks->uninstall();
     
-    #ifdef _DEBUG
-        if (ImGui::Button(xorstr_("Unhook"))) hooks->uninstall();
-    #endif
-
     ImGui::Columns(1);
-    if (!contentOnly)
-        ImGui::End();
 }
 
 
@@ -1421,18 +1414,19 @@ static void from_json(const json& j, MiscConfig& m)
     read<value_t::object>(j, "Offscreen Enemies", m.offscreenEnemies);
     read(j, "Fix animation LOD", m.fixAnimationLOD);
     read(j, "Disable model occlusion", m.disableModelOcclusion);
-    read(j, "Aspect Ratio", m.aspectratio);
     read(j, "Kill message", m.killMessage);
     read<value_t::string>(j, "Kill message string", m.killMessageString);
     read(j, "Name stealer", m.nameStealer);
     read(j, "Fake prime", m.fakePrime);
     read(j, "Disable HUD blur", m.disablePanoramablur);
-    read(j, "Ban color", m.banColor);
-    read<value_t::string>(j, "Ban text", m.banText);
+    read(j, "Fake Message", m.fakeMsgToggled);
+    read(j, "Fake Message color", m.fakeMsgColor);
+    read<value_t::string>(j, "Fake Message text", m.fakeMsgText);
     read<value_t::object>(j, "Bomb timer", m.bombTimer);
     read(j, "Quick reload", m.quickReload);
     read(j, "Prepare revolver", m.prepareRevolver);
     read(j, "Prepare revolver key", m.prepareRevolverKey);
+    read(j, "Quick healthshot", m.quickHealthshot);
     read(j, "Quick healthshot key", m.quickHealthshotKey);
     read(j, "Grenade predict", m.nadePredict);
     read(j, "Fix tablet signal", m.fixTabletSignal);
@@ -1542,18 +1536,19 @@ static void to_json(json& j, const MiscConfig& o)
     WRITE("Offscreen Enemies", offscreenEnemies);
     WRITE("Fix animation LOD", fixAnimationLOD);
     WRITE("Disable model occlusion", disableModelOcclusion);
-    WRITE("Aspect Ratio", aspectratio);
     WRITE("Kill message", killMessage);
     WRITE("Kill message string", killMessageString);
     WRITE("Name stealer", nameStealer);
     WRITE("Fake prime", fakePrime);
     WRITE("Disable HUD blur", disablePanoramablur);
-    WRITE("Ban color", banColor);
-    WRITE("Ban text", banText);
+    WRITE("Fake Message", fakeMsgToggled);
+    WRITE("Fake Message color", fakeMsgColor);
+    WRITE("Fake Message text", fakeMsgText);
     WRITE("Bomb timer", bombTimer);
     WRITE("Quick reload", quickReload);
     WRITE("Prepare revolver", prepareRevolver);
     WRITE("Prepare revolver key", prepareRevolverKey);
+    WRITE("Quick healthshot", quickHealthshot);
     WRITE("Quick healthshot key", quickHealthshotKey);
     WRITE("Grenade predict", nadePredict);
     WRITE("Fix tablet signal", fixTabletSignal);

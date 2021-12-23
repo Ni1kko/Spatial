@@ -12,12 +12,20 @@
 
 #if Spatial_ANTIAIM()
 
+/////////////////////////////////////////////////////////////////
+// Structs
+/////////////////////////////////////////////////////////////////
+
 struct AntiAimConfig {
     bool enabled = false;
     bool pitch = false;
     bool yaw = false;
     float pitchAngle = 0.0f;
 } antiAimConfig;
+
+/////////////////////////////////////////////////////////////////
+// Functions
+/////////////////////////////////////////////////////////////////
 
 void AntiAim::run(UserCmd* cmd, const Vector& previousViewAngles, const Vector& currentViewAngles, bool& sendPacket) noexcept
 {
@@ -40,41 +48,23 @@ void AntiAim::run(UserCmd* cmd, const Vector& previousViewAngles, const Vector& 
     }
 }
 
-static bool antiAimOpen = false;
 
-void AntiAim::menuBarItem() noexcept
-{
-    if (ImGui::MenuItem("Anti aim")) {
-        antiAimOpen = true;
-        ImGui::SetWindowFocus("Anti aim");
-        ImGui::SetWindowPos("Anti aim", { 100.0f, 100.0f });
-    }
-}
+/////////////////////////////////////////////////////////////////
+// GUI Functions
+/////////////////////////////////////////////////////////////////
 
-void AntiAim::tabItem() noexcept
+void AntiAim::drawGUI() noexcept
 {
-    if (ImGui::BeginTabItem("Anti aim")) {
-        drawGUI(true);
-        ImGui::EndTabItem();
-    }
-}
-
-void AntiAim::drawGUI(bool contentOnly) noexcept
-{
-    if (!contentOnly) {
-        if (!antiAimOpen)
-            return;
-        ImGui::SetNextWindowSize({ 0.0f, 0.0f });
-        ImGui::Begin("Anti aim", &antiAimOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-    }
     ImGui::Checkbox("Enabled", &antiAimConfig.enabled);
     ImGui::Checkbox("##pitch", &antiAimConfig.pitch);
     ImGui::SameLine();
     ImGui::SliderFloat("Pitch", &antiAimConfig.pitchAngle, -89.0f, 89.0f, "%.2f");
     ImGui::Checkbox("Yaw", &antiAimConfig.yaw);
-    if (!contentOnly)
-        ImGui::End();
 }
+
+/////////////////////////////////////////////////////////////////
+// Config Functions
+/////////////////////////////////////////////////////////////////
 
 static void to_json(json& j, const AntiAimConfig& o, const AntiAimConfig& dummy = {})
 {
@@ -84,19 +74,19 @@ static void to_json(json& j, const AntiAimConfig& o, const AntiAimConfig& dummy 
     WRITE("Yaw", yaw);
 }
 
-json AntiAim::toJson() noexcept
-{
-    json j;
-    to_json(j, antiAimConfig);
-    return j;
-}
-
 static void from_json(const json& j, AntiAimConfig& a)
 {
     read(j, "Enabled", a.enabled);
     read(j, "Pitch", a.pitch);
     read(j, "Yaw", a.yaw);
     read(j, "Pitch angle", a.pitchAngle);
+}
+
+json AntiAim::toJson() noexcept
+{
+    json j;
+    to_json(j, antiAimConfig);
+    return j;
 }
 
 void AntiAim::fromJson(const json& j) noexcept
@@ -118,7 +108,7 @@ namespace AntiAim
     // GUI
     void menuBarItem() noexcept {}
     void tabItem() noexcept {}
-    void drawGUI(bool contentOnly) noexcept {}
+    void drawGUI() noexcept {}
 
     // Config
     json toJson() noexcept { return {}; }

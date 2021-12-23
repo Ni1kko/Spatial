@@ -34,6 +34,35 @@
 #include "../SDK/ViewRenderBeams.h"
 #include <Hacks/Movement.h>
 
+
+#ifdef _WIN32
+#undef xor
+#define DRAW_SCREEN_EFFECT(material) \
+{ \
+    const auto drawFunction = memory->drawScreenEffectMaterial; \
+    int w, h; \
+    interfaces->engine->getScreenSize(w, h); \
+    __asm { \
+        __asm push h \
+        __asm push w \
+        __asm push 0 \
+        __asm xor edx, edx \
+        __asm mov ecx, material \
+        __asm call drawFunction \
+        __asm add esp, 12 \
+    } \
+}
+
+#else
+#define DRAW_SCREEN_EFFECT(material) \
+{ \
+    int w, h; \
+    interfaces->engine->getScreenSize(w, h); \
+    reinterpret_cast<void(*)(Material*, int, int, int, int)>(memory->drawScreenEffectMaterial)(material, 0, 0, w, h); \
+}
+#endif
+
+
 struct BulletTracers : ColorToggle {
     BulletTracers() : ColorToggle{ 0.0f, 0.75f, 1.0f, 1.0f } {}
 };
@@ -80,6 +109,7 @@ struct VisualsConfig {
     float hitMarkerTime{ 0.6f };
     BulletTracers bulletTracers;
     ColorToggle molotovHull{ 1.0f, 0.27f, 0.0f, 0.3f };
+    float aspectratio{ 0 };
 
     struct ColorCorrection {
         bool enabled = false;
@@ -102,7 +132,6 @@ struct VisualsConfig {
 
 } visualsConfig;
 
-
 static bool worldToScreen(const Vector& in, ImVec2& out) noexcept
 {
     const auto& matrix = GameData::toScreenMatrix();
@@ -117,157 +146,6 @@ static bool worldToScreen(const Vector& in, ImVec2& out) noexcept
     out = ImFloor(out);
     return true;
 }
-
-
-static void from_json(const json& j, VisualsConfig::ColorCorrection& c)
-{
-    read(j, "Enabled", c.enabled);
-    read(j, "Blue", c.blue);
-    read(j, "Red", c.red);
-    read(j, "Mono", c.mono);
-    read(j, "Saturation", c.saturation);
-    read(j, "Ghost", c.ghost);
-    read(j, "Green", c.green);
-    read(j, "Yellow", c.yellow);
-}
-
-static void from_json(const json& j, VisualsConfig::SmokeTimer& s)
-{
-    read(j, "Enabled", s.enabled);
-    read<value_t::object>(j, "Background color", s.backgroundColor);
-    read<value_t::object>(j, "Timer color", s.timerColor);
-    read(j, "Timer thickness", s.timerThickness);
-    read<value_t::object>(j, "Text color", s.textColor);
-}
-
-
-static void from_json(const json& j, BulletTracers& o)
-{
-    from_json(j, static_cast<ColorToggle&>(o));
-}
-
-static void from_json(const json& j, VisualsConfig& v)
-{
-    read(j, "Disable post-processing", v.disablePostProcessing);
-    read(j, "Inverse ragdoll gravity", v.inverseRagdollGravity);
-    read(j, "No fog", v.noFog);
-    read(j, "No 3d sky", v.no3dSky);
-    read(j, "No aim punch", v.noAimPunch);
-    read(j, "No view punch", v.noViewPunch);
-    read(j, "No hands", v.noHands);
-    read(j, "No sleeves", v.noSleeves);
-    read(j, "No weapons", v.noWeapons);
-    read(j, "No smoke", v.noSmoke);
-    read(j, "No blur", v.noBlur);
-    read(j, "No scope overlay", v.noScopeOverlay);
-    read(j, "No grass", v.noGrass);
-    read(j, "No shadows", v.noShadows);
-    read(j, "Wireframe smoke", v.wireframeSmoke);
-    read(j, "Zoom", v.zoom);
-    read(j, "Zoom key", v.zoomKey);
-    read(j, "Thirdperson", v.thirdperson);
-    read(j, "Thirdperson key", v.thirdpersonKey);
-    read(j, "Thirdperson distance", v.thirdpersonDistance);
-    read(j, "Viewmodel FOV", v.viewmodelFov);
-    read(j, "Custom Position", v.customPos);
-    read(j, "Viewmodel X", v.x);
-    read(j, "Viewmodel Y", v.y);
-    read(j, "Viewmodel Z", v.z);
-    read(j, "FOV", v.fov);
-    read(j, "Far Z", v.farZ);
-    read(j, "Flash reduction", v.flashReduction);
-    read(j, "Brightness", v.brightness);
-    read(j, "Skybox", v.skybox);
-    read<value_t::object>(j, "World", v.world);
-    read<value_t::object>(j, "Sky", v.sky);
-    read(j, "Deagle spinner", v.deagleSpinner);
-    read(j, "Screen effect", v.screenEffect);
-    read(j, "Hit effect", v.hitEffect);
-    read(j, "Hit effect time", v.hitEffectTime);
-    read(j, "Hit marker", v.hitMarker);
-    read(j, "Hit marker time", v.hitMarkerTime);
-    read<value_t::object>(j, "Color correction", v.colorCorrection);
-    read<value_t::object>(j, "Bullet Tracers", v.bulletTracers);
-    read<value_t::object>(j, "Molotov Hull", v.molotovHull); 
-    read<value_t::object>(j, "Smoke timer", v.smokeTimer);
-    read<value_t::object>(j, "Auto Peek Toggle", v.autoPeekToggle);
-}
-
-static void to_json(json& j, const VisualsConfig::ColorCorrection& o, const VisualsConfig::ColorCorrection& dummy)
-{
-    WRITE("Enabled", enabled);
-    WRITE("Blue", blue);
-    WRITE("Red", red);
-    WRITE("Mono", mono);
-    WRITE("Saturation", saturation);
-    WRITE("Ghost", ghost);
-    WRITE("Green", green);
-    WRITE("Yellow", yellow);
-}
-
-static void to_json(json& j, const BulletTracers& o, const BulletTracers& dummy = {})
-{
-    to_json(j, static_cast<const ColorToggle&>(o), dummy);
-}
-
-static void to_json(json& j, const VisualsConfig::SmokeTimer& o, const VisualsConfig::SmokeTimer& dummy)
-{
-    WRITE("Enabled", enabled);
-    WRITE("Background color", backgroundColor);
-    WRITE("Timer color", timerColor);
-    WRITE("Timer thickness", timerThickness);
-    WRITE("Text color", textColor);
-}
-
-static void to_json(json& j, const VisualsConfig& o)
-{
-    const VisualsConfig dummy;
-
-    WRITE("Disable post-processing", disablePostProcessing);
-    WRITE("Inverse ragdoll gravity", inverseRagdollGravity);
-    WRITE("No fog", noFog);
-    WRITE("No 3d sky", no3dSky);
-    WRITE("No aim punch", noAimPunch);
-    WRITE("No view punch", noViewPunch);
-    WRITE("No hands", noHands);
-    WRITE("No sleeves", noSleeves);
-    WRITE("No weapons", noWeapons);
-    WRITE("No smoke", noSmoke);
-    WRITE("No blur", noBlur);
-    WRITE("No scope overlay", noScopeOverlay);
-    WRITE("No grass", noGrass);
-    WRITE("No shadows", noShadows);
-    WRITE("Wireframe smoke", wireframeSmoke);
-    WRITE("Zoom", zoom);
-    WRITE("Zoom key", zoomKey);
-    WRITE("Thirdperson", thirdperson);
-    WRITE("Thirdperson key", thirdpersonKey);
-    WRITE("Thirdperson distance", thirdpersonDistance);
-    WRITE("Viewmodel FOV", viewmodelFov);
-    WRITE("Custom Position", customPos);
-    WRITE("Viewmodel X", x);
-    WRITE("Viewmodel Y", y);
-    WRITE("Viewmodel Z", z);
-    WRITE("FOV", fov);
-    WRITE("Far Z", farZ);
-    WRITE("Flash reduction", flashReduction);
-    WRITE("Brightness", brightness);
-    WRITE("Skybox", skybox);
-    WRITE("World", world);
-    WRITE("Sky", sky);
-    WRITE("Deagle spinner", deagleSpinner);
-    WRITE("Screen effect", screenEffect);
-    WRITE("Hit effect", hitEffect);
-    WRITE("Hit effect time", hitEffectTime);
-    WRITE("Hit marker", hitMarker);
-    WRITE("Hit marker time", hitMarkerTime);
-    WRITE("Color correction", colorCorrection);
-    WRITE("Bullet Tracers", bulletTracers);
-    WRITE("Molotov Hull", molotovHull);
-    WRITE("Smoke timer", smokeTimer);
-    WRITE("Auto Peek Toggle", autoPeekToggle);
-}
-
 
 
 bool Visuals::isThirdpersonOn() noexcept
@@ -477,33 +355,6 @@ void Visuals::applyZoom(FrameStage stage) noexcept
         }
     }
 }
-
-#ifdef _WIN32
-#undef xor
-#define DRAW_SCREEN_EFFECT(material) \
-{ \
-    const auto drawFunction = memory->drawScreenEffectMaterial; \
-    int w, h; \
-    interfaces->engine->getScreenSize(w, h); \
-    __asm { \
-        __asm push h \
-        __asm push w \
-        __asm push 0 \
-        __asm xor edx, edx \
-        __asm mov ecx, material \
-        __asm call drawFunction \
-        __asm add esp, 12 \
-    } \
-}
-
-#else
-#define DRAW_SCREEN_EFFECT(material) \
-{ \
-    int w, h; \
-    interfaces->engine->getScreenSize(w, h); \
-    reinterpret_cast<void(*)(Material*, int, int, int, int)>(memory->drawScreenEffectMaterial)(material, 0, 0, w, h); \
-}
-#endif
 
 void Visuals::applyScreenEffects() noexcept
 {
@@ -876,6 +727,11 @@ void Visuals::drawAutoPeek(ImDrawList* drawList) noexcept
     drawList->Flags = flags_backup; 
 }
 
+float Visuals::aspectRatio() noexcept
+{
+    return visualsConfig.aspectratio;
+}
+
 void Visuals::updateEventListeners(bool forceRemove) noexcept
 {
     class ImpactEventListener : public GameEventListener {
@@ -901,34 +757,8 @@ void Visuals::updateInput() noexcept
     visualsConfig.zoomKey.handleToggle();
 }
 
-static bool windowOpen = false;
-
-void Visuals::menuBarItem() noexcept
+void Visuals::drawGUI() noexcept
 {
-    if (ImGui::MenuItem("Visuals")) {
-        windowOpen = true;
-        ImGui::SetWindowFocus("Visuals");
-        ImGui::SetWindowPos("Visuals", { 100.0f, 100.0f });
-    }
-}
-
-void Visuals::tabItem() noexcept
-{
-    if (ImGui::BeginTabItem("Visuals")) {
-        drawGUI(true);
-        ImGui::EndTabItem();
-    }
-}
-
-void Visuals::drawGUI(bool contentOnly) noexcept
-{
-    if (!contentOnly) {
-        if (!windowOpen)
-            return;
-        ImGui::SetNextWindowSize({ 680.0f, 0.0f });
-        ImGui::Begin("Visuals", &windowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize
-            | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-    }
     ImGui::Columns(2, nullptr, false);
     ImGui::SetColumnOffset(1, 280.0f);
     ImGui::Checkbox("Disable post-processing", &visualsConfig.disablePostProcessing);
@@ -946,8 +776,45 @@ void Visuals::drawGUI(bool contentOnly) noexcept
     ImGui::Checkbox("No grass", &visualsConfig.noGrass);
     ImGui::Checkbox("No shadows", &visualsConfig.noShadows);
     ImGui::Checkbox("Wireframe smoke", &visualsConfig.wireframeSmoke);
-    if(movement->config.autoPeek)
+    
+    ImGuiCustom::colorPicker("Draw Bullet Tracers", visualsConfig.bulletTracers.asColor4().color.data(), &visualsConfig.bulletTracers.asColor4().color[3], nullptr, nullptr, &visualsConfig.bulletTracers.enabled);
+    ImGuiCustom::colorPicker("Draw Molotov Hull", visualsConfig.molotovHull);
+    if (movement->config.autoPeek)
         ImGuiCustom::colorPicker("Draw Autopeek", visualsConfig.autoPeekToggle);
+
+    ImGui::Checkbox("Smoke Timer", &visualsConfig.smokeTimer.enabled);
+    if (visualsConfig.smokeTimer.enabled) {
+        ImGui::SameLine();
+        if (ImGui::Button("...##smoke_timer"))
+            ImGui::OpenPopup("##popup_smokeTimer");
+
+        if (ImGui::BeginPopup("##popup_smokeTimer"))
+        {
+            ImGuiCustom::colorPicker("Background color", visualsConfig.smokeTimer.backgroundColor);
+            ImGuiCustom::colorPicker("Text color", visualsConfig.smokeTimer.textColor);
+            ImGuiCustom::colorPicker("Timer color", visualsConfig.smokeTimer.timerColor, nullptr, &visualsConfig.smokeTimer.timerThickness);
+            ImGui::EndPopup();
+        }
+    }
+
+    ImGui::Checkbox("Color correction", &visualsConfig.colorCorrection.enabled);
+    if (visualsConfig.colorCorrection.enabled) {
+        ImGui::SameLine();
+        if (bool ccPopup = ImGui::Button("Edit"))
+            ImGui::OpenPopup("##popup");
+
+        if (ImGui::BeginPopup("##popup")) {
+            ImGui::VSliderFloat("##1", { 40.0f, 160.0f }, &visualsConfig.colorCorrection.blue, 0.0f, 1.0f, "Blue\n%.3f"); ImGui::SameLine();
+            ImGui::VSliderFloat("##2", { 40.0f, 160.0f }, &visualsConfig.colorCorrection.red, 0.0f, 1.0f, "Red\n%.3f"); ImGui::SameLine();
+            ImGui::VSliderFloat("##3", { 40.0f, 160.0f }, &visualsConfig.colorCorrection.mono, 0.0f, 1.0f, "Mono\n%.3f"); ImGui::SameLine();
+            ImGui::VSliderFloat("##4", { 40.0f, 160.0f }, &visualsConfig.colorCorrection.saturation, 0.0f, 1.0f, "Sat\n%.3f"); ImGui::SameLine();
+            ImGui::VSliderFloat("##5", { 40.0f, 160.0f }, &visualsConfig.colorCorrection.ghost, 0.0f, 1.0f, "Ghost\n%.3f"); ImGui::SameLine();
+            ImGui::VSliderFloat("##6", { 40.0f, 160.0f }, &visualsConfig.colorCorrection.green, 0.0f, 1.0f, "Green\n%.3f"); ImGui::SameLine();
+            ImGui::VSliderFloat("##7", { 40.0f, 160.0f }, &visualsConfig.colorCorrection.yellow, 0.0f, 1.0f, "Yellow\n%.3f"); ImGui::SameLine();
+            ImGui::EndPopup();
+        }
+    }
+
     ImGui::NextColumn();
     ImGui::Checkbox("Zoom", &visualsConfig.zoom);
     ImGui::SameLine();
@@ -999,41 +866,161 @@ void Visuals::drawGUI(bool contentOnly) noexcept
     ImGui::Combo("Hit effect", &visualsConfig.hitEffect, "None\0Drone cam\0Drone cam with noise\0Underwater\0Healthboost\0Dangerzone\0");
     ImGui::SliderFloat("Hit effect time", &visualsConfig.hitEffectTime, 0.1f, 1.5f, "%.2fs");
     ImGui::Combo("Hit marker", &visualsConfig.hitMarker, "None\0Default (Cross)\0");
-    ImGui::SliderFloat("Hit marker time", &visualsConfig.hitMarkerTime, 0.1f, 1.5f, "%.2fs");
-    ImGuiCustom::colorPicker("Bullet Tracers", visualsConfig.bulletTracers.asColor4().color.data(), &visualsConfig.bulletTracers.asColor4().color[3], nullptr, nullptr, &visualsConfig.bulletTracers.enabled);
-    ImGuiCustom::colorPicker("Molotov Hull", visualsConfig.molotovHull);
-    ImGui::Checkbox("Smoke Timer", &visualsConfig.smokeTimer.enabled);
-    ImGui::SameLine();
-    if (ImGui::Button("...##smoke_timer"))
-        ImGui::OpenPopup("##popup_smokeTimer");
+    ImGui::SliderFloat("Hit marker time", &visualsConfig.hitMarkerTime, 0.1f, 1.5f, "%.2fs"); 
+    ImGui::SliderFloat("Aspect Ratio", &visualsConfig.aspectratio, 0.0f, 5.0f, "%.2f");
 
-    if (ImGui::BeginPopup("##popup_smokeTimer"))
-    {
-        ImGuiCustom::colorPicker("Background color", visualsConfig.smokeTimer.backgroundColor);
-        ImGuiCustom::colorPicker("Text color", visualsConfig.smokeTimer.textColor);
-        ImGuiCustom::colorPicker("Timer color", visualsConfig.smokeTimer.timerColor, nullptr, &visualsConfig.smokeTimer.timerThickness);
-        ImGui::EndPopup();
-    }
-    ImGui::Checkbox("Color correction", &visualsConfig.colorCorrection.enabled);
-    ImGui::SameLine();
-
-    if (bool ccPopup = ImGui::Button("Edit"))
-        ImGui::OpenPopup("##popup");
-
-    if (ImGui::BeginPopup("##popup")) {
-        ImGui::VSliderFloat("##1", { 40.0f, 160.0f }, &visualsConfig.colorCorrection.blue, 0.0f, 1.0f, "Blue\n%.3f"); ImGui::SameLine();
-        ImGui::VSliderFloat("##2", { 40.0f, 160.0f }, &visualsConfig.colorCorrection.red, 0.0f, 1.0f, "Red\n%.3f"); ImGui::SameLine();
-        ImGui::VSliderFloat("##3", { 40.0f, 160.0f }, &visualsConfig.colorCorrection.mono, 0.0f, 1.0f, "Mono\n%.3f"); ImGui::SameLine();
-        ImGui::VSliderFloat("##4", { 40.0f, 160.0f }, &visualsConfig.colorCorrection.saturation, 0.0f, 1.0f, "Sat\n%.3f"); ImGui::SameLine();
-        ImGui::VSliderFloat("##5", { 40.0f, 160.0f }, &visualsConfig.colorCorrection.ghost, 0.0f, 1.0f, "Ghost\n%.3f"); ImGui::SameLine();
-        ImGui::VSliderFloat("##6", { 40.0f, 160.0f }, &visualsConfig.colorCorrection.green, 0.0f, 1.0f, "Green\n%.3f"); ImGui::SameLine();
-        ImGui::VSliderFloat("##7", { 40.0f, 160.0f }, &visualsConfig.colorCorrection.yellow, 0.0f, 1.0f, "Yellow\n%.3f"); ImGui::SameLine();
-        ImGui::EndPopup();
-    }
+    
     ImGui::Columns(1);
+}
 
-    if (!contentOnly)
-        ImGui::End();
+static void from_json(const json& j, VisualsConfig::ColorCorrection& c)
+{
+    read(j, "Enabled", c.enabled);
+    read(j, "Blue", c.blue);
+    read(j, "Red", c.red);
+    read(j, "Mono", c.mono);
+    read(j, "Saturation", c.saturation);
+    read(j, "Ghost", c.ghost);
+    read(j, "Green", c.green);
+    read(j, "Yellow", c.yellow);
+}
+
+static void from_json(const json& j, VisualsConfig::SmokeTimer& s)
+{
+    read(j, "Enabled", s.enabled);
+    read<value_t::object>(j, "Background color", s.backgroundColor);
+    read<value_t::object>(j, "Timer color", s.timerColor);
+    read(j, "Timer thickness", s.timerThickness);
+    read<value_t::object>(j, "Text color", s.textColor);
+}
+
+static void from_json(const json& j, BulletTracers& o)
+{
+    from_json(j, static_cast<ColorToggle&>(o));
+}
+
+static void from_json(const json& j, VisualsConfig& v)
+{
+    read(j, "Disable post-processing", v.disablePostProcessing);
+    read(j, "Inverse ragdoll gravity", v.inverseRagdollGravity);
+    read(j, "No fog", v.noFog);
+    read(j, "No 3d sky", v.no3dSky);
+    read(j, "No aim punch", v.noAimPunch);
+    read(j, "No view punch", v.noViewPunch);
+    read(j, "No hands", v.noHands);
+    read(j, "No sleeves", v.noSleeves);
+    read(j, "No weapons", v.noWeapons);
+    read(j, "No smoke", v.noSmoke);
+    read(j, "No blur", v.noBlur);
+    read(j, "No scope overlay", v.noScopeOverlay);
+    read(j, "No grass", v.noGrass);
+    read(j, "No shadows", v.noShadows);
+    read(j, "Wireframe smoke", v.wireframeSmoke);
+    read(j, "Zoom", v.zoom);
+    read(j, "Zoom key", v.zoomKey);
+    read(j, "Thirdperson", v.thirdperson);
+    read(j, "Thirdperson key", v.thirdpersonKey);
+    read(j, "Thirdperson distance", v.thirdpersonDistance);
+    read(j, "Viewmodel FOV", v.viewmodelFov);
+    read(j, "Custom Position", v.customPos);
+    read(j, "Viewmodel X", v.x);
+    read(j, "Viewmodel Y", v.y);
+    read(j, "Viewmodel Z", v.z);
+    read(j, "FOV", v.fov);
+    read(j, "Far Z", v.farZ);
+    read(j, "Flash reduction", v.flashReduction);
+    read(j, "Brightness", v.brightness);
+    read(j, "Skybox", v.skybox);
+    read<value_t::object>(j, "World", v.world);
+    read<value_t::object>(j, "Sky", v.sky);
+    read(j, "Deagle spinner", v.deagleSpinner);
+    read(j, "Screen effect", v.screenEffect);
+    read(j, "Hit effect", v.hitEffect);
+    read(j, "Hit effect time", v.hitEffectTime);
+    read(j, "Hit marker", v.hitMarker);
+    read(j, "Hit marker time", v.hitMarkerTime);
+    read<value_t::object>(j, "Color correction", v.colorCorrection);
+    read<value_t::object>(j, "Bullet Tracers", v.bulletTracers);
+    read<value_t::object>(j, "Molotov Hull", v.molotovHull);
+    read<value_t::object>(j, "Smoke timer", v.smokeTimer);
+    read<value_t::object>(j, "Auto Peek Toggle", v.autoPeekToggle);
+    read(j, "Aspect Ratio", v.aspectratio);
+}
+
+static void to_json(json& j, const VisualsConfig::ColorCorrection& o, const VisualsConfig::ColorCorrection& dummy)
+{
+    WRITE("Enabled", enabled);
+    WRITE("Blue", blue);
+    WRITE("Red", red);
+    WRITE("Mono", mono);
+    WRITE("Saturation", saturation);
+    WRITE("Ghost", ghost);
+    WRITE("Green", green);
+    WRITE("Yellow", yellow);
+}
+
+static void to_json(json& j, const BulletTracers& o, const BulletTracers& dummy = {})
+{
+    to_json(j, static_cast<const ColorToggle&>(o), dummy);
+}
+
+static void to_json(json& j, const VisualsConfig::SmokeTimer& o, const VisualsConfig::SmokeTimer& dummy)
+{
+    WRITE("Enabled", enabled);
+    WRITE("Background color", backgroundColor);
+    WRITE("Timer color", timerColor);
+    WRITE("Timer thickness", timerThickness);
+    WRITE("Text color", textColor);
+}
+
+static void to_json(json& j, const VisualsConfig& o)
+{
+    const VisualsConfig dummy;
+
+    WRITE("Disable post-processing", disablePostProcessing);
+    WRITE("Inverse ragdoll gravity", inverseRagdollGravity);
+    WRITE("No fog", noFog);
+    WRITE("No 3d sky", no3dSky);
+    WRITE("No aim punch", noAimPunch);
+    WRITE("No view punch", noViewPunch);
+    WRITE("No hands", noHands);
+    WRITE("No sleeves", noSleeves);
+    WRITE("No weapons", noWeapons);
+    WRITE("No smoke", noSmoke);
+    WRITE("No blur", noBlur);
+    WRITE("No scope overlay", noScopeOverlay);
+    WRITE("No grass", noGrass);
+    WRITE("No shadows", noShadows);
+    WRITE("Wireframe smoke", wireframeSmoke);
+    WRITE("Zoom", zoom);
+    WRITE("Zoom key", zoomKey);
+    WRITE("Thirdperson", thirdperson);
+    WRITE("Thirdperson key", thirdpersonKey);
+    WRITE("Thirdperson distance", thirdpersonDistance);
+    WRITE("Viewmodel FOV", viewmodelFov);
+    WRITE("Custom Position", customPos);
+    WRITE("Viewmodel X", x);
+    WRITE("Viewmodel Y", y);
+    WRITE("Viewmodel Z", z);
+    WRITE("FOV", fov);
+    WRITE("Far Z", farZ);
+    WRITE("Flash reduction", flashReduction);
+    WRITE("Brightness", brightness);
+    WRITE("Skybox", skybox);
+    WRITE("World", world);
+    WRITE("Sky", sky);
+    WRITE("Deagle spinner", deagleSpinner);
+    WRITE("Screen effect", screenEffect);
+    WRITE("Hit effect", hitEffect);
+    WRITE("Hit effect time", hitEffectTime);
+    WRITE("Hit marker", hitMarker);
+    WRITE("Hit marker time", hitMarkerTime);
+    WRITE("Color correction", colorCorrection);
+    WRITE("Bullet Tracers", bulletTracers);
+    WRITE("Molotov Hull", molotovHull);
+    WRITE("Smoke timer", smokeTimer);
+    WRITE("Auto Peek Toggle", autoPeekToggle);
+    WRITE("Aspect Ratio", aspectratio);
 }
 
 json Visuals::toJson() noexcept

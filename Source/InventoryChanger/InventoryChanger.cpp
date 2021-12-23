@@ -520,25 +520,6 @@ void InventoryChanger::onRoundMVP(GameEvent& event) noexcept
     }
 }
 
-static bool windowOpen = false;
-
-void InventoryChanger::menuBarItem() noexcept
-{
-    if (ImGui::MenuItem("Inventory Changer")) {
-        windowOpen = true;
-        ImGui::SetWindowFocus("Inventory Changer");
-        ImGui::SetWindowPos("Inventory Changer", { 100.0f, 100.0f });
-    }
-}
-
-void InventoryChanger::tabItem() noexcept
-{
-    if (ImGui::BeginTabItem("Inventory Changer")) {
-        drawGUI(true);
-        ImGui::EndTabItem();
-    }
-}
-
 static ImTextureID getItemIconTexture(const std::string& iconpath) noexcept;
 
 namespace ImGui
@@ -754,18 +735,8 @@ namespace ImGui
     }
 }
 
-void InventoryChanger::drawGUI(bool contentOnly) noexcept
+void InventoryChanger::drawGUI() noexcept
 {
-    if (!contentOnly) {
-        if (!windowOpen)
-            return;
-        ImGui::SetNextWindowSize({ 700.0f, 25.0f });
-        if (!ImGui::Begin("Inventory Changer", &windowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
-            ImGui::End();
-            return;
-        }
-    }
-
     static std::string filter;
 
     static bool isInAddMode = false;
@@ -834,7 +805,7 @@ void InventoryChanger::drawGUI(bool contentOnly) noexcept
             return true;
         };
 
-        if (ImGui::BeginChild("##scrollarea", ImVec2{ 0.0f, contentOnly ? 400.0f : 0.0f })) {
+        if (ImGui::BeginChild("##scrollarea", ImVec2{ 0.0f, 100.0f})) {
             const auto& gameItems = StaticData::gameItems();
             const std::wstring filterWide = Helpers::toUpper(Helpers::toWideString(filter));
             for (std::size_t i = 0; i < gameItems.size(); ++i) {
@@ -858,7 +829,7 @@ void InventoryChanger::drawGUI(bool contentOnly) noexcept
         }
         ImGui::EndChild();
     } else {
-        if (ImGui::BeginChild("##scrollarea2", ImVec2{ 0.0f, contentOnly ? 400.0f : 0.0f })) {
+        if (ImGui::BeginChild("##scrollarea2", ImVec2{ 0.0f, 100.0f})) {
             auto& inventory = Inventory::get();
             for (std::size_t i = inventory.size(); i-- > 0;) {
                 if (inventory[i].isDeleted() || inventory[i].shouldDelete())
@@ -874,9 +845,6 @@ void InventoryChanger::drawGUI(bool contentOnly) noexcept
         }
         ImGui::EndChild();
     }
-
-    if (!contentOnly)
-        ImGui::End();
 }
 
 void InventoryChanger::clearInventory() noexcept

@@ -29,9 +29,7 @@ namespace Backtrack
     void init() noexcept;
 
     // GUI
-    void menuBarItem() noexcept;
-    void tabItem() noexcept;
-    void drawGUI(bool contentOnly) noexcept;
+    void drawGUI() noexcept;
 
     // Config
     json toJson() noexcept;

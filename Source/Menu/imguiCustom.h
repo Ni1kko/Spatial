@@ -20,6 +20,8 @@ namespace ImGuiCustom
     void colorPicker(const char* name, ColorToggleThicknessRounding& colorConfig) noexcept;
     void arrowButtonDisabled(const char* id, ImGuiDir dir) noexcept;
     void AddCircleImageFilled(ImTextureID user_texture_id, const ImVec2& centre, float radius, ImU32 col, int num_segments);
+    void tooltip(const char* text) noexcept;
+    void updateColors(int style = 2) noexcept;
 }
 
 class KeyBind;

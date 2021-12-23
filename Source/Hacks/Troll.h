@@ -20,11 +20,7 @@ namespace Troll
 	void blockbot(UserCmd* cmd) noexcept;
     void doorSpam(UserCmd* cmd) noexcept;
 	void chatSpam(ChatSpamEvents chatSpamEvent) noexcept;
-
-    // GUI
-    void menuBarItem() noexcept;
-    void tabItem() noexcept;
-    void drawGUI(bool contentOnly) noexcept;
+    void drawGUI() noexcept;
     
     // Config
     json toJson() noexcept;

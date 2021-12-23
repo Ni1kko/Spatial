@@ -62,13 +62,6 @@
 
 
 /////////////////////////////////////////////////////////////////
-// Vars
-/////////////////////////////////////////////////////////////////
-
-static bool windowOpen = false;
-
-
-/////////////////////////////////////////////////////////////////
 // Functions
 /////////////////////////////////////////////////////////////////
 void Movement::fixMouseDelta(UserCmd* cmd) noexcept
@@ -363,34 +356,10 @@ void Movement::autoPeek(UserCmd* cmd, Vector currentViewAngles) noexcept
 }
 
 /////////////////////////////////////////////////////////////////
-// GUI Functions
+// GUI Function
 /////////////////////////////////////////////////////////////////
-
-void Movement::menuBarItem() noexcept
+void Movement::drawGUI() noexcept
 {
-    if (ImGui::MenuItem(xorstr_("Troll"))) {
-        windowOpen = true;
-        ImGui::SetWindowFocus(xorstr_("Troll"));
-        ImGui::SetWindowPos(xorstr_("Troll"), { 100.0f, 100.0f });
-    }
-}
-
-void Movement::tabItem() noexcept
-{
-    if (ImGui::BeginTabItem(xorstr_("Troll"))) {
-        drawGUI(true);
-        ImGui::EndTabItem();
-    }
-}
-
-void Movement::drawGUI(bool contentOnly) noexcept
-{
-    if (!contentOnly) {
-        if (!windowOpen) return;
-        ImGui::SetNextWindowSize({ 580.0f, 0.0f });
-        ImGui::Begin(xorstr_("Movement"), &windowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize| ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-    }
-
     //col 1
     ImGui::Checkbox(xorstr_("Fix Mouse Delta"), &config.fixMouseDelta);
     ImGui::Checkbox(xorstr_("Fix Bone Matrix"), &config.fixBoneMatrix);
@@ -433,10 +402,6 @@ void Movement::drawGUI(bool contentOnly) noexcept
         ImGui::hotkey("", config.slowwalkKey);
         ImGui::PopID();
     }
-    
-
-    if (!contentOnly)
-        ImGui::End();
 }
 
 /////////////////////////////////////////////////////////////////

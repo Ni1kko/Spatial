@@ -19,6 +19,11 @@
 
 #if Spatial_SOUND()
 
+
+/////////////////////////////////////////////////////////////////
+// Structs
+/////////////////////////////////////////////////////////////////
+
 static struct SoundConfig {
     int chickenVolume = 100;
 
@@ -34,6 +39,11 @@ static struct SoundConfig {
 
     std::array<Player, 3> players;
 } soundConfig;
+
+
+/////////////////////////////////////////////////////////////////
+// Functions
+/////////////////////////////////////////////////////////////////
 
 void Sound::modulateSound(std::string_view name, int entityIndex, float& volume) noexcept
 {
@@ -110,34 +120,13 @@ void Sound::playKillSound(GameEvent& event) noexcept
         Helpers::excutePlayCommand(soundConfig.customKillSound.c_str());
 }
 
-void Sound::tabItem() noexcept
+
+/////////////////////////////////////////////////////////////////
+// GUI Function
+/////////////////////////////////////////////////////////////////
+
+void Sound::drawGUI() noexcept
 {
-    if (ImGui::BeginTabItem("Sound")) {
-        drawGUI(true);
-        ImGui::EndTabItem();
-    }
-}
-
-static bool soundWindowOpen = false;
-
-void Sound::menuBarItem() noexcept
-{
-    if (ImGui::MenuItem("Sound")) {
-        soundWindowOpen = true;
-        ImGui::SetWindowFocus("Sound");
-        ImGui::SetWindowPos("Sound", { 100.0f, 100.0f });
-    }
-}
-
-void Sound::drawGUI(bool contentOnly) noexcept
-{
-    if (!contentOnly) {
-        if (!soundWindowOpen)
-            return;
-        ImGui::SetNextWindowSize({ 0.0f, 0.0f });
-        ImGui::Begin("Sound", &soundWindowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-    }
-
     ImGui::PushID("Chicken Sound");
     ImGui::SliderInt("Chicken volume", &soundConfig.chickenVolume, 0, 200, "%d%%");
     ImGui::PopID();
@@ -170,14 +159,19 @@ void Sound::drawGUI(bool contentOnly) noexcept
     ImGui::SliderInt("Weapon volume", &soundConfig.players[currentCategory].weaponVolume, 0, 200, "%d%%");
     ImGui::SliderInt("Footstep volume", &soundConfig.players[currentCategory].footstepVolume, 0, 200, "%d%%");
     ImGui::PopID();
-
-    if (!contentOnly)
-        ImGui::End();
 }
 
-void Sound::resetConfig() noexcept
+
+/////////////////////////////////////////////////////////////////
+// Config Functions
+/////////////////////////////////////////////////////////////////
+
+static void from_json(const json& j, SoundConfig::Player& p)
 {
-    soundConfig = {};
+    read(j, "Master volume", p.masterVolume);
+    read(j, "Headshot volume", p.headshotVolume);
+    read(j, "Weapon volume", p.weaponVolume);
+    read(j, "Footstep volume", p.footstepVolume);
 }
 
 static void to_json(json& j, const SoundConfig::Player& o)
@@ -204,14 +198,6 @@ json Sound::toJson() noexcept
     return j;
 }
 
-static void from_json(const json& j, SoundConfig::Player& p)
-{
-    read(j, "Master volume", p.masterVolume);
-    read(j, "Headshot volume", p.headshotVolume);
-    read(j, "Weapon volume", p.weaponVolume);
-    read(j, "Footstep volume", p.footstepVolume);
-}
-
 void Sound::fromJson(const json& j) noexcept
 {
     read(j, "Chicken volume", soundConfig.chickenVolume);
@@ -222,6 +208,12 @@ void Sound::fromJson(const json& j) noexcept
     read<value_t::string>(j, "Custom Kill Sound", soundConfig.customKillSound);
 }
 
+void Sound::resetConfig() noexcept
+{
+    soundConfig = {};
+}
+
+
 #else
 void Sound::modulateSound(std::string_view name, int entityIndex, float& volume) noexcept {}
 void Sound::playHitSound(GameEvent& event) noexcept {}
@@ -230,7 +222,7 @@ void Sound::playKillSound(GameEvent& event) noexcept {}
 // GUI
 void Sound::menuBarItem() noexcept {}
 void Sound::tabItem() noexcept {}
-void Sound::drawGUI(bool contentOnly) noexcept {}
+void Sound::drawGUI() noexcept {}
 
 // Config
 json Sound::toJson() noexcept { return {}; }

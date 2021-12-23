@@ -208,7 +208,7 @@ static bool __STDCALL createMove(LINUX_ARGS(void* thisptr,) float inputSampleTim
     Misc::autoPistol(cmd);
     Misc::autoReload(cmd);
     Misc::updateClanTag();
-    Misc::fakeBan();
+    Misc::fakeMessage();
     Misc::stealNames();
     Misc::revealRanks(cmd);
     Misc::quickReload(cmd);
@@ -486,8 +486,8 @@ static void __STDCALL updateColorCorrectionWeights(LINUX_ARGS(void* thisptr)) no
 
 static float __STDCALL getScreenAspectRatio(LINUX_ARGS(void* thisptr,) int width, int height) noexcept
 {
-    if (Misc::aspectRatio() != 0.0f)
-        return Misc::aspectRatio();
+    if (Visuals::aspectRatio() != 0.0f)
+        return Visuals::aspectRatio();
     return hooks->engine.callOriginal<float, 101>(width, height);
 }
 

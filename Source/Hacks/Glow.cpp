@@ -179,33 +179,8 @@ void Glow::updateInput() noexcept
     glowToggleKey.handleToggle();
 }
 
-static bool glowWindowOpen = false;
-
-void Glow::menuBarItem() noexcept
+void Glow::drawGUI() noexcept
 {
-    if (ImGui::MenuItem("Glow")) {
-        glowWindowOpen = true;
-        ImGui::SetWindowFocus("Glow");
-        ImGui::SetWindowPos("Glow", { 100.0f, 100.0f });
-    }
-}
-
-void Glow::tabItem() noexcept
-{
-    if (ImGui::BeginTabItem("Glow")) {
-        drawGUI(true);
-        ImGui::EndTabItem();
-    }
-}
-
-void Glow::drawGUI(bool contentOnly) noexcept
-{
-    if (!contentOnly) {
-        if (!glowWindowOpen)
-            return;
-        ImGui::SetNextWindowSize({ 450.0f, 0.0f });
-        ImGui::Begin("Glow", &glowWindowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-    }
     ImGui::hotkey("Toggle Key", glowToggleKey, 110.0f);
     ImGui::hotkey("Hold Key", glowHoldKey, 110.0f);
     ImGui::Separator();
@@ -247,8 +222,6 @@ void Glow::drawGUI(bool contentOnly) noexcept
     ImGui::Combo("Style", &currentItem->style, "Default\0Rim3d\0Edge\0Edge Pulse\0");
 
     ImGui::Columns(1);
-    if (!contentOnly)
-        ImGui::End();
 }
 
 static void to_json(json& j, const GlowItem& o, const GlowItem& dummy = {})
@@ -317,7 +290,7 @@ void Glow::updateInput() noexcept {}
 // GUI
 void Glow::menuBarItem() noexcept {}
 void Glow::tabItem() noexcept {}
-void Glow::drawGUI(bool contentOnly) noexcept {}
+void Glow::drawGUI() noexcept {}
 
 // Config
 json Glow::toJson() noexcept { return {}; }

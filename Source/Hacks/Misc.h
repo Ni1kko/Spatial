@@ -17,7 +17,6 @@ namespace Misc
     bool isRadarHackOn() noexcept;
     bool isMenuKeyPressed() noexcept;
     KeyBind menuKeyBind() noexcept;
-    float aspectRatio() noexcept;
     void updateClanTag(bool = false) noexcept;
     void spectatorList() noexcept;
     void noscopeCrosshair(ImDrawList* drawlist) noexcept;
@@ -29,7 +28,7 @@ namespace Misc
     void disablePanoramablur() noexcept;
     void quickReload(UserCmd*) noexcept;
     bool changeName(bool, const char*, float) noexcept;
-    void fakeBan(bool = false) noexcept;
+    void fakeMessage(bool = false) noexcept;
     void nadePredict() noexcept;
     void fixTabletSignal() noexcept;
     void killMessage(GameEvent& event) noexcept;
@@ -54,11 +53,7 @@ namespace Misc
     void forceRelayCluster() noexcept;
     void updateEventListeners(bool forceRemove = false) noexcept;
     void updateInput() noexcept;
-
-    // GUI
-    void menuBarItem() noexcept;
-    void tabItem() noexcept;
-    void drawGUI(bool contentOnly) noexcept;
+    void drawGUI() noexcept;
 
     // Config
     json toJson() noexcept;

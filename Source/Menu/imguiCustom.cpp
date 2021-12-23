@@ -148,6 +148,21 @@ void ImGuiCustom::arrowButtonDisabled(const char* id, ImGuiDir dir) noexcept
     ImGui::PopStyleVar();
 }
 
+
+void ImGuiCustom::tooltip(const char* text) noexcept
+{
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip(text);
+}
+
+void ImGuiCustom::updateColors(int style) noexcept
+{
+    switch (style) {
+        case 0: ImGui::StyleColorsDark(); break;
+        case 1: ImGui::StyleColorsLight(); break;
+        default: ImGui::StyleColorsClassic(); break;
+    }
+}
+
 void ImGui::progressBarFullWidth(float fraction, float height) noexcept
 {
     ImGuiWindow* window = GetCurrentWindow();

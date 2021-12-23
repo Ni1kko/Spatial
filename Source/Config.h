@@ -17,6 +17,7 @@ struct ImFont;
 class Config {
 public:
     Config() noexcept;
+    void drawGUI() noexcept;
     void load(std::size_t, bool incremental) noexcept;
     void load(const char8_t* name, bool incremental) noexcept;
     void save(std::size_t) const noexcept;
@@ -119,6 +120,9 @@ public:
     bool loadScheduledFonts() noexcept;
     const auto& getSystemFonts() const noexcept { return systemFonts; }
     const auto& getFonts() const noexcept { return fonts; }
+
+
+    float timeToNextConfigRefresh = 0.1f;
 private:
     std::vector<std::string> scheduledFonts{ "Default" };
     std::vector<std::string> systemFonts{ "Default" };

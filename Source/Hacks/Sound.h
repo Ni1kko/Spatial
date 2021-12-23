@@ -14,11 +14,7 @@ namespace Sound
     void modulateSound(std::string_view name, int entityIndex, float& volume) noexcept;
     void playHitSound(GameEvent& event) noexcept;
     void playKillSound(GameEvent& event) noexcept;
-
-    // GUI
-    void menuBarItem() noexcept;
-    void tabItem() noexcept;
-    void drawGUI(bool contentOnly) noexcept;
+    void drawGUI() noexcept;
 
     // Config
     json toJson() noexcept;

@@ -35,7 +35,6 @@
 // Vars
 /////////////////////////////////////////////////////////////////
 
-static bool windowOpen = false;
 static bool isDoubleTapping = false; 
 
 /////////////////////////////////////////////////////////////////
@@ -138,36 +137,11 @@ void Tickbase::chokePackets(bool& sendPacket) noexcept
 }
 
 /////////////////////////////////////////////////////////////////
-// GUI Functions
+// GUI Function
 /////////////////////////////////////////////////////////////////
 
-void Tickbase::menuBarItem() noexcept
+void Tickbase::drawGUI() noexcept
 {
-    if (ImGui::MenuItem(xorstr_("Network"))) {
-        windowOpen = true;
-        ImGui::SetWindowFocus(xorstr_("Network"));
-        ImGui::SetWindowPos(xorstr_("Network"), { 100.0f, 100.0f });
-    }
-}
-
-void Tickbase::tabItem() noexcept
-{
-    if (ImGui::BeginTabItem(xorstr_("Network"))) {
-        drawGUI(true);
-        ImGui::EndTabItem();
-    }
-}
-
-void Tickbase::drawGUI(bool contentOnly) noexcept
-{
-    if (!contentOnly) {
-        if (!windowOpen)
-            return;
-        ImGui::SetNextWindowSize({ 580.0f, 0.0f });
-        ImGui::Begin(xorstr_("Network"), &windowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize
-            | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-    }
-
     //col 1
     ImGui::Columns(2, nullptr, false);
     ImGui::SetColumnOffset(1, 300.0f);
@@ -195,9 +169,6 @@ void Tickbase::drawGUI(bool contentOnly) noexcept
     ImGui::InputInt("Choked packets", &netConfig.cp, 1, 5);
     netConfig.cp = std::clamp(netConfig.cp, 0, 64);
     ImGui::Columns(1);
-
-    if (!contentOnly)
-        ImGui::End();
 }
 
 /////////////////////////////////////////////////////////////////

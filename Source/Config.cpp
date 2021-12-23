@@ -13,7 +13,9 @@
 
 #include "nlohmann/json.hpp"
 
-#include "Menu/imgui/imgui.h"
+#include <Menu/imgui/imgui.h>
+#include <Menu/imgui/imgui_stdlib.h>
+#include <Menu/imguiCustom.h>
 
 #include "Config.h"
 #include "Hacks/AntiAim.h"
@@ -93,6 +95,107 @@ Config::Config() noexcept : path{ buildConfigsFolderPath() }
 #endif
 
     std::sort(std::next(systemFonts.begin()), systemFonts.end());
+}
+
+
+void Config::drawGUI() noexcept
+{
+    ImGui::Columns(2, nullptr, false);
+    ImGui::SetColumnOffset(1, 170.0f);
+
+    static bool incrementalLoad = false;
+    ImGui::Checkbox("Incremental Load", &incrementalLoad);
+
+    ImGui::PushItemWidth(160.0f);
+
+    auto& configItems = config->getConfigs();
+    static int currentConfig = -1;
+
+    static std::u8string buffer;
+
+    timeToNextConfigRefresh -= ImGui::GetIO().DeltaTime;
+    if (timeToNextConfigRefresh <= 0.0f) {
+        config->listConfigs();
+        if (const auto it = std::find(configItems.begin(), configItems.end(), buffer); it != configItems.end())
+            currentConfig = std::distance(configItems.begin(), it);
+        timeToNextConfigRefresh = 0.1f;
+    }
+
+    if (static_cast<std::size_t>(currentConfig) >= configItems.size())
+        currentConfig = -1;
+
+    if (ImGui::ListBox("", &currentConfig, [](void* data, int idx, const char** out_text) {
+        auto& vector = *static_cast<std::vector<std::u8string>*>(data);
+        *out_text = (const char*)vector[idx].c_str();
+        return true;
+        }, &configItems, configItems.size(), 5) && currentConfig != -1)
+        buffer = configItems[currentConfig];
+
+        ImGui::PushID(0);
+        if (ImGui::InputTextWithHint("", "config name", &buffer, ImGuiInputTextFlags_EnterReturnsTrue)) {
+            if (currentConfig != -1)
+                config->rename(currentConfig, buffer);
+        }
+        ImGui::PopID();
+        ImGui::NextColumn();
+
+        ImGui::PushItemWidth(100.0f);
+
+        if (ImGui::Button("Open config directory"))
+            config->openConfigDir();
+
+        if (ImGui::Button("Create config", { 100.0f, 25.0f }))
+            config->add(buffer.c_str());
+
+        if (ImGui::Button("Reset config", { 100.0f, 25.0f }))
+            ImGui::OpenPopup("Config to reset");
+
+        if (ImGui::BeginPopup("Config to reset")) {
+            static constexpr const char* names[]{ "Whole", "Aimbot", "Triggerbot", "Backtrack", "Movement", "Anti aim", "Glow", "Chams", "ESP", "Visuals", "Inventory Changer", "Sound", "Style", "Misc", "Troll", "TickFucker" };
+            for (int i = 0; i < IM_ARRAYSIZE(names); i++) {
+                if (i == 1) ImGui::Separator();
+
+                if (ImGui::Selectable(names[i])) {
+                    switch (i) {
+                    case 0: config->reset(); ImGuiCustom::updateColors(config->style.menuColors); Misc::updateClanTag(true); InventoryChanger::scheduleHudUpdate(); break;
+                    case 1: config->aimbot = { }; break;
+                    case 2: config->triggerbot = { }; break;
+                    case 3: Backtrack::resetConfig(); break;
+                    case 4: movement->resetConfig(); break;
+                    case 5: AntiAim::resetConfig(); break;
+                    case 6: Glow::resetConfig(); break;
+                    case 7: config->chams = { }; break;
+                    case 8: config->streamProofESP = { }; break;
+                    case 9: Visuals::resetConfig(); break;
+                    case 10: InventoryChanger::resetConfig(); InventoryChanger::scheduleHudUpdate(); break;
+                    case 11: Sound::resetConfig(); break;
+                    case 12: config->style = { }; ImGuiCustom::updateColors(config->style.menuColors); break;
+                    case 13: Troll::resetConfig(); break;
+                    case 14: Tickbase::resetConfig(); break;
+                    }
+                }
+            }
+            ImGui::EndPopup();
+        }
+        if (currentConfig != -1) {
+            if (ImGui::Button("Load selected", { 100.0f, 25.0f })) {
+                config->load(currentConfig, incrementalLoad);
+                ImGuiCustom::updateColors(config->style.menuColors);
+                InventoryChanger::scheduleHudUpdate();
+                Misc::updateClanTag(true);
+            }
+            if (ImGui::Button("Save selected", { 100.0f, 25.0f }))
+                config->save(currentConfig);
+            if (ImGui::Button("Delete selected", { 100.0f, 25.0f })) {
+                config->remove(currentConfig);
+
+                if (static_cast<std::size_t>(currentConfig) < configItems.size())
+                    buffer = configItems[currentConfig];
+                else
+                    buffer.clear();
+            }
+        }
+        ImGui::Columns(1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////

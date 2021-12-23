@@ -11,21 +11,63 @@
 #include "../Menu/imgui/imgui.h"
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "../Menu/imgui/imgui_internal.h"
-
-#include "../Config.h"
-#include "../GameData.h"
-#include "../Helpers.h"
-#include "../InputUtil.h"
-#include "../SDK/Engine.h"
-#include "../SDK/GlobalVars.h"
-#include "../Memory.h"
-
 #include "../Menu/imguiCustom.h"
 
-static constexpr auto operator-(float sub, const std::array<float, 3>& a) noexcept
-{
-    return Vector{ sub - a[0], sub - a[1], sub - a[2] };
-}
+#include "../SDK/Engine.h"
+#include "../SDK/GlobalVars.h"
+
+#include "../Memory.h"
+#include "../InputUtil.h"
+#include "../Helpers.h"
+#include "../Config.h"
+#include "../GameData.h"
+
+
+
+
+
+/////////////////////////////////////////////////////////////////
+// Operators
+/////////////////////////////////////////////////////////////////
+
+static constexpr auto operator-(float sub, const std::array<float, 3>& a) noexcept { return Vector{ sub - a[0], sub - a[1], sub - a[2] }; }
+
+
+/////////////////////////////////////////////////////////////////
+// Vars
+/////////////////////////////////////////////////////////////////
+
+static ImDrawList* drawList;
+
+
+/////////////////////////////////////////////////////////////////
+// Struct
+/////////////////////////////////////////////////////////////////
+
+struct FontPush {
+    FontPush(const std::string& name, float distance)
+    {
+        if (const auto it = config->getFonts().find(name); it != config->getFonts().end()) {
+            distance *= GameData::local().fov / 90.0f;
+
+            ImGui::PushFont([](const Config::Font& font, float dist) {
+                if (dist <= 400.0f)
+                    return font.big;
+                if (dist <= 1000.0f)
+                    return font.medium;
+                return font.tiny;
+                }(it->second, distance));
+        }
+        else {
+            ImGui::PushFont(nullptr);
+        }
+    }
+
+    ~FontPush()
+    {
+        ImGui::PopFont();
+    }
+};
 
 struct BoundingBox {
 private:
@@ -69,17 +111,13 @@ public:
     }
 };
 
-static ImDrawList* drawList;
 
-static void addLineWithShadow(const ImVec2& p1, const ImVec2& p2, ImU32 col) noexcept
-{
-    drawList->AddLine(p1 + ImVec2{ 1.0f, 1.0f }, p2 + ImVec2{ 1.0f, 1.0f }, col & IM_COL32_A_MASK);
-    drawList->AddLine(p1, p2, col);
-}
+/////////////////////////////////////////////////////////////////
+// ESP Helper Functions
+/////////////////////////////////////////////////////////////////
 
-// convex hull using Graham's scan
 static std::pair<std::array<ImVec2, 8>, std::size_t> convexHull(std::array<ImVec2, 8> points) noexcept
-{
+{// convex hull using Graham's scan
     std::swap(points[0], *std::ranges::min_element(points, [](const auto& a, const auto& b) { return a.y < b.y || (a.y == b.y && a.x < b.x); }));
 
     constexpr auto orientation = [](const ImVec2& a, const ImVec2& b, const ImVec2& c) {
@@ -101,6 +139,12 @@ static std::pair<std::array<ImVec2, 8>, std::size_t> convexHull(std::array<ImVec
     }
 
     return std::make_pair(hull, count);
+}
+
+static void addLineWithShadow(const ImVec2& p1, const ImVec2& p2, ImU32 col) noexcept
+{
+    drawList->AddLine(p1 + ImVec2{ 1.0f, 1.0f }, p2 + ImVec2{ 1.0f, 1.0f }, col & IM_COL32_A_MASK);
+    drawList->AddLine(p1, p2, col);
 }
 
 static void addRectFilled(const ImVec2& p1, const ImVec2& p2, ImU32 col, bool shadow) noexcept
@@ -245,31 +289,6 @@ static void drawSnapline(const Snapline& config, const ImVec2& min, const ImVec2
 
     drawList->AddLine(p1, p2, Helpers::calculateColor(config.asColorToggle().asColor4()), config.thickness);
 }
-
-struct FontPush {
-    FontPush(const std::string& name, float distance)
-    {
-        if (const auto it = config->getFonts().find(name); it != config->getFonts().end()) {
-            distance *= GameData::local().fov / 90.0f;
-
-            ImGui::PushFont([](const Config::Font& font, float dist) {
-                if (dist <= 400.0f)
-                    return font.big;
-                if (dist <= 1000.0f)
-                    return font.medium;
-                return font.tiny;
-            }(it->second, distance));
-        }
-        else {
-            ImGui::PushFont(nullptr);
-        }
-    }
-
-    ~FontPush()
-    {
-        ImGui::PopFont();
-    }
-};
 
 static void drawHealthBar(const HealthBar& config, const ImVec2& pos, float height, int health) noexcept
 {
@@ -509,6 +528,11 @@ static void renderProjectileEsp(const ProjectileData& projectileData, const Proj
     }
 }
 
+
+/////////////////////////////////////////////////////////////////
+// Functions
+/////////////////////////////////////////////////////////////////
+
 void StreamProofESP::render() noexcept
 {
     if (config->streamProofESP.toggleKey.isSet()) {
@@ -552,34 +576,13 @@ void StreamProofESP::updateInput() noexcept
     config->streamProofESP.toggleKey.handleToggle();
 }
 
-static bool windowOpen = false;
 
-void StreamProofESP::menuBarItem() noexcept
+/////////////////////////////////////////////////////////////////
+// GUI Function
+/////////////////////////////////////////////////////////////////
+
+void StreamProofESP::drawGUI() noexcept
 {
-    if (ImGui::MenuItem("ESP")) {
-        windowOpen = true;
-        ImGui::SetWindowFocus("ESP");
-        ImGui::SetWindowPos("ESP", { 100.0f, 100.0f });
-    }
-}
-
-void StreamProofESP::tabItem() noexcept
-{
-    if (ImGui::BeginTabItem("ESP")) {
-        drawGUI(true);
-        ImGui::EndTabItem();
-    }
-}
-
-void StreamProofESP::drawGUI(bool contentOnly) noexcept
-{
-    if (!contentOnly) {
-        if (!windowOpen)
-            return;
-        ImGui::SetNextWindowSize({ 0.0f, 0.0f });
-        ImGui::Begin("ESP", &windowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-    }
-
     ImGui::hotkey("Toggle Key", config->streamProofESP.toggleKey, 110.0f);
     ImGui::hotkey("Hold Key", config->streamProofESP.holdKey, 110.0f);
     ImGui::Separator();
@@ -969,7 +972,4 @@ void StreamProofESP::drawGUI(bool contentOnly) noexcept
     }
 
     ImGui::EndChild();
-
-    if (!contentOnly)
-        ImGui::End();
 }

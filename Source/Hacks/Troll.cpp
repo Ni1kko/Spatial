@@ -64,8 +64,6 @@
 // Vars
 /////////////////////////////////////////////////////////////////
 
-static bool windowOpen = false;
-
 std::vector<std::string> chatSpamList =
 {
     xorstr_("You Got Rekt'd by Affinity!"),
@@ -300,34 +298,11 @@ void Troll::chatSpam(ChatSpamEvents spamEvent) noexcept
 }
 
 /////////////////////////////////////////////////////////////////
-// GUI Functions
+// GUI Function
 /////////////////////////////////////////////////////////////////
 
-void Troll::menuBarItem() noexcept
+void Troll::drawGUI() noexcept
 {
-    if (ImGui::MenuItem(xorstr_("Troll"))) {
-        windowOpen = true;
-        ImGui::SetWindowFocus(xorstr_("Troll"));
-        ImGui::SetWindowPos(xorstr_("Troll"), { 100.0f, 100.0f });
-    }
-}
-
-void Troll::tabItem() noexcept
-{
-    if (ImGui::BeginTabItem(xorstr_("Troll"))) {
-        drawGUI(true);
-        ImGui::EndTabItem();
-    }
-}
-
-void Troll::drawGUI(bool contentOnly) noexcept
-{
-    if (!contentOnly) {
-        if (!windowOpen) return;
-        ImGui::SetNextWindowSize({ 580.0f, 0.0f });
-        ImGui::Begin(xorstr_("Troll"), &windowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize| ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-    }
-
     //col 1
     ImGui::Columns(2, nullptr, false);
     ImGui::SetColumnOffset(1, 325.0f); 
@@ -381,9 +356,6 @@ void Troll::drawGUI(bool contentOnly) noexcept
     }
      
     ImGui::Columns(1);
-
-    if (!contentOnly)
-        ImGui::End();
 }
 
 /////////////////////////////////////////////////////////////////
