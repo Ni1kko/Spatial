@@ -138,17 +138,8 @@ void Sound::drawGUI(bool contentOnly) noexcept
         ImGui::Begin("Sound", &soundWindowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
     }
 
-    ImGui::PushID("Sound");
+    ImGui::PushID("Chicken Sound");
     ImGui::SliderInt("Chicken volume", &soundConfig.chickenVolume, 0, 200, "%d%%");
-
-    static int currentCategory{ 0 };
-    ImGui::PushItemWidth(110.0f);
-    ImGui::Combo("", &currentCategory, "Local player\0Allies\0Enemies\0");
-    ImGui::PopItemWidth();
-    ImGui::SliderInt("Master volume", &soundConfig.players[currentCategory].masterVolume, 0, 200, "%d%%");
-    ImGui::SliderInt("Headshot volume", &soundConfig.players[currentCategory].headshotVolume, 0, 200, "%d%%");
-    ImGui::SliderInt("Weapon volume", &soundConfig.players[currentCategory].weaponVolume, 0, 200, "%d%%");
-    ImGui::SliderInt("Footstep volume", &soundConfig.players[currentCategory].footstepVolume, 0, 200, "%d%%");
     ImGui::PopID();
 
     ImGui::PushID("Hit Sound Section");
@@ -167,6 +158,17 @@ void Sound::drawGUI(bool contentOnly) noexcept
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("audio file must be put in csgo/sound/ directory");
     }
+    ImGui::PopID();
+
+    ImGui::PushID("Players Sound Section");
+    static int currentCategory{ 0 };
+    ImGui::PushItemWidth(110.0f);
+    ImGui::Combo("Players", &currentCategory, "Local player\0Allies\0Enemies\0");
+    ImGui::PopItemWidth();
+    ImGui::SliderInt("Master volume", &soundConfig.players[currentCategory].masterVolume, 0, 200, "%d%%");
+    ImGui::SliderInt("Headshot volume", &soundConfig.players[currentCategory].headshotVolume, 0, 200, "%d%%");
+    ImGui::SliderInt("Weapon volume", &soundConfig.players[currentCategory].weaponVolume, 0, 200, "%d%%");
+    ImGui::SliderInt("Footstep volume", &soundConfig.players[currentCategory].footstepVolume, 0, 200, "%d%%");
     ImGui::PopID();
 
     if (!contentOnly)
