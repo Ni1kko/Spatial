@@ -42,6 +42,9 @@
 #include <Hacks/Chams.h>
 #include <Hacks/Aimbot.h>
 
+const auto menuTitle = "Spatial v1.4 r2";
+std::string menuFooter = "Compile timestamp: [" + std::string{ __TIME__ } + "] " +  __DATE__;
+
 static ImFont* addFontFromVFONT(const std::string& path, float size, const ImWchar* glyphRanges, bool merge) noexcept
 {
     auto file = Helpers::loadBinaryFile(path);
@@ -110,11 +113,13 @@ Menu::Menu() noexcept
         io.Fonts->AddFontDefault(&cfg);
     addFontFromVFONT("csgo/panorama/fonts/notosanskr-regular.vfont", 15.0f, io.Fonts->GetGlyphRangesKorean(), true);
     addFontFromVFONT("csgo/panorama/fonts/notosanssc-regular.vfont", 17.0f, io.Fonts->GetGlyphRangesChineseFull(), true);
+
+    //config->load(u8"default", false);
 }
 
 void Menu::render() noexcept
 {
-    ImGui::Begin(xorstr_("Spatial V1.4"), &open, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar); {
+    ImGui::Begin(menuTitle, &open, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar); {
         if (ImGui::TreeNode(xorstr_("Aim"))) {
             Aimbot::drawGUI();
             ImGui::TreePop();
@@ -176,7 +181,7 @@ void Menu::render() noexcept
             ImGui::TreePop();
         }
         ImGui::Separator();
-        ImGui::TextUnformatted(std::string{ (xorstr_("Compiled Date : ") + std::string { __DATE__ }) }.c_str());
+        ImGui::TextUnformatted(menuFooter.c_str());
     }
     ImGui::End();
 }

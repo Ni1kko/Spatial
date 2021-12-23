@@ -11,6 +11,8 @@
 #include <ShlObj.h>
 #endif
 
+#include <Encryption/xorstr.hpp>
+
 #include "nlohmann/json.hpp"
 
 #include <Menu/imgui/imgui.h>
@@ -75,7 +77,7 @@ int CALLBACK fontCallback(const LOGFONTW* lpelfe, const TEXTMETRICW*, DWORD, LPA
         path = homeDir;
 #endif
 
-    path /= "Spatial";
+    path /= xorstr_("Spatial");
     return path;
 }
 
@@ -99,30 +101,36 @@ Config::Config() noexcept : path{ buildConfigsFolderPath() }
 
 void Config::drawGUI() noexcept
 {
-    ImGui::PushItemWidth(160.0f);
-    if (ImGui::Combo("Menu Theme", &config->style.menuColors, "Dark\0Light\0Classic\0Spatial\0")) {
-        ImGuiCustom::updateColors(config->style.menuColors);
-        ImGui::EndCombo();
-    }
+    ImGui::PushItemWidth(160.0f); 
+    if (ImGui::Combo(xorstr_("Menu Theme"), &style.menuColors, xorstr_("Dark\0Light\0Classic\0Spatial\0Custom\0")))
+        ImGuiCustom::updateColors(style.menuColors); 
     ImGui::PopItemWidth();
+
+    if (style.menuColors == 4) {
+        ImGuiStyle& style = ImGui::GetStyle();
+        for (int i = 0; i < ImGuiCol_COUNT; i++) {
+            if (i && i & 3) ImGui::SameLine(220.0f * (i & 3));
+            ImGuiCustom::colorPicker(ImGui::GetStyleColorName(i), (float*)&style.Colors[i], &style.Colors[i].w);
+        }
+    }
     ImGui::Separator();
 
     ImGui::Columns(2, nullptr, false);
     ImGui::SetColumnOffset(1, 170.0f);
     
     static bool incrementalLoad = false;
-    ImGui::Checkbox("Incremental Load", &incrementalLoad);
+    ImGui::Checkbox(xorstr_("Incremental Load"), &incrementalLoad);
 
     ImGui::PushItemWidth(160.0f);
 
-    auto& configItems = config->getConfigs();
+    auto& configItems = getConfigs();
     static int currentConfig = -1;
 
     static std::u8string buffer;
 
     timeToNextConfigRefresh -= ImGui::GetIO().DeltaTime;
     if (timeToNextConfigRefresh <= 0.0f) {
-        config->listConfigs();
+        listConfigs();
         if (const auto it = std::find(configItems.begin(), configItems.end(), buffer); it != configItems.end())
             currentConfig = std::distance(configItems.begin(), it);
         timeToNextConfigRefresh = 0.1f;
@@ -139,25 +147,25 @@ void Config::drawGUI() noexcept
         buffer = configItems[currentConfig];
 
         ImGui::PushID(0);
-        if (ImGui::InputTextWithHint("", "config name", &buffer, ImGuiInputTextFlags_EnterReturnsTrue)) {
+        if (ImGui::InputTextWithHint("", xorstr_("config name"), &buffer, ImGuiInputTextFlags_EnterReturnsTrue)) {
             if (currentConfig != -1)
-                config->rename(currentConfig, buffer);
+               rename(currentConfig, buffer);
         }
         ImGui::PopID();
         ImGui::NextColumn();
 
         ImGui::PushItemWidth(100.0f);
 
-        if (ImGui::Button("Open config directory"))
-            config->openConfigDir();
+        if (ImGui::Button(xorstr_("Open config directory")))
+            openConfigDir();
 
-        if (ImGui::Button("Create config", { 100.0f, 25.0f }))
-            config->add(buffer.c_str());
+        if (ImGui::Button(xorstr_("Create config"), { 100.0f, 25.0f }))
+            add(buffer.c_str());
 
-        if (ImGui::Button("Reset config", { 100.0f, 25.0f }))
-            ImGui::OpenPopup("Config to reset");
+        if (ImGui::Button(xorstr_("Reset config"), { 100.0f, 25.0f }))
+            ImGui::OpenPopup(xorstr_("Config to reset"));
 
-        if (ImGui::BeginPopup("Config to reset")) {
+        if (ImGui::BeginPopup(xorstr_("Config to reset"))) {
             static constexpr const char* names[]{ "Whole", "Aimbot", "Triggerbot", "Backtrack", "Movement", "Anti aim", "Glow", "Chams", "ESP", "Visuals", "Inventory Changer", "Sound", "Style", "Misc", "Troll", "TickFucker" };
             for (int i = 0; i < IM_ARRAYSIZE(names); i++) {
                 if (i == 1) ImGui::Separator();
@@ -185,16 +193,16 @@ void Config::drawGUI() noexcept
             ImGui::EndPopup();
         }
         if (currentConfig != -1) {
-            if (ImGui::Button("Load selected", { 100.0f, 25.0f })) {
-                config->load(currentConfig, incrementalLoad);
-                ImGuiCustom::updateColors(config->style.menuColors);
+            if (ImGui::Button(xorstr_("Load selected"), { 100.0f, 25.0f })) {
+                load(currentConfig, incrementalLoad);
+                ImGuiCustom::updateColors(style.menuColors);
                 InventoryChanger::scheduleHudUpdate();
                 Misc::updateClanTag(true);
             }
-            if (ImGui::Button("Save selected", { 100.0f, 25.0f }))
-                config->save(currentConfig);
-            if (ImGui::Button("Delete selected", { 100.0f, 25.0f })) {
-                config->remove(currentConfig);
+            if (ImGui::Button(xorstr_("Save selected"), { 100.0f, 25.0f }))
+                save(currentConfig);
+            if (ImGui::Button(xorstr_("Delete selected"), { 100.0f, 25.0f })) {
+                remove(currentConfig);
 
                 if (static_cast<std::size_t>(currentConfig) < configItems.size())
                     buffer = configItems[currentConfig];
@@ -604,8 +612,18 @@ void Config::load(const char8_t* name, bool incremental) noexcept
         if (j.is_discarded())
             return;
     }
-    else {
-        return;
+    else 
+    {
+        if (name == u8"default") {
+            add(name); 
+            if (std::ifstream in{ path / name }; in.good()) {
+                j = json::parse(in, nullptr, false, true);
+                if (j.is_discarded())
+                    return;
+            } else
+                return;
+        } else
+            return;
     }
 
     if (!incremental)
