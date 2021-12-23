@@ -288,7 +288,7 @@ void Helpers::excuteSayCommand(const char* message, bool fromConsoleOrKeybind) n
 
 void Helpers::excutePlayCommand(const char* file, bool fromConsoleOrKeybind) noexcept
 {
-    //build command
+    //build command (audio file must be put in csgo/sound/ directory)
     std::string command = charenc("play ");
     command.append(file);
 
