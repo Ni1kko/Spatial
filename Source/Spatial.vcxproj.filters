@@ -227,9 +227,6 @@
     <ClCompile Include="Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AntiDetection.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Hacks\Tickbase.cpp">
       <Filter>Hacks</Filter>
     </ClCompile>
@@ -271,6 +268,9 @@
     </ClCompile>
     <ClCompile Include="Hooks.cpp">
       <Filter>Hooks</Filter>
+    </ClCompile>
+    <ClCompile Include="AntiDetection.cpp">
+      <Filter>Encryption</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
