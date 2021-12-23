@@ -214,13 +214,22 @@ void ImGuiCustom::StyleSpatial(ImGuiStyle* dst)
     colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
 }
 
+void ImGuiCustom::StyleCustom(ImGuiStyle* dst)
+{
+    ImGuiStyle* style = dst ? dst : &ImGui::GetStyle();
+    ImVec4* colors = style->Colors;
+
+     
+}
+
 void ImGuiCustom::updateColors(int style) noexcept
 {
     switch (style) {
-        case 0: ImGui::StyleColorsDark(); break;
-        case 1: ImGui::StyleColorsLight(); break;
-        case 2: ImGui::StyleColorsClassic(); break; 
-        default: ImGuiCustom::StyleSpatial(); break;
+        /*Dark*/    case 0: ImGui::StyleColorsDark(); break;
+        /*Light*/   case 1: ImGui::StyleColorsLight(); break;
+        /*Classic*/ case 2: ImGui::StyleColorsClassic(); break;
+        /*Spatial*/ case 3: ImGuiCustom::StyleSpatial(); break;
+        /*Custom*/  default: ImGuiCustom::StyleCustom(); break;
     }
 }
 

@@ -23,6 +23,7 @@ namespace ImGuiCustom
     void tooltip(const char* text) noexcept;
     void updateColors(int style = -1) noexcept;
     IMGUI_API void StyleSpatial(ImGuiStyle* dst = NULL);
+    IMGUI_API void StyleCustom(ImGuiStyle* dst = NULL);
 }
 
 class KeyBind;
