@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
+using ServiceStack.OrmLite;
 
 
 namespace SpatialP2CCore
@@ -66,9 +67,32 @@ namespace SpatialP2CCore
             internal static async Task Method(DiscordClient sender, HeartbeatEventArgs events)
             {
                 if (Client.Ready) await sender.UpdateStatus(UserStatus.Idle);
-                
-                await Task.CompletedTask;
+
+                await UpdateGuildList(sender);
             }
+
+            private static async Task UpdateGuildList(DiscordClient client)
+            {
+                foreach (DiscordGuild guild in client.Guilds.Values)
+                {
+                    var db = SQL.Database.Connect();
+                    var guildList = db.Select<SQL.Guilds>(q => q.guild_id == guild.Id);
+
+                    await Task.Delay(1000);
+
+                    if (guildList.Count == 0)
+                    {
+                        db.Insert(new SQL.Guilds
+                        {
+                            name = guild.Name,
+                            guild_id = guild.Id,
+                            created_at = DateTime.Now,
+                            updated_at = DateTime.Now
+                        });
+                    }
+                }
+            }
+
         }
         internal static class ClientJoined
         {
@@ -195,7 +219,7 @@ namespace SpatialP2CCore
                  
             }
         }
-
+        
         /// <summary>
         /// Class Constructor
         /// </summary>
