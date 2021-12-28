@@ -103,7 +103,7 @@ void Config::drawGUI() noexcept
 {
     ImGui::PushItemWidth(160.0f); 
     if (ImGui::Combo(xorstr_("Menu Theme"), &style.menuColors, xorstr_("Dark\0Light\0Classic\0Spatial\0Custom\0")))
-        ImGuiCustom::updateColors(style.menuColors); 
+        ImGuiCustom::updateColors(static_cast<ImGuiStyles>(style.menuColors));
     ImGui::PopItemWidth();
 
     if (style.menuColors == 4) {
@@ -172,7 +172,7 @@ void Config::drawGUI() noexcept
 
                 if (ImGui::Selectable(names[i])) {
                     switch (i) {
-                    case 0: config->reset(); ImGuiCustom::updateColors(config->style.menuColors); Misc::updateClanTag(true); InventoryChanger::scheduleHudUpdate(); break;
+                    case 0: config->reset(); ImGuiCustom::updateColors(static_cast<ImGuiStyles>(config->style.menuColors)); Misc::updateClanTag(true); InventoryChanger::scheduleHudUpdate(); break;
                     case 1: config->aimbot = { }; break;
                     case 2: config->triggerbot = { }; break;
                     case 3: Backtrack::resetConfig(); break;
@@ -184,7 +184,7 @@ void Config::drawGUI() noexcept
                     case 9: Visuals::resetConfig(); break;
                     case 10: InventoryChanger::resetConfig(); InventoryChanger::scheduleHudUpdate(); break;
                     case 11: Sound::resetConfig(); break;
-                    case 12: config->style = { }; ImGuiCustom::updateColors(config->style.menuColors); break;
+                    case 12: config->style = { }; ImGuiCustom::updateColors(static_cast<ImGuiStyles>(config->style.menuColors)); break;
                     case 13: Troll::resetConfig(); break;
                     case 14: Tickbase::resetConfig(); break;
                     }
@@ -195,7 +195,7 @@ void Config::drawGUI() noexcept
         if (currentConfig != -1) {
             if (ImGui::Button(xorstr_("Load selected"), { 100.0f, 25.0f })) {
                 load(currentConfig, incrementalLoad);
-                ImGuiCustom::updateColors(style.menuColors);
+                ImGuiCustom::updateColors(static_cast<ImGuiStyles>(style.menuColors));
                 InventoryChanger::scheduleHudUpdate();
                 Misc::updateClanTag(true);
             }

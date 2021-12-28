@@ -76,7 +76,7 @@ void Menu::handleToggle() noexcept
 
 Menu::Menu() noexcept
 {
-    ImGuiCustom::updateColors(0);
+    ImGuiCustom::updateColors(ImGuiStyles::Spatial);
     ImGuiStyle& style = ImGui::GetStyle();
 
     style.ScrollbarSize = 9.0f;
