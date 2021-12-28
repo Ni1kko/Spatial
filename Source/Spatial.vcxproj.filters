@@ -691,6 +691,12 @@
     <ClInclude Include="Menu\Texture.h">
       <Filter>Menu</Filter>
     </ClInclude>
+    <ClInclude Include="Menu\PNGTexture.h">
+      <Filter>Menu</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources\menu_bg.h">
+      <Filter>Menu\Resources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\default_vs.hlsl">

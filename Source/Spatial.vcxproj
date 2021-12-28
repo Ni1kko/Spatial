@@ -255,6 +255,7 @@
     <ClInclude Include="Menu\Menu.h" />
     <ClInclude Include="Menu\imguiCustom.h" />
     <ClInclude Include="Menu\MenuHUD.h" />
+    <ClInclude Include="Menu\PNGTexture.h" />
     <ClInclude Include="Menu\stb_image.h" />
     <ClInclude Include="Menu\Texture.h" />
     <ClInclude Include="MinHook\buffer.h" />
@@ -271,6 +272,7 @@
     <ClInclude Include="ProtobufReader.h" />
     <ClInclude Include="Resources\avatar_ct.h" />
     <ClInclude Include="Resources\avatar_tt.h" />
+    <ClInclude Include="Resources\menu_bg.h" />
     <ClInclude Include="Resources\Resource.h" />
     <ClInclude Include="SDK\AnimState.h" />
     <ClInclude Include="SDK\Client.h" />
