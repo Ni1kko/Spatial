@@ -11,7 +11,7 @@
 #define STBI_NO_FAILURE_STRINGS
 #define STBI_NO_STDIO
 #define STB_IMAGE_IMPLEMENTATION
-#include "../stb_image.h"
+#include "../Menu/stb_image.h"
 
 #include "../Menu/imgui/imgui.h"
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -20,7 +20,7 @@
 #include "../Interfaces.h"
 #include "InventoryChanger.h"
 #include "../ProtobufReader.h"
-#include "../Texture.h"
+#include "../Menu/Texture.h"
 
 #include "../nlohmann/json.hpp"
 

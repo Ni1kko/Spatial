@@ -10,8 +10,10 @@
 
 #include <Menu/imgui/imgui.h>
 #include <Menu/imgui/imgui_stdlib.h>
+#include <Menu/Texture.h>
 #include <Menu/imguiCustom.h>
 #include <Menu/Menu.h>
+#include <Menu/MenuHUD.h>
 
 #include <SDK/InputSystem.h>
 #include <SDK/GlobalVars.h>
@@ -44,7 +46,6 @@
 #include <Hacks/Triggerbot.h>
 #include <Hacks/Chams.h>
 #include <Hacks/Aimbot.h>
-#include <Menu/MenuHUD.h>
 
 const auto menuTitle = "Spatial v1.4 r2";
 std::string menuFooter = "Compile timestamp: " + std::string{ Helpers::compileTimestamp() };

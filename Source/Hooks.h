@@ -46,6 +46,7 @@ public:
     void install() noexcept;
     void uninstall() noexcept;
     void callOriginalDrawModelExecute(void* ctx, void* state, const ModelRenderInfo& info, matrix3x4* customBoneToWorld) noexcept;
+    HMODULE getModuleHandle() noexcept { return moduleHandle; }
 
     std::add_pointer_t<int __FASTCALL(SoundInfo&)> originalDispatchSound;
 

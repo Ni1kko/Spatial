@@ -9,7 +9,7 @@
 #include "SDK/matrix3x4.h"
 #include "SDK/Vector.h"
 
-#include "Texture.h"
+#include "Menu/Texture.h"
 
 struct LocalPlayerData;
 
