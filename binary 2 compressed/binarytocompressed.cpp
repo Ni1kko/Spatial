@@ -67,11 +67,14 @@ bool binary_to_compressed_c(const char* filename, const char* symbol, bool use_b
     // Output as Base85 encoded
     FILE* out = stdout;
     fprintf(out, "// File: '%s' (%d bytes)\n", filename, (int)data_sz);
-    fprintf(out, "// Exported using binary_to_compressed_c.cpp\n");
-    const char* compressed_str = use_compression ? "compressed_" : "";
-    if (use_base85_encoding)
-    {
-        fprintf(out, "static const char %s_%sdata_base85[%d+1] =\n    \"", symbol, compressed_str, (int)((compressed_sz + 3) / 4) * 5);
+    fprintf(out, "// Exported using binarytocompressed.exe\n");
+    fprintf(out, "#pragma once\n\n");
+    fprintf(out, "#include \"Resource.h\"\n\n");
+    fprintf(out, "namespace Resource\n");
+    fprintf(out, "{\n\t");
+    
+    //if (use_base85_encoding) {
+        fprintf(out, "inline constexpr auto %s = decodeBase85(\n\t\t\"", symbol);
         char prev_c = 0;
         for (int src_i = 0; src_i < compressed_sz; src_i += 4)
         {
@@ -84,12 +87,13 @@ bool binary_to_compressed_c(const char* filename, const char* symbol, bool use_b
                 prev_c = c;
             }
             if ((src_i % 112) == 112 - 4)
-                fprintf(out, "\"\n    \"");
+                fprintf(out, "\"\n\t\t\"");
         }
-        fprintf(out, "\";\n\n");
-    }
+        fprintf(out, "\"\n\t);\n");
+    /*}
     else
     {
+        const char* compressed_str = use_compression ? "compressed_" : "";
         fprintf(out, "static const unsigned int %s_%ssize = %d;\n", symbol, compressed_str, (int)compressed_sz);
         fprintf(out, "static const unsigned int %s_%sdata[%d/4] =\n{", symbol, compressed_str, (int)((compressed_sz + 3) / 4) * 4);
         int column = 0;
@@ -102,7 +106,9 @@ bool binary_to_compressed_c(const char* filename, const char* symbol, bool use_b
                 fprintf(out, "0x%08x, ", d);
         }
         fprintf(out, "\n};\n\n");
-    }
+    }*/
+
+    fprintf(out, "}\n");
 
     // Cleanup
     delete[] data;
