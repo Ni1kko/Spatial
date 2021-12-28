@@ -139,7 +139,6 @@ static void swapWindow(SDL_Window * window) noexcept
         Visuals::hitMarker(nullptr, ImGui::GetBackgroundDrawList());
         Visuals::drawMolotovHull(ImGui::GetBackgroundDrawList());
         Visuals::drawSmokeTimer(ImGui::GetBackgroundDrawList());
-        Misc::watermark(ImGui::GetBackgroundDrawList());
         Visuals::drawAutoPeek(ImGui::GetBackgroundDrawList());
         Aimbot::drawFov(ImGui::GetBackgroundDrawList());
         Aimbot::updateInput();
@@ -150,11 +149,7 @@ static void swapWindow(SDL_Window * window) noexcept
         chams->updateInput();
         Glow::updateInput();
         Troll::chatSpam(ChatSpamEvents::Timed);
-
-        gui->handleToggle();
-
-        if (gui->isOpen())
-            gui->render();
+        gui->render(ImGui::GetBackgroundDrawList(), displaySize);
     }
 
     ImGui::EndFrame();

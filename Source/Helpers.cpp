@@ -89,6 +89,58 @@ unsigned int Helpers::healthColor(float fraction) noexcept
     return calculateColor(static_cast<int>(r * 255.0f), static_cast<int>(g * 255.0f), static_cast<int>(b * 255.0f), 255);
 }
 
+
+void Helpers::shadeVertsHSVColorGradientKeepAlpha(ImDrawList* draw_list, int vert_start_idx, int vert_end_idx, ImVec2 gradient_p0, ImVec2 gradient_p1, ImU32 col0, ImU32 col1) noexcept
+{// ImGui::ShadeVertsLinearColorGradientKeepAlpha() modified to do interpolation in HSV
+    ImVec2 gradient_extent = gradient_p1 - gradient_p0;
+    float gradient_inv_length2 = 1.0f / ImLengthSqr(gradient_extent);
+    ImDrawVert* vert_start = draw_list->VtxBuffer.Data + vert_start_idx;
+    ImDrawVert* vert_end = draw_list->VtxBuffer.Data + vert_end_idx;
+
+    ImVec4 col0HSV = ImGui::ColorConvertU32ToFloat4(col0);
+    ImVec4 col1HSV = ImGui::ColorConvertU32ToFloat4(col1);
+    ImGui::ColorConvertRGBtoHSV(col0HSV.x, col0HSV.y, col0HSV.z, col0HSV.x, col0HSV.y, col0HSV.z);
+    ImGui::ColorConvertRGBtoHSV(col1HSV.x, col1HSV.y, col1HSV.z, col1HSV.x, col1HSV.y, col1HSV.z);
+    ImVec4 colDelta = col1HSV - col0HSV;
+
+    for (ImDrawVert* vert = vert_start; vert < vert_end; vert++)
+    {
+        float d = ImDot(vert->pos - gradient_p0, gradient_extent);
+        float t = ImClamp(d * gradient_inv_length2, 0.0f, 1.0f);
+
+        float h = col0HSV.x + colDelta.x * t;
+        float s = col0HSV.y + colDelta.y * t;
+        float v = col0HSV.z + colDelta.z * t;
+
+        ImVec4 rgb;
+        ImGui::ColorConvertHSVtoRGB(h, s, v, rgb.x, rgb.y, rgb.z);
+        vert->col = (ImGui::ColorConvertFloat4ToU32(rgb) & ~IM_COL32_A_MASK) | (vert->col & IM_COL32_A_MASK);
+    }
+}
+
+
+ImFont* Helpers::addFontFromVFONT(const std::string& path, float size, const ImWchar* glyphRanges, bool merge) noexcept
+{
+    auto file = Helpers::loadBinaryFile(path);
+    if (!Helpers::decodeVFONT(file))
+        return nullptr;
+
+    ImFontConfig cfg;
+    cfg.FontData = file.data();
+    cfg.FontDataSize = file.size();
+    cfg.FontDataOwnedByAtlas = false;
+    cfg.MergeMode = merge;
+    cfg.GlyphRanges = glyphRanges;
+    cfg.SizePixels = size;
+
+    return ImGui::GetIO().Fonts->AddFont(&cfg);
+}
+
+const char* Helpers::compileTimestamp() noexcept
+{
+    return ("[" + std::string{ __TIME__ } + "] " + __DATE__).c_str();
+}
+
 ImWchar* Helpers::getFontGlyphRanges() noexcept
 {
     static ImVector<ImWchar> ranges;

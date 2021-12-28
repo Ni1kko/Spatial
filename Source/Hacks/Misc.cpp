@@ -136,10 +136,6 @@ struct MiscConfig {
     };
 
     SpectatorList spectatorList;
-    struct Watermark {
-        bool enabled = false;
-    };
-    Watermark watermark;
     std::string killMessageString{ "Gotcha!" };
     bool fakeMsgToggled{ false }; int fakeMsgColor{ 6 }; std::string fakeMsgText{ "Cheater has been permanently banned from official CS:GO servers." };
     ColorToggle3 bombTimer{ 1.0f, 0.55f, 0.0f };
@@ -341,107 +337,6 @@ void Misc::recoilCrosshair(ImDrawList* drawList) noexcept
 
     if (ImVec2 pos; Helpers::worldToScreenPixelAligned(localPlayerData.aimPunch, pos))
         drawCrosshair(drawList, pos, Helpers::calculateColor(miscConfig.recoilCrosshair.asColorToggle().asColor4()));
-}
-
-static void shadeVertsHSVColorGradientKeepAlpha(ImDrawList* draw_list, int vert_start_idx, int vert_end_idx, ImVec2 gradient_p0, ImVec2 gradient_p1, ImU32 col0, ImU32 col1)
-{// ImGui::ShadeVertsLinearColorGradientKeepAlpha() modified to do interpolation in HSV
-    ImVec2 gradient_extent = gradient_p1 - gradient_p0;
-    float gradient_inv_length2 = 1.0f / ImLengthSqr(gradient_extent);
-    ImDrawVert* vert_start = draw_list->VtxBuffer.Data + vert_start_idx;
-    ImDrawVert* vert_end = draw_list->VtxBuffer.Data + vert_end_idx;
-
-    ImVec4 col0HSV = ImGui::ColorConvertU32ToFloat4(col0);
-    ImVec4 col1HSV = ImGui::ColorConvertU32ToFloat4(col1);
-    ImGui::ColorConvertRGBtoHSV(col0HSV.x, col0HSV.y, col0HSV.z, col0HSV.x, col0HSV.y, col0HSV.z);
-    ImGui::ColorConvertRGBtoHSV(col1HSV.x, col1HSV.y, col1HSV.z, col1HSV.x, col1HSV.y, col1HSV.z);
-    ImVec4 colDelta = col1HSV - col0HSV;
-
-    for (ImDrawVert* vert = vert_start; vert < vert_end; vert++)
-    {
-        float d = ImDot(vert->pos - gradient_p0, gradient_extent);
-        float t = ImClamp(d * gradient_inv_length2, 0.0f, 1.0f);
-
-        float h = col0HSV.x + colDelta.x * t;
-        float s = col0HSV.y + colDelta.y * t;
-        float v = col0HSV.z + colDelta.z * t;
-
-        ImVec4 rgb;
-        ImGui::ColorConvertHSVtoRGB(h, s, v, rgb.x, rgb.y, rgb.z);
-        vert->col = (ImGui::ColorConvertFloat4ToU32(rgb) & ~IM_COL32_A_MASK) | (vert->col & IM_COL32_A_MASK);
-    }
-}
-
-void Misc::watermark(ImDrawList* drawList) noexcept
-{
-    if (!miscConfig.watermark.enabled)
-        return;
-
-    //NAME
-    const char* name = interfaces->engine->getSteamAPIContext()->steamFriends->getPersonaName();
-
-    //FPS
-    static auto fps = 1.0f;
-    fps = 0.9f * fps + 0.1f * memory->globalVars->absoluteFrameTime;
-
-    //PING
-    const auto ping = GameData::getNetOutgoingLatency();
-
-    //TICKRATE
-    const auto tick = 1.f / memory->globalVars->intervalPerTick;
-
-    //TIME
-    std::time_t t = std::time(nullptr);
-    std::ostringstream time;
-    time << std::put_time(std::localtime(&t), ("%H:%M:%S"));
-
-    std::ostringstream format;
-    format << "Spatial"
-        << " | " << name
-        << " | " << (fps != 0.0f ? static_cast<int>(1 / fps) : 0) << " fps";
-
-    if (interfaces->engine->isClientLocalToActiveServer()) {
-        format << " | local " << tick << " tick";
-    }
-    else if (interfaces->engine->isInGame()) {
-        auto* pInfo = interfaces->engine->getNetworkChannel();
-        if (pInfo) {
-            if ((*memory->gameRules)->isValveDS())
-                format << " | official DS " << pInfo->getAddress();
-            else
-                format << " | online " << pInfo->getAddress();
-
-            format << " | " << ping << " ms " << tick << " tick";
-        }
-    }
-    else if (interfaces->engine->isConnected())
-        format << " | loading";
-
-    format << " | " << time.str().c_str();
-
-    const auto textSize = ImGui::CalcTextSize(format.str().c_str());
-    const auto displaySize = ImGui::GetIO().DisplaySize;
-
-    ImRect window{
-        displaySize.x - textSize.x - 9.f,
-        1.f,
-        displaySize.x - 1.f,
-        textSize.y + 9.f
-    };
-
-    drawList->AddRectFilled(window.Min, window.Max, ImGui::GetColorU32(ImGuiCol_WindowBg), 4);
-    const int vertStartIdx = drawList->VtxBuffer.Size;
-    drawList->AddRect(window.Min, window.Max, ImGui::GetColorU32(ImGuiCol_TitleBgActive), 4);
-    const int vertEndIdx = drawList->VtxBuffer.Size;
-
-    float r, g, b;
-    std::tie(r, g, b) = rainbowColor(3.f);
-    shadeVertsHSVColorGradientKeepAlpha(drawList, vertStartIdx, vertEndIdx, window.GetTL(), window.GetBR(), ImColor(r, g, b, 1.f), ImGui::GetColorU32(ImGuiCol_TitleBgActive));
-
-    ImVec2 textPos{
-        window.GetCenter().x - (textSize.x / 2),
-        window.GetCenter().y - (textSize.y / 2)
-    };
-    drawList->AddText(textPos, ImGui::GetColorU32(ImGuiCol_Text), format.str().c_str());
 }
 
 void Misc::prepareRevolver(UserCmd* cmd) noexcept
@@ -1083,7 +978,7 @@ void Misc::drawOffscreenEnemies(ImDrawList* drawList) noexcept
             const int vertEndIdx = drawList->VtxBuffer.Size;
 
             if (miscConfig.offscreenEnemies.healthBar.type == HealthBar::Gradient)
-                shadeVertsHSVColorGradientKeepAlpha(drawList, vertStartIdx, vertEndIdx, pos - ImVec2{ 0.0f, radius }, pos + ImVec2{ 0.0f, radius }, IM_COL32(0, 255, 0, 255), IM_COL32(255, 0, 0, 255));
+                Helpers::shadeVertsHSVColorGradientKeepAlpha(drawList, vertStartIdx, vertEndIdx, pos - ImVec2{ 0.0f, radius }, pos + ImVec2{ 0.0f, radius }, IM_COL32(0, 255, 0, 255), IM_COL32(255, 0, 0, 255));
         }
     }
 }
@@ -1184,7 +1079,6 @@ void Misc::drawGUI() noexcept
     ImGui::Checkbox("Reveal money", &miscConfig.revealMoney);
     ImGui::Checkbox("Reveal suspect", &miscConfig.revealSuspect);
     ImGui::Checkbox("Reveal votes", &miscConfig.revealVotes);
-    ImGui::Checkbox("Watermark", &miscConfig.watermark.enabled);//TODO: move to visuals
     ImGuiCustom::colorPicker("Bomb timer", miscConfig.bombTimer);//TODO: move to visuals
 
     ImGui::Checkbox("Fix animation LOD", &miscConfig.fixAnimationLOD); //TODO: move to visuals
@@ -1378,11 +1272,7 @@ static void from_json(const json& j, MiscConfig::SpectatorList& sl)
     read<value_t::object>(j, "Pos", sl.pos);
     read<value_t::object>(j, "Size", sl.size);
 }
-
-static void from_json(const json& j, MiscConfig::Watermark& o)
-{
-    read(j, "Enabled", o.enabled);
-}
+ 
 
 static void from_json(const json& j, PreserveKillfeed& o)
 {
@@ -1410,7 +1300,6 @@ static void from_json(const json& j, MiscConfig& m)
     read(j, "Reveal suspect", m.revealSuspect);
     read(j, "Reveal votes", m.revealVotes);
     read<value_t::object>(j, "Spectator list", m.spectatorList);
-    read<value_t::object>(j, "Watermark", m.watermark);
     read<value_t::object>(j, "Offscreen Enemies", m.offscreenEnemies);
     read(j, "Fix animation LOD", m.fixAnimationLOD);
     read(j, "Disable model occlusion", m.disableModelOcclusion);
@@ -1496,11 +1385,6 @@ static void to_json(json& j, const MiscConfig::SpectatorList& o, const MiscConfi
     }
 }
 
-static void to_json(json& j, const MiscConfig::Watermark& o, const MiscConfig::Watermark& dummy = {})
-{
-    WRITE("Enabled", enabled);
-}
-
 static void to_json(json& j, const PreserveKillfeed& o, const PreserveKillfeed& dummy = {})
 {
     WRITE("Enabled", enabled);
@@ -1532,7 +1416,6 @@ static void to_json(json& j, const MiscConfig& o)
     WRITE("Reveal suspect", revealSuspect);
     WRITE("Reveal votes", revealVotes);
     WRITE("Spectator list", spectatorList);
-    WRITE("Watermark", watermark);
     WRITE("Offscreen Enemies", offscreenEnemies);
     WRITE("Fix animation LOD", fixAnimationLOD);
     WRITE("Disable model occlusion", disableModelOcclusion);

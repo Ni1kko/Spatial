@@ -48,6 +48,9 @@ namespace Helpers
     void convertHSVtoRGB(float h, float s, float v, float& outR, float& outG, float& outB) noexcept;
     void healthColor(float fraction, float& outR, float& outG, float& outB) noexcept;
     unsigned int healthColor(float fraction) noexcept;
+    void shadeVertsHSVColorGradientKeepAlpha(ImDrawList* draw_list, int vert_start_idx, int vert_end_idx, ImVec2 gradient_p0, ImVec2 gradient_p1, ImU32 col0, ImU32 col1) noexcept;
+    ImFont* addFontFromVFONT(const std::string& path, float size, const ImWchar* glyphRanges, bool merge) noexcept;
+    const char* compileTimestamp() noexcept;
 
     constexpr auto units2meters(float units) noexcept
     {

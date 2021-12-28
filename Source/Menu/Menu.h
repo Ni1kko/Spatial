@@ -9,13 +9,12 @@ struct ImFont;
 class Menu {
 public:
     Menu() noexcept;
-    void render() noexcept;
-    void handleToggle() noexcept;
-    [[nodiscard]] bool isOpen() const noexcept { return open; }
+    void render(ImDrawList* drawList, ImVec2 displaySize) noexcept;
     bool autoload{ false };
-    
+    [[nodiscard]] bool isOpen() const noexcept { return open; }
 private:
     bool open = true;
+    ImDrawList* drawGUI(ImDrawList* drawList, ImVec2 displaySize) noexcept;
 
     struct {
         ImFont* normal15px = nullptr;
