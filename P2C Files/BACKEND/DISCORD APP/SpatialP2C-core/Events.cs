@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 using ServiceStack.OrmLite;
-
+using System.Data;
 
 namespace SpatialP2CCore
 {
@@ -68,17 +68,14 @@ namespace SpatialP2CCore
             {
                 if (Client.Ready) await sender.UpdateStatus(UserStatus.Idle);
 
-                await UpdateGuildList(sender);
+                await UpdateGuildList(sender, Client.DB.Connect());
             }
 
-            private static async Task UpdateGuildList(DiscordClient client)
+            private static async Task UpdateGuildList(DiscordClient client, IDbConnection db)
             {
                 foreach (DiscordGuild guild in client.Guilds.Values)
-                {
-                    var db = SQL.Database.Connect();
+                { 
                     var guildList = db.Select<SQL.Guilds>(q => q.guild_id == guild.Id);
-
-                    await Task.Delay(1000);
 
                     if (guildList.Count == 0)
                     {
@@ -89,10 +86,56 @@ namespace SpatialP2CCore
                             created_at = DateTime.Now,
                             updated_at = DateTime.Now
                         });
+
+                        await Task.Delay(1000);
                     }
+                    else
+                    {
+                        if (!guild.Name.Equals(guildList[0].name))
+                        {
+                            db.Update(new SQL.Guilds
+                            {
+                                name = guild.Name,
+                                updated_at = DateTime.Now
+                            });
+                        }
+                    }
+                    
+                    await UpdateMemberList(guild, db);
                 }
             }
 
+            private static async Task UpdateMemberList(DiscordGuild guild, IDbConnection db)
+            {
+                foreach (DiscordMember member in guild.Members.Values)
+                {
+                    var memberList = db.Select<SQL.Members>(q => q.userid == member.Id);
+
+                    await Task.Delay(1000);
+
+                    if (memberList.Count == 0)
+                    {
+                        db.Insert(new SQL.Members
+                        {
+                            username = member.Username,
+                            userid = member.Id,
+                            created_at = DateTime.Now,
+                            updated_at = DateTime.Now
+                        });
+                    }
+                    else
+                    {
+                        if (!member.Username.Equals(memberList[0].username))
+                        {
+                            db.Update(new SQL.Guilds
+                            {
+                                name = member.Username,
+                                updated_at = DateTime.Now
+                            });
+                        }
+                    }
+                }  
+            }
         }
         internal static class ClientJoined
         {

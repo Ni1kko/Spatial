@@ -1,27 +1,32 @@
-﻿using System;
-using ServiceStack.OrmLite;
+﻿using ServiceStack.OrmLite;
 using System.Data;
 
 namespace SpatialP2CCore.SQL
 {
-    public class Database
+    internal class Database
     {
-        private protected static string Name = "Spatial";
-        private protected static string Host = "127.0.0.1";
-        private protected static string Port = "3306";
-        private protected static string User = "";
-        private protected static string Pass = "";
+        private protected string Name { get; set; }
+        private protected string User { get; set; }
+        private protected string Pass { get; set; }
+        private protected string Host { get; set; }
+        private protected string Port { get; set; }
+        private protected string Mode { get; set; }
 
-        /// <summary>
-        /// Opens a database connection
-        /// </summary>
-        /// <returns>System.Data.IDbConnection</returns>
-        public static IDbConnection Connect()
+        private protected OrmLiteConnectionFactory Connection { get; set; }
+
+        private protected string ConnectionString() => $"Server={Host};Port={Port};UID={User};Password={Pass};Database={Name};SslMode={Mode}";
+
+        internal Database(string database = "database_name", string user = "root", string pass = "", string host = "127.0.0.1", string port = "3306", string sslmode = "none")
         {
-            var dsn = $"Server={Host};Port={Port};UID={User};Password={Pass};Database={Name};SslMode=none";
-            var factory = new OrmLiteConnectionFactory(dsn, MySqlDialect.Provider);
-
-            return factory.Open();
+            Name = database;
+            User = user;
+            Pass = pass;
+            Host = host;
+            Port = port;
+            Mode = sslmode;
+            Connection = new OrmLiteConnectionFactory(ConnectionString(), MySqlDialect.Provider);
         }
+
+        internal IDbConnection Connect() => Connection.Open();
     }
 }

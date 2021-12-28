@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using SpatialP2CCore.SQL;
 
 namespace SpatialP2CCore
 {
@@ -18,7 +19,8 @@ namespace SpatialP2CCore
         internal const string BotRepo = "https://github.com/Ni1kko/SpatialP2C";
         public static DateTime StartedAt { get; private set; } = DateTime.Now;
         public Client(Info configInfo) => Info = configInfo;
-
+        internal static Database DB;
+         
         public async Task Startup()
         {
             //-- Verify Token is set
@@ -33,6 +35,9 @@ namespace SpatialP2CCore
             //-- Prefix space
             if (Info.PrefixSpace) Info.Prefix += " ";
 
+            //--Setup DB
+            DB = new Database("spatial", pass: "somepassword22");
+            
             //-- 
             SpatialP2C = new DiscordShardedClient(new DiscordConfiguration()
             {
@@ -46,7 +51,7 @@ namespace SpatialP2CCore
 
             var botID = Info.ID.ToString();
             var EventID = int.Parse(botID.Substring(botID.Length - 4));
-            
+
             await SpatialP2C.SubscribeEvents();
             await SpatialP2C.Login();
         }
