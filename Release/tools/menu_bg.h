@@ -1,4 +1,4 @@
-// File: 'D:\GitHub\Repos\Ni1kko\Spatial\Release\tools\icon.png' (9700 bytes)
+// File: 'D:\GitHub\Repos\Ni1kko\Spatial\Release\tools\menu_bg.png' (9700 bytes)
 // Exported using binarytocompressed.exe
 #pragma once
 
@@ -6,7 +6,7 @@
 
 namespace Resource
 {
-	inline constexpr auto icon = decodeBase85(
+	inline constexpr auto menu_bg = decodeBase85(
 		"7])#######-gZ>m'/###)gJ1<FsAB+-####[oDt8x5YY#v@pV-e&g*%H2CnIHo+##&CKt8#$U;UVPK#T`DFW/LgeJG?n'B-T7w['l2d)0C$'w#NvXV2l3HZ%1w6B#%bIS'+`;>d&KK=r"
 		"N<wUV<N3pOT@]`&[hk;$&M>C]$*3E-Wnrx;pP^SA'9mFo__B`HNlw,Ua.$7Ip$>HUL+o%qwaiiXHlb##ss438_^-S[I*###kR%##b#v##@:nA#rfuW.>X7jM%iSxX_$###JY###lLb$#"
 		"[WZg%Q*DAq<KqejX;%%/)hLv=7WQ.aC;_pM>[asK0<g;`Cg0*iZZ*x1lK44ZlwZokdq,--4]<I%WV65;%SJ/im(Uk`edY#?`u2gQ+-[]dX#KK59^5&KcgdRJW0_;s#O@nK^aWxk[p*+q"
