@@ -14,6 +14,7 @@
 #include <Menu/imguiCustom.h>
 #include <Menu/Menu.h>
 #include <Menu/MenuHUD.h>
+#include <Menu/PNGTexture.h>
 
 #include <SDK/InputSystem.h>
 #include <SDK/GlobalVars.h>
@@ -102,7 +103,11 @@ void Menu::render(ImDrawList* drawList, ImVec2 displaySize) noexcept
 
 ImDrawList* Menu::drawGUI(ImDrawList* drawList, ImVec2 displaySize) noexcept
 {
-    if (!open) return drawList;
+    if (!open) 
+        return drawList;
+    
+    drawList->AddImage(menuBG.getTexture(), { 0, 0 }, { ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.x / 960 * 174 }, { 0, 0 }, { 1, 0.99f }, 0x00FFFFFF | (static_cast<unsigned>(0.9f + 255 * 0.1f) << IM_COL32_A_SHIFT));
+
     ImGui::Begin(menuTitle, &open, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar); {
         if (ImGui::TreeNode(xorstr_("Aim"))) {
             Aimbot::drawGUI();
