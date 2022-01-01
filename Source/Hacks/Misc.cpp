@@ -1391,7 +1391,6 @@ static void from_json(const json& j, MiscConfig::SpectatorList& sl)
     read<value_t::object>(j, "Size", sl.size);
 }
  
-
 static void from_json(const json& j, PreserveKillfeed& o)
 {
     read(j, "Enabled", o.enabled);
