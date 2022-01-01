@@ -40,6 +40,10 @@ enum ColorByte
 
 namespace Helpers
 {
+    const auto dllname = "Spatial";
+    const auto version = 1.5;
+    const auto release = 1;
+    const auto discordcode = "GyzJf5eNPe";
     unsigned int calculateColor(Color4 color) noexcept;
     unsigned int calculateColor(Color3 color) noexcept;
     unsigned int calculateColor(int r, int g, int b, int a) noexcept;
@@ -55,6 +59,9 @@ namespace Helpers
     void writeDebugConsole(const char* message, std::array<std::uint8_t, 4> color, bool newline = true) noexcept;
     void writeInGameChat(const char* message, int filter = 0) noexcept;
     void writeInGameChat(const char* message, ColorByte colorByte, int filter = 0) noexcept;
+    std::string getDllNameVersion() noexcept;
+    void showWelcomeMessage() noexcept;
+    void showDiscordUrl(ColorByte colorByte = ColorByte::Green) noexcept;
 
     constexpr auto units2meters(float units) noexcept
     {

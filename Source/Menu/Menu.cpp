@@ -48,7 +48,7 @@
 #include <Hacks/Chams.h>
 #include <Hacks/Aimbot.h>
 
-const auto menuTitle = "Spatial v1.5";
+const auto menuTitle = Helpers::getDllNameVersion();
 const auto menuFooter = "Compile timestamp: " + std::string{ Helpers::compileTimestamp() };
 
 Menu::Menu() noexcept
@@ -86,10 +86,7 @@ Menu::Menu() noexcept
     //config->load(u8"default", false);
     
     //--- Console welcome
-    Helpers::writeDebugConsole(menuTitle, { 0, 120, 255, 255 });
-    Helpers::writeDebugConsole(("Welcome " + std::string{ interfaces->engine->getSteamAPIContext()->steamFriends->getPersonaName() }).c_str(), { 0, 200, 0, 255 });
-    Helpers::writeDebugConsole("Join Spatial P2C Discord: ", { 201, 120, 40, 255 }, false);
-    Helpers::writeDebugConsole("https://discord.gg/GyzJf5eNPe", true);
+    Helpers::showWelcomeMessage();
 }
 
 void Menu::render(ImDrawList* drawList, ImVec2 displaySize) noexcept
@@ -101,6 +98,9 @@ void Menu::render(ImDrawList* drawList, ImVec2 displaySize) noexcept
             interfaces->inputSystem->resetInputState();
 
         Helpers::writeInGameChat(open ? xorstr_("Menu Open") : xorstr_("Menu Closed"), open ? ColorByte::Green : ColorByte::Red);
+
+        //TODO: Move out this scope and have it on timer
+        Helpers::showDiscordUrl(ColorByte::Purple);
     }
     
     //Spatial HUD
@@ -117,7 +117,7 @@ ImDrawList* Menu::drawGUI(ImDrawList* drawList, ImVec2 displaySize) noexcept
     
     //drawList->AddImage(menuBG.getTexture(), { 0, 0 }, { ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.x / 960 * 174 }, { 0, 0 }, { 1, 0.99f }, 0x00FFFFFF | (static_cast<unsigned>(0.9f + 255 * 0.1f) << IM_COL32_A_SHIFT));
 
-    ImGui::Begin(menuTitle, &open, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar); {
+    ImGui::Begin(menuTitle.c_str(), &open, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar); {
         if (ImGui::TreeNode(xorstr_("Aim"))) {
             Aimbot::drawGUI();
             ImGui::TreePop();

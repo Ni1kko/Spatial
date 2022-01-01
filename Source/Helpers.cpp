@@ -8,6 +8,8 @@
 #include <span>
 #include <string_view>
 #include <unordered_map>
+#include <sstream> 
+#include <iomanip>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -29,6 +31,8 @@
 #include "SDK/GlobalVars.h"
 #include "SDK/Engine.h"
 #include "SDK/ClientMode.h"
+#include "SDK/Steam.h"
+#include <SDK/LocalPlayer.h>
 
 static auto rainbowColor(float time, float speed, float alpha) noexcept
 {
@@ -391,6 +395,56 @@ void Helpers::writeInGameChat(const char* message, ColorByte colorByte, int filt
         text.append(Helpers::getColorByte(colorByte));
         text.append(message);
     }
-
+    
     Helpers::writeInGameChat(text.c_str());
+}
+
+static std::string double2string(double value) noexcept
+{ 
+    std::ostringstream oss; 
+    oss << std::setprecision(8) << std::noshowpoint << value;
+    return oss.str();
+}
+
+std::string Helpers::getDllNameVersion() noexcept
+{
+    std::string text{std::string { dllname } + " " };
+    text.append(std::string{ "v" }.append(::double2string(version)));
+
+    if (release > 0)
+        text.append(std::string{ "r" }.append(std::to_string(release)));
+
+    return text;
+}
+
+static std::string discordURL(std::string discordcode) noexcept
+{ 
+    return std::string{ "https://discord.gg/" }.append(discordcode);
+}
+
+void Helpers::showWelcomeMessage() noexcept
+{
+    std::string str1{ Helpers::getDllNameVersion() };
+    str1.append(" P2C");
+    Helpers::writeDebugConsole(str1.c_str(), { 0, 120, 255, 255 });
+
+    std::string str2{ "Welcome " };
+    str2.append(interfaces->engine->getSteamAPIContext()->steamFriends->getPersonaName());
+    Helpers::writeDebugConsole(str2.c_str(), { 0, 200, 0, 255 });
+   
+    std::string str3{ "Join " };
+    str3.append(dllname);
+    str3.append(" P2C Discord: ");
+    Helpers::writeDebugConsole(str3.c_str(), { 201, 120, 40, 255 }, false);
+    Helpers::writeDebugConsole(::discordURL(discordcode).c_str(), true);
+}
+
+void Helpers::showDiscordUrl(ColorByte colorByte) noexcept
+{
+    std::string str3{ "Join " };
+    str3.append(dllname);
+    str3.append(" P2C Discord: ");
+    str3.append(Helpers::getColorByte(ColorByte::White)); 
+    str3.append(::discordURL(Helpers::discordcode));
+    Helpers::writeInGameChat(str3.c_str(), colorByte);
 }
