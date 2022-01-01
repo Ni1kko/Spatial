@@ -62,6 +62,7 @@ namespace Helpers
     std::string getDllNameVersion() noexcept;
     void showWelcomeMessage() noexcept;
     void showDiscordUrl(ColorByte colorByte = ColorByte::Green) noexcept;
+    void rainbowMenuBorder() noexcept;
 
     constexpr auto units2meters(float units) noexcept
     {

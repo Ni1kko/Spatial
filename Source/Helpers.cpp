@@ -438,3 +438,10 @@ void Helpers::showDiscordUrl(ColorByte colorByte) noexcept
     str3.append(::discordURL(Helpers::discordcode));
     Helpers::writeInGameChat(str3.c_str(), colorByte);
 }
+
+void Helpers::rainbowMenuBorder() noexcept
+{
+    ImGuiStyle& style = ImGui::GetStyle();
+    ImVec4* colors = style.Colors;
+    colors[ImGuiCol_Border] = rainbowColor(memory->globalVars->realtime, 1.7f, 1.0f);
+}
