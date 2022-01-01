@@ -351,7 +351,7 @@ long Helpers::getCurrentTime() noexcept
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();  
 }
 
-void Helpers::writeDebugConsole(const char* message, bool newline, bool colormsg, std::array<std::uint8_t, 4> color) noexcept
+void Helpers::writeDebugConsole(const char* message, bool newline) noexcept
 {
     //build
     std::string text = message;
@@ -359,27 +359,38 @@ void Helpers::writeDebugConsole(const char* message, bool newline, bool colormsg
         text.append("\n");
      
     //excute
-    if (colormsg)
-        memory->conColorMsg(color, text.c_str());
-    else
-        memory->debugMsg(text.c_str());
+    memory->debugMsg(text.c_str());
 }
 
-void Helpers::writeInGameChat(const char* message, int filter, ColorByte colorByte) noexcept
+void Helpers::writeDebugConsole(const char* message, std::array<std::uint8_t, 4> color, bool newline) noexcept
 {
+    //build
+    std::string text = message;
+    if (newline)
+        text.append("\n");
+
+    //excute
+    memory->conColorMsg(color, text.c_str());
+}
+
+void Helpers::writeInGameChat(const char* message, int filter) noexcept
+{
+    if (interfaces->engine->isInGame())
+        memory->clientMode->getHudChat()->printf(filter, message);
+    else
+        Helpers::writeDebugConsole(message, true);
+}
+
+void Helpers::writeInGameChat(const char* message, ColorByte colorByte, int filter) noexcept
+{
+    std::string text;
+
     if (interfaces->engine->isInGame()) {
-        //build
-        std::string text = Helpers::getColorByte(ColorByte::GreyPurpleForSpectaor);
+        text = Helpers::getColorByte(ColorByte::GreyPurpleForSpectaor);
         text.append(" ");
         text.append(Helpers::getColorByte(colorByte));
         text.append(message);
+    }
 
-        //excute
-        memory->clientMode->getHudChat()->printf(filter, text.c_str());
-    }
-    else
-    {
-        //not in game so log it
-        Helpers::writeDebugConsole(message);
-    }
+    Helpers::writeInGameChat(text.c_str());
 }

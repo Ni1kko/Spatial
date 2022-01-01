@@ -53,7 +53,8 @@ const auto menuFooter = "Compile timestamp: " + std::string{ Helpers::compileTim
 
 Menu::Menu() noexcept
 {
-    ImGuiCustom::updateColors(ImGuiStyles::Spatial);
+    ImGuiCustom::updateColors(static_cast<ImGuiStyles>(config->style.menuColors));
+
     ImGuiStyle& style = ImGui::GetStyle();
     ImGuiIO& io = ImGui::GetIO();
     ImFontConfig cfg;
@@ -85,10 +86,10 @@ Menu::Menu() noexcept
     //config->load(u8"default", false);
     
     //--- Console welcome
-    Helpers::writeDebugConsole(menuTitle, true, true, { 0, 120, 255, 255 });
-    Helpers::writeDebugConsole(("Welcome " + std::string{ interfaces->engine->getSteamAPIContext()->steamFriends->getPersonaName() }).c_str(), true, true, { 0, 200, 0, 255 });
-    Helpers::writeDebugConsole("Join Spatial P2C Discord: ", false, true, { 201, 120, 40, 255 });
-    Helpers::writeDebugConsole("https://discord.gg/GyzJf5eNPe");
+    Helpers::writeDebugConsole(menuTitle, { 0, 120, 255, 255 });
+    Helpers::writeDebugConsole(("Welcome " + std::string{ interfaces->engine->getSteamAPIContext()->steamFriends->getPersonaName() }).c_str(), { 0, 200, 0, 255 });
+    Helpers::writeDebugConsole("Join Spatial P2C Discord: ", { 201, 120, 40, 255 }, false);
+    Helpers::writeDebugConsole("https://discord.gg/GyzJf5eNPe", true);
 }
 
 void Menu::render(ImDrawList* drawList, ImVec2 displaySize) noexcept
@@ -99,7 +100,7 @@ void Menu::render(ImDrawList* drawList, ImVec2 displaySize) noexcept
         if (!open)
             interfaces->inputSystem->resetInputState();
 
-        Helpers::writeInGameChat(open ? xorstr_("Menu Open") : xorstr_("Menu Closed"), 0, open ? ColorByte::Green : ColorByte::Red);
+        Helpers::writeInGameChat(open ? xorstr_("Menu Open") : xorstr_("Menu Closed"), open ? ColorByte::Green : ColorByte::Red);
     }
     
     //Spatial HUD

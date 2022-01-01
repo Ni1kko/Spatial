@@ -9,6 +9,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include <Menu/imguiCustom.h>
+
 #include "ConfigStructs.h"
 #include "InputUtil.h"
 
@@ -113,7 +115,7 @@ public:
     };
    
     struct Style { 
-        int menuColors{ 0 };
+        int menuColors{ ImGuiStyles::Spatial };
     } style;
 
     void scheduleFontLoad(const std::string& name) noexcept;

@@ -872,7 +872,7 @@ void Misc::voteRevealer(GameEvent& event) noexcept
     message.append(Helpers::getColorByte(ColorByte::White));
     message.append("]");
 
-    Helpers::writeInGameChat(message.c_str(), 0, isLocal ? ColorByte::LightGrey : ColorByte::Purple);
+    Helpers::writeInGameChat(message.c_str(), isLocal ? ColorByte::LightGrey : ColorByte::Purple);
 
 }
 
@@ -913,19 +913,19 @@ void Misc::onVoteStart(const void* data, int size) noexcept
     message.append(Helpers::getColorByte(ColorByte::White));
     message.append("]");
 
-    Helpers::writeInGameChat(message.c_str(), 0, isLocal ? ColorByte::LightGrey : ColorByte::Purple);
+    Helpers::writeInGameChat(message.c_str(), isLocal ? ColorByte::LightGrey : ColorByte::Purple);
 }
 
 void Misc::onVotePass() noexcept
 {
     if (miscConfig.revealVotes)
-        Helpers::writeInGameChat(std::string{ xorstr_("Vote") }.append(Helpers::getColorByte(ColorByte::LightGreen)).append(xorstr_(" PASSED")).c_str(), 0, ColorByte::Green);
+        Helpers::writeInGameChat(std::string{ xorstr_("Vote") }.append(Helpers::getColorByte(ColorByte::LightGreen)).append(xorstr_(" PASSED")).c_str(), ColorByte::Green);
 }
 
 void Misc::onVoteFailed() noexcept
 {
     if (miscConfig.revealVotes)
-        Helpers::writeInGameChat(std::string{ xorstr_("Vote") }.append(Helpers::getColorByte(ColorByte::LightRed)).append(xorstr_(" FAILED")).c_str(), 0, ColorByte::Red);
+        Helpers::writeInGameChat(std::string{ xorstr_("Vote") }.append(Helpers::getColorByte(ColorByte::LightRed)).append(xorstr_(" FAILED")).c_str(), ColorByte::Red);
 }
 
 void Misc::drawOffscreenEnemies(ImDrawList* drawList) noexcept

@@ -51,8 +51,10 @@ namespace Helpers
     void shadeVertsHSVColorGradientKeepAlpha(ImDrawList* draw_list, int vert_start_idx, int vert_end_idx, ImVec2 gradient_p0, ImVec2 gradient_p1, ImU32 col0, ImU32 col1) noexcept;
     ImFont* addFontFromVFONT(const std::string& path, float size, const ImWchar* glyphRanges, bool merge) noexcept;
     const char* compileTimestamp() noexcept;
-    void writeDebugConsole(const char* message, bool newline = true, bool colormsg = false, std::array<std::uint8_t, 4> color = { 0, 255, 0, 255 }) noexcept;
-    void writeInGameChat(const char* message, int filter = 0, ColorByte colorByte = ColorByte::GreyPurpleForSpectaor) noexcept;
+    void writeDebugConsole(const char* message, bool newline) noexcept;
+    void writeDebugConsole(const char* message, std::array<std::uint8_t, 4> color, bool newline = true) noexcept;
+    void writeInGameChat(const char* message, int filter = 0) noexcept;
+    void writeInGameChat(const char* message, ColorByte colorByte, int filter = 0) noexcept;
 
     constexpr auto units2meters(float units) noexcept
     {
