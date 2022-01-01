@@ -439,9 +439,9 @@ void Helpers::showDiscordUrl(ColorByte colorByte) noexcept
     Helpers::writeInGameChat(str3.c_str(), colorByte);
 }
 
-void Helpers::rainbowMenuBorder() noexcept
+void Helpers::rainbowMenuBorder(float speed) noexcept
 {
     ImGuiStyle& style = ImGui::GetStyle();
     ImVec4* colors = style.Colors;
-    colors[ImGuiCol_Border] = rainbowColor(memory->globalVars->realtime, 1.7f, 1.0f);
+    colors[ImGuiCol_Border] = rainbowColor(memory->globalVars->realtime, speed, 1.0f);
 }
