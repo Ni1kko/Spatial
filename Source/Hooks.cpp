@@ -71,6 +71,16 @@
 #include "SDK/UserMessages.h"
 #include <Hacks/Movement.h>
 
+/*
+    Helpful keybinds (VS 2019)
+    CTRL + M + O will collapse all
+    CTRL + M + L will expand all
+
+    Helpful keybinds (VS Code)
+    CTRL + K + 0 will collapse all
+    CTRL + K + J will expand all
+*/
+
 #ifdef _WIN32
 
 LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
