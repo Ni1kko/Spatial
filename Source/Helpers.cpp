@@ -90,7 +90,6 @@ unsigned int Helpers::healthColor(float fraction) noexcept
     return calculateColor(static_cast<int>(r * 255.0f), static_cast<int>(g * 255.0f), static_cast<int>(b * 255.0f), 255);
 }
 
-
 void Helpers::shadeVertsHSVColorGradientKeepAlpha(ImDrawList* draw_list, int vert_start_idx, int vert_end_idx, ImVec2 gradient_p0, ImVec2 gradient_p1, ImU32 col0, ImU32 col1) noexcept
 {// ImGui::ShadeVertsLinearColorGradientKeepAlpha() modified to do interpolation in HSV
     ImVec2 gradient_extent = gradient_p1 - gradient_p0;
@@ -118,7 +117,6 @@ void Helpers::shadeVertsHSVColorGradientKeepAlpha(ImDrawList* draw_list, int ver
         vert->col = (ImGui::ColorConvertFloat4ToU32(rgb) & ~IM_COL32_A_MASK) | (vert->col & IM_COL32_A_MASK);
     }
 }
-
 
 ImFont* Helpers::addFontFromVFONT(const std::string& path, float size, const ImWchar* glyphRanges, bool merge) noexcept
 {
@@ -304,7 +302,6 @@ Vector Helpers::calculateRelativeAngle(const Vector& source, const Vector& desti
     Vector angles{ Helpers::rad2deg(atan2f(-delta.z, std::hypotf(delta.x, delta.y))), Helpers::rad2deg(atan2f(delta.y, delta.x)), 0.f };
     return angles.normalize();;
 }
-
 
 const char* Helpers::getColorByte(ColorByte colorByte)  noexcept
 {
