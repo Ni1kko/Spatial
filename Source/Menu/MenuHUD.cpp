@@ -128,7 +128,7 @@ ImDrawList* MenuHUD::drawHUDElement_RightTop(ImDrawList* drawList, ImVec2 displa
     const int vertEndIdx = drawList->VtxBuffer.Size;
 
     float r, g, b;
-    std::tie(r, g, b) = rainbowColor(3.f);
+    std::tie(r, g, b) = rainbowColor(2.f);
     Helpers::shadeVertsHSVColorGradientKeepAlpha(drawList, vertStartIdx, vertEndIdx, window.GetTL(), window.GetBR(), ImColor(r, g, b, 1.f), ImGui::GetColorU32(ImGuiCol_TitleBgActive));
 
     ImVec2 textPos{
