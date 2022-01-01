@@ -115,8 +115,10 @@ ImDrawList* Menu::drawGUI(ImDrawList* drawList, ImVec2 displaySize) noexcept
     if (!open) 
         return drawList;
     
+    //Menu BG
     //drawList->AddImage(menuBG.getTexture(), { 0, 0 }, { ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.x / 960 * 174 }, { 0, 0 }, { 1, 0.99f }, 0x00FFFFFF | (static_cast<unsigned>(0.9f + 255 * 0.1f) << IM_COL32_A_SHIFT));
 
+    //Menu
     ImGui::Begin(menuTitle.c_str(), &open, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar); {
         if (ImGui::TreeNode(xorstr_("Aim"))) {
             Aimbot::drawGUI();
@@ -182,5 +184,6 @@ ImDrawList* Menu::drawGUI(ImDrawList* drawList, ImVec2 displaySize) noexcept
         ImGui::TextUnformatted(menuFooter.c_str());
     }
     ImGui::End();
+
     return drawList;
 }

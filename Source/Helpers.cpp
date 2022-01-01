@@ -10,29 +10,25 @@
 #include <unordered_map>
 #include <sstream> 
 #include <iomanip>
-
-#ifdef _WIN32
 #include <Windows.h>
-#else
-#include <SDL2/SDL_messagebox.h>
-#endif
 
 #include <Encryption/xorstr.hpp>
-#include <Encryption/cx_strenc.h>
 
 #include "Menu/imgui/imgui.h"
 
-#include "../Interfaces.h"
-
-#include "ConfigStructs.h"
-#include "GameData.h"
-#include "Helpers.h"
-#include "Memory.h"
 #include "SDK/GlobalVars.h"
 #include "SDK/Engine.h"
 #include "SDK/ClientMode.h"
 #include "SDK/Steam.h"
 #include <SDK/LocalPlayer.h>
+
+#include "ConfigStructs.h"
+#include "GameData.h"
+#include "Helpers.h"
+#include "Memory.h"
+#include "Interfaces.h"
+
+static float alphaFactor = 1.0f;
 
 static auto rainbowColor(float time, float speed, float alpha) noexcept
 {
@@ -43,7 +39,50 @@ static auto rainbowColor(float time, float speed, float alpha) noexcept
                        alpha };
 }
 
-static float alphaFactor = 1.0f;
+static void toUpper(std::span<wchar_t> str) noexcept
+{
+    static std::unordered_map<wchar_t, wchar_t> upperCache;
+
+    for (auto& c : str) {
+        if (c >= 'a' && c <= 'z') {
+            c -= ('a' - 'A');
+        }
+        else if (c > 127) {
+            if (const auto it = upperCache.find(c); it != upperCache.end()) {
+                c = it->second;
+            }
+            else {
+                const auto upper = std::towupper(c);
+                upperCache.emplace(c, upper);
+                c = upper;
+            }
+        }
+    }
+}
+
+static bool transformWorldPositionToScreenPosition(const Matrix4x4& matrix, const Vector& worldPosition, ImVec2& screenPosition) noexcept
+{
+    const auto w = matrix._41 * worldPosition.x + matrix._42 * worldPosition.y + matrix._43 * worldPosition.z + matrix._44;
+    if (w < 0.001f)
+        return false;
+
+    screenPosition = ImGui::GetIO().DisplaySize / 2.0f;
+    screenPosition.x *= 1.0f + (matrix._11 * worldPosition.x + matrix._12 * worldPosition.y + matrix._13 * worldPosition.z + matrix._14) / w;
+    screenPosition.y *= 1.0f - (matrix._21 * worldPosition.x + matrix._22 * worldPosition.y + matrix._23 * worldPosition.z + matrix._24) / w;
+    return true;
+}
+
+static std::string double2string(double value) noexcept
+{
+    std::ostringstream oss;
+    oss << std::setprecision(8) << std::noshowpoint << value;
+    return oss.str();
+}
+
+static std::string discordURL(std::string discordcode) noexcept
+{
+    return std::string{ xorstr_("https://discord.gg/") }.append(discordcode);
+}
 
 unsigned int Helpers::calculateColor(Color4 color) noexcept
 {
@@ -139,11 +178,6 @@ ImFont* Helpers::addFontFromVFONT(const std::string& path, float size, const ImW
     return ImGui::GetIO().Fonts->AddFont(&cfg);
 }
 
-const char* Helpers::compileTimestamp() noexcept
-{
-    return ("[" + std::string{ __TIME__ } + "] " + __DATE__).c_str();
-}
-
 ImWchar* Helpers::getFontGlyphRanges() noexcept
 {
     static ImVector<ImWchar> ranges;
@@ -171,25 +205,6 @@ std::wstring Helpers::toWideString(const std::string& str) noexcept
     if (const auto newLen = std::mbstowcs(wide.data(), str.c_str(), wide.length()); newLen != static_cast<std::size_t>(-1))
         wide.resize(newLen);
     return wide;
-}
-
-static void toUpper(std::span<wchar_t> str) noexcept
-{
-    static std::unordered_map<wchar_t, wchar_t> upperCache;
-
-    for (auto& c : str) {
-        if (c >= 'a' && c <= 'z') {
-            c -= ('a' - 'A');
-        } else if (c > 127) {
-            if (const auto it = upperCache.find(c); it != upperCache.end()) {
-                c = it->second;
-            } else {
-                const auto upper = std::towupper(c);
-                upperCache.emplace(c, upper);
-                c = upper;
-            }
-        }
-    }
 }
 
 std::wstring Helpers::toUpper(std::wstring str) noexcept
@@ -243,27 +258,12 @@ std::vector<char> Helpers::loadBinaryFile(const std::string& path) noexcept
 std::size_t Helpers::calculateVmtLength(const std::uintptr_t* vmt) noexcept
 {
     std::size_t length = 0;
-#ifdef _WIN32
+
     MEMORY_BASIC_INFORMATION memoryInfo;
     while (VirtualQuery(LPCVOID(vmt[length]), &memoryInfo, sizeof(memoryInfo)) && memoryInfo.Protect & (PAGE_EXECUTE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY))
         ++length;
-#else
-    while (vmt[length])
-        ++length;
-#endif
+
     return length;
-}
-
-static bool transformWorldPositionToScreenPosition(const Matrix4x4& matrix, const Vector& worldPosition, ImVec2& screenPosition) noexcept
-{
-    const auto w = matrix._41 * worldPosition.x + matrix._42 * worldPosition.y + matrix._43 * worldPosition.z + matrix._44;
-    if (w < 0.001f)
-        return false;
-
-    screenPosition = ImGui::GetIO().DisplaySize / 2.0f;
-    screenPosition.x *= 1.0f + (matrix._11 * worldPosition.x + matrix._12 * worldPosition.y + matrix._13 * worldPosition.z + matrix._14) / w;
-    screenPosition.y *= 1.0f - (matrix._21 * worldPosition.x + matrix._22 * worldPosition.y + matrix._23 * worldPosition.z + matrix._24) / w;
-    return true;
 }
 
 bool Helpers::worldToScreen(const Vector& worldPosition, ImVec2& screenPosition) noexcept
@@ -293,11 +293,8 @@ void Helpers::messageBox(std::string_view title, std::string_view msg, const int
             break;
         }
     }();
-#ifdef _WIN32
+
     MessageBoxA(nullptr, msg.data(), title.data(), flags);
-#else
-    SDL_ShowSimpleMessageBox(flags, title.data(), msg.data(), nullptr);
-#endif
 }
 
 Vector Helpers::calculateRelativeAngle(const Vector& source, const Vector& destination) noexcept
@@ -305,6 +302,16 @@ Vector Helpers::calculateRelativeAngle(const Vector& source, const Vector& desti
     Vector delta = destination - source;
     Vector angles{ Helpers::rad2deg(atan2f(-delta.z, std::hypotf(delta.x, delta.y))), Helpers::rad2deg(atan2f(delta.y, delta.x)), 0.f };
     return angles.normalize();;
+}
+
+long Helpers::getCurrentTime() noexcept
+{
+    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+}
+
+const char* Helpers::compileTimestamp() noexcept
+{
+    return ("[" + std::string{ __TIME__ } + "] " + __DATE__).c_str();
 }
 
 const char* Helpers::getColorByte(ColorByte colorByte)  noexcept
@@ -348,11 +355,6 @@ void Helpers::excutePlayCommand(const char* file, bool fromConsoleOrKeybind) noe
 
     //excute command
     interfaces->engine->clientCmdUnrestricted(command.c_str(), fromConsoleOrKeybind);
-}
-
-long Helpers::getCurrentTime() noexcept
-{
-    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();  
 }
 
 void Helpers::writeDebugConsole(const char* message, bool newline) noexcept
@@ -399,51 +401,39 @@ void Helpers::writeInGameChat(const char* message, ColorByte colorByte, int filt
     Helpers::writeInGameChat(text.c_str());
 }
 
-static std::string double2string(double value) noexcept
-{ 
-    std::ostringstream oss; 
-    oss << std::setprecision(8) << std::noshowpoint << value;
-    return oss.str();
-}
-
 std::string Helpers::getDllNameVersion() noexcept
 {
-    std::string text{std::string { dllname } + " " };
-    text.append(std::string{ "v" }.append(::double2string(version)));
+    std::string text{std::string { dll_name } + " " };
+    text.append(std::string{ "v" }.append(::double2string(dll_version)));
 
-    if (release > 0)
-        text.append(std::string{ "r" }.append(std::to_string(release)));
+    if (dll_release > 0)
+        text.append(std::string{ "r" }.append(std::to_string(dll_release)));
 
     return text;
-}
-
-static std::string discordURL(std::string discordcode) noexcept
-{ 
-    return std::string{ "https://discord.gg/" }.append(discordcode);
 }
 
 void Helpers::showWelcomeMessage() noexcept
 {
     std::string str1{ Helpers::getDllNameVersion() };
-    str1.append(" P2C");
+    str1.append(xorstr_(" P2C"));
     Helpers::writeDebugConsole(str1.c_str(), { 0, 120, 255, 255 });
 
-    std::string str2{ "Welcome " };
+    std::string str2{ xorstr_("Welcome ") };
     str2.append(interfaces->engine->getSteamAPIContext()->steamFriends->getPersonaName());
     Helpers::writeDebugConsole(str2.c_str(), { 0, 200, 0, 255 });
    
-    std::string str3{ "Join " };
-    str3.append(dllname);
-    str3.append(" P2C Discord: ");
+    std::string str3{ xorstr_("Join ") };
+    str3.append(dll_name);
+    str3.append(xorstr_(" P2C Discord: "));
     Helpers::writeDebugConsole(str3.c_str(), { 201, 120, 40, 255 }, false);
     Helpers::writeDebugConsole(::discordURL(discordcode).c_str(), true);
 }
 
 void Helpers::showDiscordUrl(ColorByte colorByte) noexcept
 {
-    std::string str3{ "Join " };
-    str3.append(dllname);
-    str3.append(" P2C Discord: ");
+    std::string str3{ xorstr_("Join ") };
+    str3.append(dll_name);
+    str3.append(xorstr_(" P2C Discord: "));
     str3.append(Helpers::getColorByte(ColorByte::White)); 
     str3.append(::discordURL(Helpers::discordcode));
     Helpers::writeInGameChat(str3.c_str(), colorByte);
