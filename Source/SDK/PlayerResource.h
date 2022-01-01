@@ -28,14 +28,14 @@ public:
     NETVAR(bombsiteCenterB, "CCSPlayerResource", "m_bombsiteCenterB", Vector)
     NETVAR(musicID, "CCSPlayerResource", "m_nMusicID", int[65])
     NETVAR(rank, "CCSPlayerResource", "m_iCompetitiveRanking", int[65]) // 0x1A84 is netvar offset
-    NETVAR(wins, "CCSPlayerResource", "m_iCompetitiveWins", int)
-    NETVAR(mvps, "CCSPlayerResource", "m_iMVPs", int)
-    NETVAR(vip, "CCSPlayerResource", "m_iPlayerVIP", int)
-    NETVAR(score, "CCSPlayerResource", "m_iScore", int)
-    NETVAR(level, "CCSPlayerResource", "m_nPersonaDataPublicLevel", int)
-    NETVAR(commendsLeader, "CCSPlayerResource", "m_nPersonaDataPublicCommendsLeader", int)
-    NETVAR(commendsTeacher, "CCSPlayerResource", "m_nPersonaDataPublicCommendsTeacher", int)
-    NETVAR(commendsFriendly, "CCSPlayerResource", "m_nPersonaDataPublicCommendsFriendly", int)
+    NETVAR(wins, "CCSPlayerResource", "m_iCompetitiveWins", int[65])
+    NETVAR(mvps, "CCSPlayerResource", "m_iMVPs", int[65])
+    NETVAR(vip, "CCSPlayerResource", "m_iPlayerVIP", int[65])
+    NETVAR(score, "CCSPlayerResource", "m_iScore", int[65])
+    NETVAR(level, "CCSPlayerResource", "m_nPersonaDataPublicLevel", int[65])
+    NETVAR(commendsLeader, "CCSPlayerResource", "m_nPersonaDataPublicCommendsLeader", int[65])
+    NETVAR(commendsTeacher, "CCSPlayerResource", "m_nPersonaDataPublicCommendsTeacher", int[65])
+    NETVAR(commendsFriendly, "CCSPlayerResource", "m_nPersonaDataPublicCommendsFriendly", int[65])
     NETVAR(activeCoinRank, "CCSPlayerResource", "m_nActiveCoinRank", int[65])
-    NETVAR(clanTag, "CCSPlayerResource", "m_szClan", char);
+    NETVAR(clanTag, "CCSPlayerResource", "m_szClan", char)
 };

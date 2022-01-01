@@ -39,6 +39,7 @@
 #include "../SDK/ItemSchema.h"
 #include "../SDK/Localize.h"
 #include "../SDK/LocalPlayer.h"
+#include "../SDK/PlayerResource.h"
 #include "../SDK/NetworkChannel.h"
 #include "../SDK/Panorama.h"
 #include "../SDK/Platform.h"
@@ -859,9 +860,20 @@ void Misc::voteRevealer(GameEvent& event) noexcept
     
     const auto votedYes = event.getInt("vote_option") == 0;
     const auto isLocal = localPlayer && entity == localPlayer.get();
-    const char color = votedYes ? '\x06' : '\x07';
+    
+    std::string message = "";
 
-    memory->clientMode->getHudChat()->printf(0, " \x0C\u2022Spatial\u2022 %c%s\x01 voted %c%s\x01", isLocal ? '\x01' : color, isLocal ? "You" : entity->getPlayerName().c_str(), color, votedYes ? "Yes" : "No");
+    message.append(isLocal ? "You" : entity->getPlayerName());
+    message.append(" ");
+    message.append(Helpers::getColorByte(ColorByte::White));
+    message.append(" Voted [");
+    message.append(Helpers::getColorByte(ColorByte::Orange));
+    message.append(votedYes ? "Yes" : "No");
+    message.append(Helpers::getColorByte(ColorByte::White));
+    message.append("]");
+
+    Helpers::writeInGameChat(message.c_str(), 0, isLocal ? ColorByte::LightGrey : ColorByte::Purple);
+
 }
 
 void Misc::onVoteStart(const void* data, int size) noexcept
@@ -871,11 +883,11 @@ void Misc::onVoteStart(const void* data, int size) noexcept
 
     constexpr auto voteName = [](int index) {
         switch (index) {
-        case 0: return "Kick";
-        case 1: return "Change Level";
-        case 6: return "Surrender";
-        case 13: return "Start TimeOut";
-        default: return "unknown action";
+            case 0: return "Kick";
+            case 1: return "Change Map";
+            case 6: return "Surrender";
+            case 13: return "Timeout";
+            default: return "Unknown";
         }
     };
 
@@ -889,19 +901,31 @@ void Misc::onVoteStart(const void* data, int size) noexcept
     const auto isLocal = localPlayer && entity == localPlayer.get();
 
     const auto voteType = reader.readInt32(3);
-    memory->clientMode->getHudChat()->printf(0, " \x0C\u2022Spatial\u2022 %c%s\x01 call vote (\x06%s\x01)", isLocal ? '\x01' : '\x06', isLocal ? "You" : entity->getPlayerName().c_str(), voteName(voteType));
+    
+    std::string message = "";
+
+    message.append(isLocal ? "You" : entity->getPlayerName());
+    message.append(" "); 
+    message.append(Helpers::getColorByte(ColorByte::White));
+    message.append(" Voted [");
+    message.append(Helpers::getColorByte(ColorByte::Orange));
+    message.append(voteName(voteType));
+    message.append(Helpers::getColorByte(ColorByte::White));
+    message.append("]");
+
+    Helpers::writeInGameChat(message.c_str(), 0, isLocal ? ColorByte::LightGrey : ColorByte::Purple);
 }
 
 void Misc::onVotePass() noexcept
 {
     if (miscConfig.revealVotes)
-        memory->clientMode->getHudChat()->printf(0, " \x0C\u2022Spatial\u2022\x01 Vote\x06 PASSED");
+        Helpers::writeInGameChat(std::string{ xorstr_("Vote") }.append(Helpers::getColorByte(ColorByte::LightGreen)).append(xorstr_(" PASSED")).c_str(), 0, ColorByte::Green);
 }
 
 void Misc::onVoteFailed() noexcept
 {
     if (miscConfig.revealVotes)
-        memory->clientMode->getHudChat()->printf(0, " \x0C\u2022Spatial\u2022\x01 Vote\x07 FAILED");
+        Helpers::writeInGameChat(std::string{ xorstr_("Vote") }.append(Helpers::getColorByte(ColorByte::LightRed)).append(xorstr_(" FAILED")).c_str(), 0, ColorByte::Red);
 }
 
 void Misc::drawOffscreenEnemies(ImDrawList* drawList) noexcept
@@ -1236,6 +1260,100 @@ void Misc::drawGUI() noexcept
     if (ImGui::Button(xorstr_("Unload DLL"))) hooks->uninstall();
     
     ImGui::Columns(1);
+
+    {
+        GameData::Lock lock;
+             
+        const auto pr = *memory->playerResource;
+
+        bool dangerzone = false;//temp
+
+        if (localPlayer && pr)
+        {
+            ImGui::Separator();
+
+            if (ImGui::BeginTable("playerinfo", 7))
+            {
+                ImGui::TableSetupColumn("Name");
+                ImGui::TableSetupColumn("Wins");
+                ImGui::TableSetupColumn("Level");
+                ImGui::TableSetupColumn("Rank");
+
+                ImGui::TableSetupColumn("Commends Friendly");
+                ImGui::TableSetupColumn("Commends Teacher");
+                ImGui::TableSetupColumn("Commends Leader");
+                ImGui::TableHeadersRow();
+
+                ImGui::TableNextRow();
+                ImGui::PushID(ImGui::TableGetRowIndex());
+                
+                if (ImGui::TableNextColumn())
+                    ImGui::TextUnformatted(interfaces->engine->getSteamAPIContext()->steamFriends->getPersonaName());
+
+                if (ImGui::TableNextColumn())
+                    ImGui::InputInt("Wins", &pr->wins()[localPlayer->index()]);
+
+                if (ImGui::TableNextColumn())
+                    ImGui::InputInt("Level", &pr->level()[localPlayer->index()]);
+
+                if (ImGui::TableNextColumn())
+                    if (pr->rank()[localPlayer->index()] > -1 && pr->rank()[localPlayer->index()] < 20) {
+                        ImGui::Combo(
+                            xorstr_("Rank"),
+                            &pr->rank()[localPlayer->index()],
+                            dangerzone ?
+                            "Unranked\0Lab Rat I\0Lab Rat II\0Sprinting Hare I\0Sprinting Hare II\0Wild Scout I\0Wild Scout II\0Wild Scout Elite\0Hunter Fox I\0Hunter Fox II\0Hunter Fox III\0Hunter Fox Elite\0Timber Wolf\0Ember Wolf\0Wildfire Wolf\0The Howling Alpha\0"
+                            :
+                            "Unranked\0Silver I\0Silver II\0Silver III\0Silver IV\0Silver Elite\0Silver Elite Master\0Gold Nova I\0Gold Nova II\0Gold Nova III\0Gold Nova Master\0Master Guardian I\0Master Guardian II\0Master Guardian Elite\0Distinguished Master Guardian\0Legendary Eagle\0Legendary Eagle Master\0Supreme Master First Class\0The Global Elite\0"
+                        );
+                    }
+
+                if (ImGui::TableNextColumn())
+                    ImGui::InputInt("Friendly", &pr->commendsFriendly()[localPlayer->index()]);
+
+                if (ImGui::TableNextColumn())
+                    ImGui::InputInt("Teacher", &pr->commendsTeacher()[localPlayer->index()]);
+
+                if (ImGui::TableNextColumn())
+                    ImGui::InputInt("Leader", &pr->commendsLeader()[localPlayer->index()]);
+
+                    
+                for (auto& player : GameData::players())
+                {
+                    ImGui::TableNextRow();
+                    ImGui::SameLine();
+                    ImGui::Separator();
+                    ImGui::PushID(ImGui::TableGetRowIndex());
+
+                    auto* entity = interfaces->entityList->getEntityFromHandle(player.handle);
+                    if (!entity || !entity->isPlayer()) continue;
+                         
+                    if (ImGui::TableNextColumn())
+                        ImGui::TextUnformatted(player.name.c_str());
+
+                    if (ImGui::TableNextColumn())
+                        ImGui::Text("%i", player.wins);
+
+                    if (ImGui::TableNextColumn())
+                        ImGui::Text("%i", player.level);
+
+                    if (ImGui::TableNextColumn())
+                        ImGui::TextUnformatted(player.rank.c_str());
+
+                    if (ImGui::TableNextColumn())
+                        ImGui::Text("%i", player.commends.Friendly);
+
+                    if (ImGui::TableNextColumn())
+                        ImGui::Text("%i", player.commends.Teacher);
+
+                    if (ImGui::TableNextColumn())
+                        ImGui::Text("%i", player.commends.Leader);
+                }
+
+                ImGui::EndTable();
+            }
+        }
+    }
 }
 
 

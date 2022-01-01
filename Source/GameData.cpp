@@ -41,53 +41,6 @@ auto operator<(const BaseData& a, const BaseData& b) noexcept
     return a.distanceToLocal > b.distanceToLocal;
 }
 
-std::string GameData::ranks[] = {
-    xorstr_("Unranked"),
-    xorstr_("Silver I"),
-    xorstr_("Silver II"),
-    xorstr_("Silver III"),
-    xorstr_("Silver IV"),
-    xorstr_("Silver Elite"),
-    xorstr_("Silver Elite Master"),
-
-    xorstr_("Gold Nova I"),
-    xorstr_("Gold Nova II"),
-    xorstr_("Gold Nova III"),
-    xorstr_("Gold Nova Master"),
-    xorstr_("Master Guardian I"),
-    xorstr_("Master Guardian II"),
-    xorstr_("Master Guardian Elite"),
-
-    xorstr_("Distinguished Master Guardian"),
-    xorstr_("Legendary Eagle"),
-    xorstr_("Legendary Eagle Master"),
-    xorstr_("Supreme Master First Class"),
-    xorstr_("The Global Elite")
-};
-
-std::string GameData::ranks_dz[] = {
-    GameData::ranks[0],
-    xorstr_("Lab Rat I"),
-    xorstr_("Lab Rat II"),
-
-    xorstr_("Sprinting Hare I"),
-    xorstr_("Sprinting Hare II"),
-
-    xorstr_("Wild Scout I"),
-    xorstr_("Wild Scout II"),
-    xorstr_("Wild Scout Elite"),
-
-    xorstr_("Hunter Fox I"),
-    xorstr_("Hunter Fox II"),
-    xorstr_("Hunter Fox III"),
-    xorstr_("Hunter Fox Elite"),
-
-    xorstr_("Timber Wolf"),
-    xorstr_("Ember Wolf"),
-    xorstr_("Wildfire Wolf"),
-    xorstr_("The Howling Alpha")
-};
-
 static Matrix4x4 viewMatrix;
 static LocalPlayerData localPlayerData;
 static std::vector<PlayerData> playerData;
@@ -503,12 +456,24 @@ void PlayerData::update(Entity* entity) noexcept
     };
 
     bool dangerzone = false;//temp
+    const auto index = entity->index();
     const auto pr = *memory->playerResource;
-    const auto rankid = pr->rank()[entity->index()];
-    
+
+    auto rankid = pr->rank()[index];
+    auto winscnt = pr->wins()[index];
+    auto levelcnt = pr->level()[index];
+     
+    rankid = (rankid > -1 && rankid < 20) ? rankid : 0;
+    level = (levelcnt > -1 && levelcnt < 99) ? levelcnt : 0;
+    wins = (winscnt > -1 && winscnt < 99999) ? winscnt : 0;
+
     rank = dangerzone ? GameData::ranks_dz[rankid] : GameData::ranks[rankid];
 
-    audible = isEntityAudible(entity->index());
+    commends.Friendly = pr->commendsFriendly()[index];
+    commends.Teacher = pr->commendsTeacher()[index];
+    commends.Leader = pr->commendsLeader()[index];
+
+    audible = isEntityAudible(index);
     spotted = entity->spotted();
     health = entity->health();
     immune = entity->gunGameImmunity();

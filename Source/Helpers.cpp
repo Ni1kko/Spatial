@@ -28,6 +28,7 @@
 #include "Memory.h"
 #include "SDK/GlobalVars.h"
 #include "SDK/Engine.h"
+#include "SDK/ClientMode.h"
 
 static auto rainbowColor(float time, float speed, float alpha) noexcept
 {
@@ -331,7 +332,7 @@ const char* Helpers::getColorByte(ColorByte colorByte)  noexcept
 void Helpers::excuteSayCommand(const char* message, bool fromConsoleOrKeybind) noexcept
 {
     //build command
-    std::string command = charenc("say ");
+    std::string command = xorstr_("say ");
     command.append(message);
 
     //excute command
@@ -341,7 +342,7 @@ void Helpers::excuteSayCommand(const char* message, bool fromConsoleOrKeybind) n
 void Helpers::excutePlayCommand(const char* file, bool fromConsoleOrKeybind) noexcept
 {
     //build command (audio file must be put in csgo/sound/ directory)
-    std::string command = charenc("play ");
+    std::string command = xorstr_("play ");
     command.append(file);
 
     //excute command
@@ -351,4 +352,37 @@ void Helpers::excutePlayCommand(const char* file, bool fromConsoleOrKeybind) noe
 long Helpers::getCurrentTime() noexcept
 {
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();  
+}
+
+void Helpers::writeDebugConsole(const char* message, bool newline, bool colormsg, std::array<std::uint8_t, 4> color) noexcept
+{
+    //build
+    std::string text = message;
+    if(newline)
+        text.append("\n");
+     
+    //excute
+    if (colormsg)
+        memory->conColorMsg(color, text.c_str());
+    else
+        memory->debugMsg(text.c_str());
+}
+
+void Helpers::writeInGameChat(const char* message, int filter, ColorByte colorByte) noexcept
+{
+    if (interfaces->engine->isInGame()) {
+        //build
+        std::string text = Helpers::getColorByte(ColorByte::GreyPurpleForSpectaor);
+        text.append(" ");
+        text.append(Helpers::getColorByte(colorByte));
+        text.append(message);
+
+        //excute
+        memory->clientMode->getHudChat()->printf(filter, text.c_str());
+    }
+    else
+    {
+        //not in game so log it
+        Helpers::writeDebugConsole(message);
+    }
 }
