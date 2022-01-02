@@ -54,16 +54,13 @@ const auto menuFooter = "Compile timestamp: " + std::string{ Helpers::compileTim
 Menu::Menu() noexcept
 {
     ImGuiCustom::updateColors(static_cast<ImGuiStyles>(config->style.menuColors));
-
-    ImGuiStyle& style = ImGui::GetStyle();
+    
     ImGuiIO& io = ImGui::GetIO();
     ImFontConfig cfg;
 
     io.IniFilename = nullptr;
     io.LogFilename = nullptr;
     io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
-
-    style.ScrollbarSize = 9.0f;
 
     cfg.SizePixels = 15.0f;
     

@@ -159,9 +159,21 @@ void ImGuiCustom::StyleSpatial(ImGuiStyle* dst)
     ImGuiStyle* style = dst ? dst : &ImGui::GetStyle();
     ImVec4* colors = style->Colors;
 
+    auto mainrounding = 4.0f;
+    style->FrameRounding = mainrounding;
+    style->ChildRounding = mainrounding;
+    style->WindowRounding = mainrounding;
+    style->PopupRounding = mainrounding;
+    style->TabRounding = mainrounding;
+    style->ScrollbarRounding = mainrounding / 2;
+    style->GrabRounding = mainrounding / 2;
+
+    style->FrameBorderSize = 0.8f;
+    style->ScrollbarSize = 6.0f;
+
     colors[ImGuiCol_Text] = ImVec4(1.00f, 0.00f, 0.40f, 1.00f);
     colors[ImGuiCol_TextDisabled] = ImVec4(0.44f, 0.44f, 0.44f, 1.00f);
-    colors[ImGuiCol_WindowBg] = ImVec4(0.06f, 0.06f, 0.06f, 1.00f);
+    colors[ImGuiCol_WindowBg] = ImVec4(0.06f, 0.06f, 0.06f, 0.80f);
     colors[ImGuiCol_Tab] = ImVec4(1.00f, 0.00f, 0.40f, 0.90f);
     colors[ImGuiCol_TabHovered] = ImVec4(0.81f, 0.81f, 0.81f, 1.00f);
     colors[ImGuiCol_TabActive] = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
@@ -210,8 +222,34 @@ void ImGuiCustom::StyleCustom(ImGuiStyle* dst)
      
 }
 
+static void StyleDefault(ImGuiStyle* style)
+{ 
+    style->ScrollbarSize = 9.0f;
+    style->WindowRounding = 2.0f;
+    style->FrameRounding = 4.0f;
+}
+
+static void StyleReset()
+{
+    ImGuiStyle* style = &ImGui::GetStyle();
+    ImVec4* colors = style->Colors;
+     
+    style->FrameBorderSize = 0.0f;
+
+    style->FrameRounding = 0.0f;
+    style->ChildRounding = 0.0f;
+    style->WindowRounding = 0.0f;
+    style->PopupRounding = 0.0f;
+    style->TabRounding = 0.0f;
+    style->ScrollbarRounding = 0.0f;
+    style->GrabRounding = 0.0f;
+
+    StyleDefault(style);
+}
+
 void ImGuiCustom::updateColors(ImGuiStyles style) noexcept
 {
+    StyleReset();
     switch (style) {
         case ImGuiStyles::Dark: ImGui::StyleColorsDark(); break;
         case ImGuiStyles::Light: ImGui::StyleColorsLight(); break;
@@ -285,4 +323,18 @@ void ImGui::hotkey(const char* label, KeyBind& key, float samelineOffset, const 
     }
 
     PopID();
+}
+
+void ImGuiCustom:: HelpMarker(const char* desc, bool sameline) noexcept
+{
+    if(sameline) ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered())
+    {
+        ImGui::BeginTooltip();
+        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+        ImGui::TextUnformatted(desc);
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
 }

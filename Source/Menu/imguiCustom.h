@@ -33,6 +33,7 @@ namespace ImGuiCustom
     void updateColors(ImGuiStyles style = ImGuiStyles::Classic) noexcept;
     IMGUI_API void StyleSpatial(ImGuiStyle* dst = NULL);
     IMGUI_API void StyleCustom(ImGuiStyle* dst = NULL);
+    void HelpMarker(const char* desc, bool sameline = true) noexcept;
 }
 
 class KeyBind;
