@@ -328,6 +328,37 @@ void LocalPlayerData::update() noexcept
 
     aimPunch = localPlayer->getEyePosition() + Vector::fromAngle(interfaces->engine->getViewAngles() + localPlayer->getAimPunch()) * 1000.0f;
 
+    name = interfaces->engine->getSteamAPIContext()->steamFriends->getPersonaName();
+
+    auto* entity = interfaces->entityList->getEntityFromHandle(localPlayer->handle());
+    const auto pr = *memory->playerResource;
+
+    if (entity) {
+        
+        const auto index = entity->index();
+        
+        auto rankid = pr->rank()[index];
+        auto winscnt = pr->wins()[index];
+        auto levelcnt = pr->level()[index];
+
+        rankid = (rankid > -1 && rankid < 20) ? rankid : 0;
+        level = (levelcnt > -1 && levelcnt < 99) ? levelcnt : 0;
+        wins = (winscnt > -1 && winscnt < 99999) ? winscnt : 0;
+
+        bool dangerzone = false;//temp
+
+        rank = dangerzone ? GameData::ranks_dz[rankid] : GameData::ranks[rankid];
+
+        std::ostringstream oss_steamID;
+        oss_steamID << entity->getSteamId();
+        steamID = oss_steamID.str();
+
+        commends.Friendly = pr->commendsFriendly()[index];
+        commends.Teacher = pr->commendsTeacher()[index];
+        commends.Leader = pr->commendsLeader()[index];
+    }
+    
+
     const auto obsMode = localPlayer->getObserverMode();
     if (const auto obs = localPlayer->getObserverTarget(); obs && obsMode != ObsMode::Roaming && obsMode != ObsMode::Deathcam)
         origin = obs->getAbsOrigin();
@@ -468,6 +499,10 @@ void PlayerData::update(Entity* entity) noexcept
     wins = (winscnt > -1 && winscnt < 99999) ? winscnt : 0;
 
     rank = dangerzone ? GameData::ranks_dz[rankid] : GameData::ranks[rankid];
+
+    std::ostringstream oss_steamID;
+    oss_steamID << entity->getSteamId();
+    steamID = oss_steamID.str();
 
     commends.Friendly = pr->commendsFriendly()[index];
     commends.Teacher = pr->commendsTeacher()[index];

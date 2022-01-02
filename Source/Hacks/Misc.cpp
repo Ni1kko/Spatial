@@ -1267,14 +1267,15 @@ void Misc::drawGUI() noexcept
         const auto pr = *memory->playerResource;
 
         bool dangerzone = false;//temp
-
+       
         if (localPlayer && pr)
         {
             ImGui::Separator();
 
-            if (ImGui::BeginTable("playerinfo", 7))
+            if (ImGui::BeginTable("playerinfo", 8))
             {
                 ImGui::TableSetupColumn("Name");
+                ImGui::TableSetupColumn("SteamID");
                 ImGui::TableSetupColumn("Wins");
                 ImGui::TableSetupColumn("Level");
                 ImGui::TableSetupColumn("Rank");
@@ -1287,16 +1288,31 @@ void Misc::drawGUI() noexcept
                 ImGui::TableNextRow();
                 ImGui::PushID(ImGui::TableGetRowIndex());
                 
+                auto localPlayerData = GameData::local();
+                
                 if (ImGui::TableNextColumn())
-                    ImGui::TextUnformatted(interfaces->engine->getSteamAPIContext()->steamFriends->getPersonaName());
-
-                if (ImGui::TableNextColumn())
+                    ImGui::TextUnformatted((std::string{ "Localplayer ("}.append(localPlayerData.name).append(")")).c_str());
+                
+                if (ImGui::TableNextColumn()) {
+                    ImGui::TextUnformatted(localPlayerData.steamID.c_str());
+                    ImGui::SameLine();
+                    if (ImGui::Button("Copy")) {
+                        ImGui::SetClipboardText(localPlayerData.steamID.c_str());
+                    }
+                }
+                ImGuiCustom::HelpMarker("Copy your steamID.");
+                 
+                if (ImGui::TableNextColumn()) {
                     ImGui::InputInt("Wins", &pr->wins()[localPlayer->index()]);
+                    ImGuiCustom::HelpMarker("Edit your comp wins.");
+                } 
 
-                if (ImGui::TableNextColumn())
+                if (ImGui::TableNextColumn()) { 
                     ImGui::InputInt("Level", &pr->level()[localPlayer->index()]);
+                    ImGuiCustom::HelpMarker("Edit your level.");
+                }
 
-                if (ImGui::TableNextColumn())
+                if (ImGui::TableNextColumn()) {
                     if (pr->rank()[localPlayer->index()] > -1 && pr->rank()[localPlayer->index()] < 20) {
                         ImGui::Combo(
                             xorstr_("Rank"),
@@ -1306,51 +1322,66 @@ void Misc::drawGUI() noexcept
                             :
                             "Unranked\0Silver I\0Silver II\0Silver III\0Silver IV\0Silver Elite\0Silver Elite Master\0Gold Nova I\0Gold Nova II\0Gold Nova III\0Gold Nova Master\0Master Guardian I\0Master Guardian II\0Master Guardian Elite\0Distinguished Master Guardian\0Legendary Eagle\0Legendary Eagle Master\0Supreme Master First Class\0The Global Elite\0"
                         );
+                    } 
+                    ImGuiCustom::HelpMarker("Edit your comp rank.");
+                }
+                    
+                if (ImGui::TableNextColumn()) {
+                    ImGui::InputInt("Friendly", &pr->commendsFriendly()[localPlayer->index()]);
+                    ImGuiCustom::HelpMarker("Edit your friendly commends.");
+                }
+
+                if (ImGui::TableNextColumn()) {
+                    ImGui::InputInt("Teacher", &pr->commendsTeacher()[localPlayer->index()]);
+                    ImGuiCustom::HelpMarker("Edit your teacher commends.");
+                }
+
+                if (ImGui::TableNextColumn()) {
+                    ImGui::InputInt("Leader", &pr->commendsLeader()[localPlayer->index()]);
+                    ImGuiCustom::HelpMarker("Edit your leader commends.");
+                }
+                 
+                for (auto& playersData : GameData::players())
+                {
+                    auto* entity = interfaces->entityList->getEntityFromHandle(playersData.handle);
+                    if (!entity || !entity->isPlayer() || playersData.steamID.empty() || playersData.steamID.compare("0") == 0) continue;
+
+                    ImGui::TableNextRow();
+                    ImGui::PushID(ImGui::TableGetRowIndex());
+                     
+                    if (ImGui::TableNextColumn())
+                        ImGui::TextUnformatted(playersData.name.c_str());
+
+                    if (ImGui::TableNextColumn()) {
+                        ImGui::TextUnformatted(playersData.steamID.c_str()); 
+                        ImGui::SameLine();
+                        if (ImGui::Button("Copy")) {
+                            ImGui::SetClipboardText(playersData.steamID.c_str());
+                        }
+                        ImGuiCustom::HelpMarker("Copy users steamID.");
                     }
 
-                if (ImGui::TableNextColumn())
-                    ImGui::InputInt("Friendly", &pr->commendsFriendly()[localPlayer->index()]);
-
-                if (ImGui::TableNextColumn())
-                    ImGui::InputInt("Teacher", &pr->commendsTeacher()[localPlayer->index()]);
-
-                if (ImGui::TableNextColumn())
-                    ImGui::InputInt("Leader", &pr->commendsLeader()[localPlayer->index()]);
-
-                    
-                for (auto& player : GameData::players())
-                {
-                    ImGui::TableNextRow();
-                    ImGui::SameLine();
-                    ImGui::Separator();
-                    ImGui::PushID(ImGui::TableGetRowIndex());
-
-                    auto* entity = interfaces->entityList->getEntityFromHandle(player.handle);
-                    if (!entity || !entity->isPlayer()) continue;
-                         
                     if (ImGui::TableNextColumn())
-                        ImGui::TextUnformatted(player.name.c_str());
+                        ImGui::Text("%i", playersData.wins);
 
                     if (ImGui::TableNextColumn())
-                        ImGui::Text("%i", player.wins);
+                        ImGui::Text("%i", playersData.level);
 
                     if (ImGui::TableNextColumn())
-                        ImGui::Text("%i", player.level);
+                        ImGui::TextUnformatted(playersData.rank.c_str());
 
                     if (ImGui::TableNextColumn())
-                        ImGui::TextUnformatted(player.rank.c_str());
+                        ImGui::Text("%i", playersData.commends.Friendly);
 
                     if (ImGui::TableNextColumn())
-                        ImGui::Text("%i", player.commends.Friendly);
+                        ImGui::Text("%i", playersData.commends.Teacher);
 
                     if (ImGui::TableNextColumn())
-                        ImGui::Text("%i", player.commends.Teacher);
-
-                    if (ImGui::TableNextColumn())
-                        ImGui::Text("%i", player.commends.Leader);
+                        ImGui::Text("%i", playersData.commends.Leader);
                 }
 
                 ImGui::EndTable();
+                ImGui::Separator();
             }
         }
     }

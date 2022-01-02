@@ -27,6 +27,12 @@ struct SmokeData;
 
 struct Matrix4x4;
 
+struct Commends {
+    int Friendly;
+    int Teacher;
+    int Leader;
+};
+
 namespace GameData
 {
     void update() noexcept;
@@ -110,6 +116,13 @@ namespace GameData
 struct LocalPlayerData {
     void update() noexcept;
 
+    std::string name;
+    std::string steamID = "";
+    std::string rank;
+    int wins;
+    int level;
+    Commends commends;
+
     bool exists = false;
     bool alive = false;
     bool inReload = false;
@@ -159,12 +172,6 @@ struct ProjectileData : BaseData {
 
 enum class Team;
 
-struct Commends {
-    int Friendly;
-    int Teacher;
-    int Leader;
-};
-
 struct PlayerData : BaseData {
     PlayerData(Entity* entity) noexcept;
     PlayerData(const PlayerData&) = delete;
@@ -190,6 +197,7 @@ struct PlayerData : BaseData {
     int handle;
     Team team;
     std::string name;
+    std::string steamID = "";
     std::string rank;
     int wins;
     int level;
