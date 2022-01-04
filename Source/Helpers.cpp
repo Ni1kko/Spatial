@@ -324,10 +324,10 @@ const char* Helpers::getColorByte(ColorByte colorByte)  noexcept
         case ColorByte::Orange: return xorstr_("\x10");/*ORANGE*/
         case ColorByte::LightGrey: return xorstr_("\x0A");/*LIGHT GRAY*/
         case ColorByte::LightBlue: return xorstr_("\x0B");/*LIGHT BLUE*/
-        case ColorByte::GreyPurpleForSpectaor: return xorstr_("\x0C");/*GRAY (PURPLE FOR SPEC)*/
         case ColorByte::Blue: return xorstr_("\x0D");/*BLUE*/
         case ColorByte::Pink: return xorstr_("\x0E");/*PINK*/
         case ColorByte::DarkOrange: return xorstr_("\x0F");/*DARK ORANGE*/
+        default: return xorstr_("\x0C");/*GRAY (PURPLE FOR SPEC)*/
     };
 }
 
