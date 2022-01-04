@@ -4,7 +4,7 @@
 
 #include "Menu/imgui/imgui.h"
 
-#ifdef _WIN32
+
 #include <intrin.h>
 #include <Windows.h>
 #include <Psapi.h>
@@ -13,15 +13,6 @@
 #include "Menu/imgui/imgui_impl_win32.h"
 
 #include "MinHook/MinHook.h"
-#elif __linux__
-#include <sys/mman.h>
-#include <unistd.h>
-
-#include <SDL2/SDL.h>
-
-#include "imgui/imgui_impl_sdl.h"
-#include "imgui/imgui_impl_opengl3.h"
-#endif
 
 #include "Config.h"
 #include "EventListener.h"
@@ -81,8 +72,6 @@
     CTRL + K + J will expand all
 */
 
-#ifdef _WIN32
-
 LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 static LRESULT __stdcall wndProc(HWND window, UINT msg, WPARAM wParam, LPARAM lParam) noexcept
@@ -116,9 +105,6 @@ static HRESULT __stdcall reset(IDirect3DDevice9* device, D3DPRESENT_PARAMETERS* 
     return hooks->originalReset(device, params);
 }
 
-#endif
-
-#ifdef _WIN32
 static HRESULT __stdcall present(IDirect3DDevice9* device, const RECT* src, const RECT* dest, HWND windowOverride, const RGNDATA* dirtyRegion) noexcept
 {
     [[maybe_unused]] static bool imguiInit{ ImGui_ImplDX9_Init(device) };
@@ -128,14 +114,7 @@ static HRESULT __stdcall present(IDirect3DDevice9* device, const RECT* src, cons
 
     ImGui_ImplDX9_NewFrame();
     ImGui_ImplWin32_NewFrame();
-#else
-static void swapWindow(SDL_Window * window) noexcept
-{
-    static const auto _ = ImGui_ImplSDL2_InitForOpenGL(window, nullptr);
 
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplSDL2_NewFrame(window);
-#endif
     ImGui::NewFrame();
 
     if (const auto& displaySize = ImGui::GetIO().DisplaySize; displaySize.x > 0.0f && displaySize.y > 0.0f) {
@@ -165,23 +144,15 @@ static void swapWindow(SDL_Window * window) noexcept
     ImGui::EndFrame();
     ImGui::Render();
 
-#ifdef _WIN32
     if (device->BeginScene() == D3D_OK) {
         ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
         device->EndScene();
     }
-#else
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-#endif
 
     GameData::clearUnusedAvatars();
     InventoryChanger::clearUnusedItemIconTextures();
 
-#ifdef _WIN32
     return hooks->originalPresent(device, src, dest, windowOverride, dirtyRegion);
-#else
-    hooks->swapWindow(window);
-#endif
 }
 
 static bool __STDCALL createMove(LINUX_ARGS(void* thisptr,) float inputSampleTime, UserCmd* cmd) noexcept
@@ -191,12 +162,7 @@ static bool __STDCALL createMove(LINUX_ARGS(void* thisptr,) float inputSampleTim
     if (!cmd->commandNumber)
         return result;
 
-#ifdef _WIN32
     bool& sendPacket = *reinterpret_cast<bool*>(*reinterpret_cast<std::uintptr_t*>(FRAME_ADDRESS()) - 0x1C);
-#else
-    bool dummy;
-    bool& sendPacket = dummy;
-#endif
 
     static auto previousViewAngles{ cmd->viewangles };
     const auto currentViewAngles{ cmd->viewangles };
@@ -359,11 +325,10 @@ static int __STDCALL emitSound(LINUX_ARGS(void* thisptr,) void* filter, int enti
 
 static bool __STDCALL shouldDrawFog(LINUX_ARGS(void* thisptr)) noexcept
 {
-#ifdef _WIN32
     if constexpr (std::is_same_v<HookType, MinHook>) {
 #ifdef _DEBUG
     // Check if we always get the same return address
-    if (*static_cast<std::uint32_t*>(_ReturnAddress()) == 0x6274C084) {
+    if (c_cast<std::uint32_t*>(_ReturnAddress()) == 0x6274C084) {
         static const auto returnAddress = std::uintptr_t(_ReturnAddress());
         assert(returnAddress == std::uintptr_t(_ReturnAddress()));
     }
@@ -372,7 +337,6 @@ static bool __STDCALL shouldDrawFog(LINUX_ARGS(void* thisptr)) noexcept
     if (*static_cast<std::uint32_t*>(_ReturnAddress()) != 0x6274C084)
         return hooks->clientMode.callOriginal<bool, 17>();
     }
-#endif
     
     return !Visuals::shouldRemoveFog();
 }
@@ -548,8 +512,6 @@ static bool __STDCALL dispatchUserMessage(LINUX_ARGS(void* thisptr, ) UserMessag
     return hooks->client.callOriginal<bool, 38>(type, passthroughFlags, size, data);
 }
 
-#ifdef _WIN32
-
 Hooks::Hooks(HMODULE moduleHandle) noexcept : moduleHandle{ moduleHandle }
 {
     _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
@@ -563,25 +525,14 @@ Hooks::Hooks(HMODULE moduleHandle) noexcept : moduleHandle{ moduleHandle }
     originalWndProc = WNDPROC(SetWindowLongPtrW(window, GWLP_WNDPROC, LONG_PTR(&wndProc)));
 }
 
-#endif
-
 void Hooks::install() noexcept
 {
-#ifdef _WIN32
     originalPresent = **reinterpret_cast<decltype(originalPresent)**>(memory->present);
     **reinterpret_cast<decltype(present)***>(memory->present) = present;
     originalReset = **reinterpret_cast<decltype(originalReset)**>(memory->reset);
     **reinterpret_cast<decltype(reset)***>(memory->reset) = reset;
 
-    if constexpr (std::is_same_v<HookType, MinHook>)
-        MH_Initialize();
-#else
-    ImGui_ImplOpenGL3_Init();
-
-    swapWindow = *reinterpret_cast<decltype(swapWindow)*>(memory->swapWindow);
-    *reinterpret_cast<decltype(::swapWindow)**>(memory->swapWindow) = ::swapWindow;
-
-#endif
+    if constexpr (std::is_same_v<HookType, MinHook>) MH_Initialize();
     
     bspQuery.init(interfaces->engine->getBSPTreeQuery());
     bspQuery.hookAt(6, &listLeavesInBox);
@@ -630,28 +581,19 @@ void Hooks::install() noexcept
     viewRender.hookAt(WIN32_LINUX(39, 40), &render2dEffectsPreHud);
     viewRender.hookAt(WIN32_LINUX(41, 42), &renderSmokeOverlay);
 
-#ifdef _WIN32
     if (DWORD oldProtection; VirtualProtect(memory->dispatchSound, 4, PAGE_EXECUTE_READWRITE, &oldProtection)) {
-#else
-    if (const auto addressPageAligned = std::uintptr_t(memory->dispatchSound) - std::uintptr_t(memory->dispatchSound) % sysconf(_SC_PAGESIZE);
-        mprotect((void*)addressPageAligned, 4, PROT_READ | PROT_WRITE | PROT_EXEC) == 0) {
-#endif
+
         originalDispatchSound = decltype(originalDispatchSound)(uintptr_t(memory->dispatchSound + 1) + *memory->dispatchSound);
         *memory->dispatchSound = uintptr_t(&dispatchSound) - uintptr_t(memory->dispatchSound + 1);
-#ifdef _WIN32
+
         VirtualProtect(memory->dispatchSound, 4, oldProtection, nullptr);
-#endif
     }
 
-#ifdef _WIN32
     surface.hookAt(67, &lockCursor);
 
     if constexpr (std::is_same_v<HookType, MinHook>)
         MH_EnableHook(MH_ALL_HOOKS);
-#endif
 }
-
-#ifdef _WIN32
 
 extern "C" BOOL WINAPI _CRT_INIT(HMODULE moduleHandle, DWORD reason, LPVOID reserved);
 
@@ -671,19 +613,16 @@ static DWORD WINAPI unload(HMODULE moduleHandle) noexcept
     FreeLibraryAndExitThread(moduleHandle, 0);
 }
 
-#endif
 
 void Hooks::uninstall() noexcept
 {
     Misc::updateEventListeners(true);
     Visuals::updateEventListeners(true);
 
-#ifdef _WIN32
     if constexpr (std::is_same_v<HookType, MinHook>) {
         MH_DisableHook(MH_ALL_HOOKS);
         MH_Uninitialize();
     }
-#endif
 
     bspQuery.restore();
     client.restore();
@@ -703,7 +642,6 @@ void Hooks::uninstall() noexcept
     Glow::clearCustomObjects();
     InventoryChanger::clearInventory();
 
-#ifdef _WIN32
     SetWindowLongPtrW(window, GWLP_WNDPROC, LONG_PTR(originalWndProc));
     **reinterpret_cast<void***>(memory->present) = originalPresent;
     **reinterpret_cast<void***>(memory->reset) = originalReset;
@@ -715,50 +653,9 @@ void Hooks::uninstall() noexcept
 
     if (HANDLE thread = CreateThread(nullptr, 0, LPTHREAD_START_ROUTINE(unload), moduleHandle, 0, nullptr))
         CloseHandle(thread);
-#else
-    *reinterpret_cast<decltype(pollEvent)*>(memory->pollEvent) = pollEvent;
-    *reinterpret_cast<decltype(swapWindow)*>(memory->swapWindow) = swapWindow;
-#endif
 }
 
 void Hooks::callOriginalDrawModelExecute(void* ctx, void* state, const ModelRenderInfo& info, matrix3x4* customBoneToWorld) noexcept
 {
     modelRender.callOriginal<void, 21>(ctx, state, std::cref(info), customBoneToWorld);
 }
-
-#ifndef _WIN32
-
-static int pollEvent(SDL_Event* event) noexcept
-{
-    [[maybe_unused]] static const auto once = []() noexcept {
-        Netvars::init();
-        EventListener::init();
-
-        ImGui::CreateContext();
-        config = std::make_unique<Config>();
-
-        gui = std::make_unique<GUI>();
-
-        hooks->install();
-
-        return true;
-    }();
-
-    const auto result = hooks->pollEvent(event);
-
-    if (result && ImGui_ImplSDL2_ProcessEvent(event) && gui->isOpen())
-        event->type = 0;
-
-    return result;
-}
-
-Hooks::Hooks() noexcept
-{
-    interfaces = std::make_unique<const Interfaces>();
-    memory = std::make_unique<const Memory>();
-
-    pollEvent = *reinterpret_cast<decltype(pollEvent)*>(memory->pollEvent);
-    *reinterpret_cast<decltype(::pollEvent)**>(memory->pollEvent) = ::pollEvent;
-}
-
-#endif

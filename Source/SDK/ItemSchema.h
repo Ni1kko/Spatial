@@ -611,11 +611,7 @@ class EconItem {
 public:
     INCONSTRUCTIBLE(EconItem)
 
-#ifdef _WIN32
     VIRTUAL_METHOD(void, destructor, 0, (), (this, true))
-#else
-    VIRTUAL_METHOD(void, destructor, 1, (), (this))
-#endif
 
     PAD(2 * sizeof(std::uintptr_t))
 

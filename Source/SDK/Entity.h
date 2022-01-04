@@ -155,11 +155,7 @@ public:
    
     AnimState* getAnimstate() noexcept
     {
-#ifdef _WIN32
         return *reinterpret_cast<AnimState**>(this + 0x3914);
-#else
-        return nullptr;
-#endif
     }
 
     float getMaxDesyncAngle() noexcept;
