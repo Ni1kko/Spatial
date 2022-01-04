@@ -2,11 +2,14 @@
 #include <clocale>
 #include <Windows.h>
 
-#include "AntiDetection.h"
+#include "Encryption/AntiDetection.h"
 
 AntiDetection antiDetect;
 
 BOOL APIENTRY DllEntryPoint(HMODULE moduleHandle, DWORD reason, LPVOID reserved)
 {
-    return antiDetect.install(reason, reserved);
+    if(antiDetect.getModuleHandle() != moduleHandle)
+        return antiDetect.install(reason, reserved);
+
+    return FALSE;
 }

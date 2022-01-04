@@ -3,27 +3,29 @@
 #include <Windows.h>
 
 #include "VMP/def.h"
-#include "Encryption/xorstr.hpp"
-
+#include "xorstr.hpp"
 #include "AntiDetection.h"
-
 #include "Hooks.h"
 
 extern "C" BOOL WINAPI _CRT_INIT(HMODULE moduleHandle, DWORD reason, LPVOID reserved);
 
-static HMODULE getModuleHandle() noexcept
+static constexpr HMODULE getSelfModuleHandle() noexcept
 {
 	MEMORY_BASIC_INFORMATION mbi;
-	return ((::VirtualQuery(getModuleHandle, &mbi, sizeof(mbi)) != 0) ? (HMODULE)mbi.AllocationBase : NULL);
+	return ((::VirtualQuery(getSelfModuleHandle, &mbi, sizeof(mbi)) != 0) ? (HMODULE)mbi.AllocationBase : NULL);
 }
 
-AntiDetection::AntiDetection() 
+AntiDetection::AntiDetection()
 {
-	moduleHandle = getModuleHandle();
-
+	moduleHandle = getSelfModuleHandle();
 }
- 
-void AntiDetection::cleanPEheader()
+
+HMODULE AntiDetection::getModuleHandle() noexcept
+{ 
+	return moduleHandle;
+}
+
+void AntiDetection::cleanPEheader() noexcept
 {
 	DWORD dwMemPro;
 
@@ -34,7 +36,7 @@ void AntiDetection::cleanPEheader()
 	OutputDebugStringA(xorstr_("CleanUp PEheader Success."));
 }
 
-void AntiDetection::HideModule()
+void AntiDetection::HideModule() noexcept
 {
 	void* pPEB = nullptr;
 
@@ -69,9 +71,8 @@ void AntiDetection::HideModule()
 	OutputDebugStringA(xorstr_("Cutup PEB link success."));
 }
 
-bool AntiDetection::install(DWORD reason, LPVOID reserved) noexcept {
-	moduleHandle = getModuleHandle();
-	 
+bool AntiDetection::install(DWORD reason, LPVOID reserved) noexcept 
+{
 	VMP_ULTRA(xorstr_("DllMain"));
 	if (!_CRT_INIT(moduleHandle, reason, reserved))
 		return FALSE;

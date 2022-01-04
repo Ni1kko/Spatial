@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AntiDetection.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="ConfigStructs.cpp" />
+    <ClCompile Include="Encryption\AntiDetection.cpp" />
     <ClCompile Include="EventListener.cpp" />
     <ClCompile Include="freetype\src\autofit\autofit.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
@@ -203,13 +203,15 @@
     <ClCompile Include="SDK\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AntiDetection.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="ConfigStructs.h" />
+    <ClInclude Include="Encryption\AntiDetection.h" />
     <ClInclude Include="Encryption\cx_fnv1.h" />
     <ClInclude Include="Encryption\cx_pcg32.h" />
     <ClInclude Include="Encryption\cx_strenc.h" />
     <ClInclude Include="Encryption\fnv.h" />
+    <ClInclude Include="Encryption\VMP\def.h" />
+    <ClInclude Include="Encryption\VMP\VMProtectSDK.h" />
     <ClInclude Include="Encryption\xorstr.hpp" />
     <ClInclude Include="EventListener.h" />
     <ClInclude Include="freetype\freetype\config\ftmodule.h" />
@@ -341,8 +343,6 @@
     <ClInclude Include="SDK\WeaponId.h" />
     <ClInclude Include="SDK\WeaponData.h" />
     <ClInclude Include="SDK\WeaponSystem.h" />
-    <ClInclude Include="VMP\def.h" />
-    <ClInclude Include="VMP\VMProtectSDK.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\default_vs.hlsl">
@@ -357,10 +357,10 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="VMP\VMProtectSDK32.lib" />
+    <None Include="cpp.hint" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="cpp.hint" />
+    <Library Include="Encryption\VMP\VMProtectSDK32.lib" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

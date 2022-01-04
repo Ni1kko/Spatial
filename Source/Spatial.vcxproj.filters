@@ -266,14 +266,14 @@
     <ClCompile Include="Hooks.cpp">
       <Filter>Hooks</Filter>
     </ClCompile>
-    <ClCompile Include="AntiDetection.cpp">
-      <Filter>Encryption</Filter>
-    </ClCompile>
     <ClCompile Include="Menu\MenuHUD.cpp">
       <Filter>Menu</Filter>
     </ClCompile>
     <ClCompile Include="Menu\Texture.cpp">
       <Filter>Menu</Filter>
+    </ClCompile>
+    <ClCompile Include="Encryption\AntiDetection.cpp">
+      <Filter>Encryption</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -613,12 +613,6 @@
     <ClInclude Include="Hacks\Troll.h">
       <Filter>Hacks</Filter>
     </ClInclude>
-    <ClInclude Include="VMP\def.h">
-      <Filter>Encryption\VMP</Filter>
-    </ClInclude>
-    <ClInclude Include="VMP\VMProtectSDK.h">
-      <Filter>Encryption\VMP</Filter>
-    </ClInclude>
     <ClInclude Include="Hacks\Tickbase.h">
       <Filter>Hacks</Filter>
     </ClInclude>
@@ -694,8 +688,14 @@
     <ClInclude Include="Resources\menu_bg.h">
       <Filter>Menu\Resources</Filter>
     </ClInclude>
-    <ClInclude Include="AntiDetection.h">
+    <ClInclude Include="Encryption\AntiDetection.h">
       <Filter>Encryption</Filter>
+    </ClInclude>
+    <ClInclude Include="Encryption\VMP\def.h">
+      <Filter>Encryption\VMP</Filter>
+    </ClInclude>
+    <ClInclude Include="Encryption\VMP\VMProtectSDK.h">
+      <Filter>Encryption\VMP</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -704,11 +704,11 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="VMP\VMProtectSDK32.lib">
-      <Filter>Encryption\VMP</Filter>
-    </Library>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="cpp.hint" />
+    <Library Include="Encryption\VMP\VMProtectSDK32.lib">
+      <Filter>Encryption\VMP</Filter>
+    </Library>
   </ItemGroup>
 </Project>
