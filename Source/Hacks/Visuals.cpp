@@ -34,8 +34,6 @@
 #include "../SDK/ViewRenderBeams.h"
 #include <Hacks/Movement.h>
 
-
-#ifdef _WIN32
 #undef xor
 #define DRAW_SCREEN_EFFECT(material) \
 { \
@@ -52,16 +50,6 @@
         __asm add esp, 12 \
     } \
 }
-
-#else
-#define DRAW_SCREEN_EFFECT(material) \
-{ \
-    int w, h; \
-    interfaces->engine->getScreenSize(w, h); \
-    reinterpret_cast<void(*)(Material*, int, int, int, int)>(memory->drawScreenEffectMaterial)(material, 0, 0, w, h); \
-}
-#endif
-
 
 struct BulletTracers : ColorToggle {
     BulletTracers() : ColorToggle{ 0.0f, 0.75f, 1.0f, 1.0f } {}
