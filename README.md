@@ -5,7 +5,8 @@
 [![x86](https://img.shields.io/badge/arch-x86-red.svg?style=plastic)](https://en.wikipedia.org/wiki/X86) 
 [![License](https://img.shields.io/github/license/danielkrupinski/Osiris.svg?style=plastic)](LICENSE)
 
-open-source cross-platform cheat software for **Counter-Strike: Global Offensive** game. 
+open-source cross-platform cheat software for **Counter-Strike: Global Offensive** game.
+
 Windows support only
 
 ## Features
