@@ -619,9 +619,6 @@
     <ClInclude Include="VMP\VMProtectSDK.h">
       <Filter>Encryption\VMP</Filter>
     </ClInclude>
-    <ClInclude Include="AntiDetection.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Hacks\Tickbase.h">
       <Filter>Hacks</Filter>
     </ClInclude>
@@ -696,6 +693,9 @@
     </ClInclude>
     <ClInclude Include="Resources\menu_bg.h">
       <Filter>Menu\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="AntiDetection.h">
+      <Filter>Encryption</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

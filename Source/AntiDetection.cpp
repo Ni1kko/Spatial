@@ -1,15 +1,40 @@
-#include "AntiDetection.h"
+#include <memory>
+#include <clocale>
 #include <Windows.h>
 
+#include "VMP/def.h"
 #include "Encryption/xorstr.hpp"
 
-HMODULE GetSelfModuleHandle()
+#include "AntiDetection.h"
+
+#include "Hooks.h"
+
+extern "C" BOOL WINAPI _CRT_INIT(HMODULE moduleHandle, DWORD reason, LPVOID reserved);
+
+static HMODULE getModuleHandle() noexcept
 {
 	MEMORY_BASIC_INFORMATION mbi;
-	return ((::VirtualQuery(GetSelfModuleHandle, &mbi, sizeof(mbi)) != 0) ? (HMODULE)mbi.AllocationBase : NULL);
+	return ((::VirtualQuery(getModuleHandle, &mbi, sizeof(mbi)) != 0) ? (HMODULE)mbi.AllocationBase : NULL);
 }
 
-void HideModule(void* pModule)
+AntiDetection::AntiDetection() 
+{
+	moduleHandle = getModuleHandle();
+
+}
+ 
+void AntiDetection::cleanPEheader()
+{
+	DWORD dwMemPro;
+
+	VirtualProtect((void*)moduleHandle, 0x1000, PAGE_EXECUTE_READWRITE, &dwMemPro);
+	memset((void*)moduleHandle, 0, 0x1000);
+	VirtualProtect((void*)moduleHandle, 0x1000, dwMemPro, &dwMemPro);
+
+	OutputDebugStringA(xorstr_("CleanUp PEheader Success."));
+}
+
+void AntiDetection::HideModule()
 {
 	void* pPEB = nullptr;
 
@@ -31,7 +56,7 @@ void HideModule(void* pModule)
 		void* pLastPoint = *((void**)((unsigned char*)pNext + 0x4));
 		void* nBaseAddress = *((void**)((unsigned char*)pNext + 0x18));
 
-		if (nBaseAddress == pModule)
+		if (nBaseAddress == moduleHandle)
 		{
 			*((void**)((unsigned char*)pLastPoint)) = pNextPoint;
 			*((void**)((unsigned char*)pNextPoint + 0x4)) = pLastPoint;
@@ -40,16 +65,24 @@ void HideModule(void* pModule)
 
 		pNext = *((void**)pNext);
 	} while (pCurrent != pNext);
+	
+	OutputDebugStringA(xorstr_("Cutup PEB link success."));
 }
 
-AntiDetection::AntiDetection() {
-	//clear up PE headers.
-	HMODULE hModule = GetSelfModuleHandle();
-	DWORD dwMemPro;
-	VirtualProtect((void*)hModule, 0x1000, PAGE_EXECUTE_READWRITE, &dwMemPro);
-	memset((void*)hModule, 0, 0x1000);
-	VirtualProtect((void*)hModule, 0x1000, dwMemPro, &dwMemPro);
-	OutputDebugStringA(xorstr_("CleanUp PEheader Success."));
-	HideModule(hModule);
-	OutputDebugStringA(xorstr_("Cutup PEB link success."));
+bool AntiDetection::install(DWORD reason, LPVOID reserved) noexcept {
+	moduleHandle = getModuleHandle();
+	 
+	VMP_ULTRA(xorstr_("DllMain"));
+	if (!_CRT_INIT(moduleHandle, reason, reserved))
+		return FALSE;
+
+	if (reason == DLL_PROCESS_ATTACH) {
+		VMP_ULTRA(xorstr_("OnDllAttach"));
+		std::setlocale(LC_CTYPE, xorstr_(".utf8")); 
+		cleanPEheader();
+		HideModule();
+		hooks = std::make_unique<Hooks>(moduleHandle);
+	}
+	return TRUE;
+	VMP_END;
 }
