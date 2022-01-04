@@ -5,21 +5,21 @@
 [![x86](https://img.shields.io/badge/arch-x86-red.svg?style=plastic)](https://en.wikipedia.org/wiki/X86) 
 [![License](https://img.shields.io/github/license/danielkrupinski/Osiris.svg?style=plastic)](LICENSE)
 
-open-source cross-platform cheat software for **Counter-Strike: Global Offensive** game.
-
 Windows support only
 
 ## Features
 *   **Aimbot** - aim assistance
+*   **Antiaim** - make it harder for attacker to hit you
 *   **Triggerbot** - automatically fires when crosshair is on enemy
 *   **Backtrack** - abuse lag compensation to move players back in time
+*   **Movement** - movement based hacks
+*   **Network** - network based hacks
 *   **Glow** - render glow effect on entities
 *   **Chams** - color player models to improve visibility
-*   **Stream Proof ESP** - show information about players, dropped weapons and projectiles
+*   **ESP (Stream Proof)** - show information about players, dropped weapons and projectiles
 *   **Visuals** - miscellaneous visual options
 *   **Inventory Changer** - add weapon skins, stickers, knives, gloves, medals and more to your in-game inventory
 *   **Sound** - modify volume of certain sound effects
-*   **Style** - select menu window layout and colors
 *   **Misc** - miscellaneous features
 *   **Troll** - trolling features
 *   **Config** - JSON-based configuration system
