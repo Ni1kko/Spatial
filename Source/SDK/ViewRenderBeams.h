@@ -40,7 +40,7 @@ struct BeamInfo {
 };
 
 struct Beam {
-    PAD(WIN32_LINUX(52, 76))
+    PAD(52)
     int flags;
     PAD(144)
     float die;
@@ -50,5 +50,5 @@ class ViewRenderBeams {
 public:
     INCONSTRUCTIBLE(ViewRenderBeams)
 
-    VIRTUAL_METHOD(Beam*, createBeamPoints, WIN32_LINUX(12, 9), (BeamInfo& beamInfo), (this, std::ref(beamInfo)))
+    VIRTUAL_METHOD(Beam*, createBeamPoints, 12, (BeamInfo& beamInfo), (this, std::ref(beamInfo)))
 };

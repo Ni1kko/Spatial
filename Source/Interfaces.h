@@ -4,11 +4,7 @@
 #include <string>
 #include <type_traits>
 
-#ifdef _WIN32
 #include <Windows.h>
-#else
-#include <dlfcn.h>
-#endif
 
 #include "Helpers.h"
 #include "SDK/Platform.h"
@@ -70,13 +66,7 @@ type* name = reinterpret_cast<type*>(find(moduleName, version));
 private:
     static void* find(const char* moduleName, const char* name) noexcept
     {
-        if (const auto createInterface = reinterpret_cast<std::add_pointer_t<void* __CDECL(const char* name, int* returnCode)>>(
-#ifdef _WIN32
-            GetProcAddress(GetModuleHandleA(moduleName), "CreateInterface")
-#else
-            dlsym(dlopen(moduleName, RTLD_NOLOAD | RTLD_LAZY), "CreateInterface")
-#endif
-            )) {
+        if (const auto createInterface = reinterpret_cast<std::add_pointer_t<void* __CDECL(const char* name, int* returnCode)>>(GetProcAddress(GetModuleHandleA(moduleName), "CreateInterface"))) {
             if (void* foundInterface = createInterface(name, nullptr))
                 return foundInterface;
         }

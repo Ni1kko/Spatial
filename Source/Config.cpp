@@ -5,11 +5,9 @@
 #include <iterator>
 #include <system_error>
 
-#ifdef _WIN32
 #include <Windows.h>
 #include <shellapi.h>
 #include <ShlObj.h>
-#endif
 
 #include <Encryption/xorstr.hpp>
 
@@ -20,6 +18,7 @@
 #include <Menu/imguiCustom.h>
 
 #include "Config.h"
+
 #include "Hacks/AntiAim.h"
 #include "Hacks/Backtrack.h"
 #include "Hacks/Glow.h"
@@ -31,7 +30,6 @@
 #include "Hacks/Tickbase.h"
 #include <Hacks/Movement.h>
 
-#ifdef _WIN32
 int CALLBACK fontCallback(const LOGFONTW* lpelfe, const TEXTMETRICW*, DWORD, LPARAM lParam)
 {
     const wchar_t* const fontName = reinterpret_cast<const ENUMLOGFONTEXW*>(lpelfe)->elfFullName;
@@ -62,20 +60,15 @@ int CALLBACK fontCallback(const LOGFONTW* lpelfe, const TEXTMETRICW*, DWORD, LPA
     }
     return TRUE;
 }
-#endif
 
 [[nodiscard]] static std::filesystem::path buildConfigsFolderPath() noexcept
 {
     std::filesystem::path path;
-#ifdef _WIN32
+
     if (PWSTR pathToDocuments; SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &pathToDocuments))) {
         path = pathToDocuments;
         CoTaskMemFree(pathToDocuments);
     }
-#else
-    if (const char* homeDir = getenv("HOME"))
-        path = homeDir;
-#endif
 
     path /= xorstr_("Spatial");
     return path;
@@ -87,14 +80,12 @@ Config::Config() noexcept : path{ buildConfigsFolderPath() }
 
     load(u8"default.json", false);
 
-#ifdef _WIN32
     LOGFONTW logfont;
     logfont.lfCharSet = ANSI_CHARSET;
     logfont.lfPitchAndFamily = DEFAULT_PITCH;
     logfont.lfFaceName[0] = L'\0';
 
     EnumFontFamiliesExW(GetDC(nullptr), &logfont, fontCallback, (LPARAM)&systemFonts, 0);
-#endif
 
     std::sort(std::next(systemFonts.begin()), systemFonts.end());
 }
