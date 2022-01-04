@@ -580,7 +580,6 @@ void Misc::antiAfkKick(UserCmd* cmd) noexcept
 
 void Misc::fixAnimationLOD(FrameStage stage) noexcept
 {
-#ifdef _WIN32
     if (miscConfig.fixAnimationLOD && stage == FrameStage::RENDER_START) {
         if (!localPlayer)
             return;
@@ -591,7 +590,6 @@ void Misc::fixAnimationLOD(FrameStage stage) noexcept
             *reinterpret_cast<int*>(entity + 0xA30) = memory->globalVars->framecount;
         }
     }
-#endif
 }
 
 void Misc::autoPistol(UserCmd* cmd) noexcept
@@ -1020,12 +1018,10 @@ void Misc::autoAccept(const char* soundEntry) noexcept
             interfaces->panoramaUIEngine->accessUIEngine()->dispatchEvent(eventPtr);
     }
 
-#ifdef _WIN32
     auto window = FindWindowW(L"Valve001", NULL);
     FLASHWINFO flash{ sizeof(FLASHWINFO), window, FLASHW_TRAY | FLASHW_TIMERNOFG, 0, 0 };
     FlashWindowEx(&flash);
     ShowWindow(window, SW_RESTORE);
-#endif
 }
 
 void Misc::fakePrime() noexcept
@@ -1036,14 +1032,12 @@ void Misc::fakePrime() noexcept
     {
         lastState = miscConfig.fakePrime;
 
-#ifdef _WIN32
         if (DWORD oldProtect; VirtualProtect(memory->fakePrime, 4, PAGE_EXECUTE_READWRITE, &oldProtect))
         {
             constexpr uint8_t patch[]{ 0x31, 0xC0, 0x40, 0xC3 };
             std::memcpy(memory->fakePrime, patch, 4);
             VirtualProtect(memory->fakePrime, 4, oldProtect, nullptr);
         }
-#endif
     }
 }
 

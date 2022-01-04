@@ -100,7 +100,6 @@ public:
     VIRTUAL_METHOD(int, getMuzzleAttachmentIndex3rdPerson, WIN32_LINUX(469, 537), (), (this))
     VIRTUAL_METHOD(float, getInaccuracy, WIN32_LINUX(483, 551), (), (this))
 
-#if IS_WIN32()
     auto getEyePosition() noexcept
     {
         Vector v;
@@ -114,10 +113,6 @@ public:
         VirtualMethod::call<void, 346>(this, std::ref(v));
         return v;
     }
-#else
-    VIRTUAL_METHOD(Vector, getEyePosition, 348, (), (this))
-    VIRTUAL_METHOD(Vector, getAimPunch, 409, (), (this))
-#endif
 
     auto isPistol() noexcept { return getWeaponType() == WeaponType::Pistol; }
     auto isSniperRifle() noexcept { return getWeaponType() == WeaponType::SniperRifle; }
