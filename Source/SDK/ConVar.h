@@ -11,13 +11,13 @@
 struct ConVar {
     INCONSTRUCTIBLE(ConVar)
 
-    VIRTUAL_METHOD(float, getFloat, WIN32_LINUX(12, 15), (), (this))
-    VIRTUAL_METHOD(int, getInt, WIN32_LINUX(13, 16), (), (this))
-    VIRTUAL_METHOD(void, setValue, WIN32_LINUX(14, 17), (const char* value), (this, value))
-    VIRTUAL_METHOD(void, setValue, WIN32_LINUX(15, 18), (float value), (this, value))
-    VIRTUAL_METHOD(void, setValue, WIN32_LINUX(16, 19), (int value), (this, value))
+    VIRTUAL_METHOD(float, getFloat, 12, (), (this))
+    VIRTUAL_METHOD(int, getInt, 13, (), (this))
+    VIRTUAL_METHOD(void, setValue, 14, (const char* value), (this, value))
+    VIRTUAL_METHOD(void, setValue, 15, (float value), (this, value))
+    VIRTUAL_METHOD(void, setValue, 16, (int value), (this, value))
 
-    PAD(WIN32_LINUX(24, 48))
+    PAD(24)
     std::add_pointer_t<void __CDECL()> changeCallback;
     ConVar* parent;
     const char* defaultValue;

@@ -833,7 +833,7 @@ void Misc::preserveKillfeed(bool roundStart) noexcept
     if (!deathNotice)
         return;
 
-    const auto deathNoticePanel = (*(UIPanel**)(*reinterpret_cast<std::uintptr_t*>(deathNotice WIN32_LINUX(-20 + 88, -32 + 128)) + sizeof(std::uintptr_t)));
+    const auto deathNoticePanel = (*(UIPanel**)(*reinterpret_cast<std::uintptr_t*>(deathNotice - 20 + 88) + sizeof(std::uintptr_t)));
 
     const auto childPanelCount = deathNoticePanel->getChildCount();
 

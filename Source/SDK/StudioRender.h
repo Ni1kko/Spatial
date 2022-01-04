@@ -16,9 +16,9 @@ enum class OverrideType {
 };
 
 class StudioRender {
-    std::byte pad_0[WIN32_LINUX(592, 600)];
+    std::byte pad_0[592];
     Material* materialOverride;
-    std::byte pad_1[WIN32_LINUX(12, 24)];
+    std::byte pad_1[12];
     OverrideType overrideType;
 public:
     INCONSTRUCTIBLE(StudioRender)

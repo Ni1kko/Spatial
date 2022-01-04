@@ -282,15 +282,9 @@ void Helpers::messageBox(std::string_view title, std::string_view msg, const int
 {
     const auto flags = [type]() {
         switch (type) {
-        case 1:
-            return WIN32_LINUX(MB_OK | MB_ICONWARNING, SDL_MESSAGEBOX_WARNING);
-            break;
-        case 2:
-            return WIN32_LINUX(MB_OK | MB_ICONINFORMATION, SDL_MESSAGEBOX_INFORMATION);
-            break;
-        default:
-            return WIN32_LINUX(MB_OK | MB_ICONERROR, SDL_MESSAGEBOX_ERROR);
-            break;
+            case 1: return MB_OK | MB_ICONWARNING;
+            case 2: return MB_OK | MB_ICONINFORMATION;
+            default: return MB_OK | MB_ICONERROR;
         }
     }();
 
