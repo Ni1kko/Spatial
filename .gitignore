@@ -19,8 +19,6 @@ Spatial/Resources/Shaders/Build/
 [Dd]ebug/
 [Dd]ebugPublic/
 #[Rr]elease/
-UITester/Release/
-Tests/Release/
 Source/Release/
 bin2cpp/Release/
 [Rr]eleases/
