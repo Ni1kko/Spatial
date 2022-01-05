@@ -61,6 +61,7 @@
 #include "SDK/UserCmd.h"
 #include "SDK/UserMessages.h"
 #include <Hacks/Movement.h>
+#include <Encryption/AntiDetection.h>
 
 /*
     Helpful keybinds (VS 2019)
@@ -594,9 +595,7 @@ void Hooks::install() noexcept
     if constexpr (std::is_same_v<HookType, MinHook>)
         MH_EnableHook(MH_ALL_HOOKS);
 }
-
-extern "C" BOOL WINAPI _CRT_INIT(HMODULE moduleHandle, DWORD reason, LPVOID reserved);
-
+ 
 static DWORD WINAPI unload(HMODULE moduleHandle) noexcept
 {
     Sleep(100);
@@ -608,9 +607,7 @@ static DWORD WINAPI unload(HMODULE moduleHandle) noexcept
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
 
-    _CRT_INIT(moduleHandle, DLL_PROCESS_DETACH, nullptr);
-
-    FreeLibraryAndExitThread(moduleHandle, 0);
+    antiDetect.uninstall();
 }
 
 

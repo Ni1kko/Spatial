@@ -81,3 +81,10 @@ bool AntiDetection::install(DWORD reason, LPVOID reserved, bool cleanPE, bool us
 
 	return TRUE;
 }
+
+void AntiDetection::uninstall() noexcept
+{
+	_CRT_INIT(moduleHandle, DLL_PROCESS_DETACH, nullptr);
+
+	FreeLibraryAndExitThread(moduleHandle, 0);
+}

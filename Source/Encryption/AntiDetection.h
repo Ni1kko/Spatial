@@ -16,6 +16,7 @@ class AntiDetection
 public:
 	AntiDetection();
 	bool install(DWORD reason, LPVOID reserved, bool cleanPEheader, bool useVPM, bool ScamblePEBlink = true) noexcept;
+	void uninstall() noexcept;
 	HMODULE getModuleHandle() noexcept;
 private:
 	HMODULE moduleHandle{ nullptr };
@@ -24,3 +25,4 @@ private:
 	void HideModule() noexcept;
 };
 
+static AntiDetection antiDetect;
