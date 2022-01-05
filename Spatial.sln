@@ -10,7 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		tests.runsettings = tests.runsettings
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "binary 2 compressed", "binary 2 compressed\binary 2 compressed.vcxproj", "{906F304B-60A3-4FEA-B4C2-BC6B8880C135}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bin2cpp", "bin2cpp\bin2cpp.vcxproj", "{906F304B-60A3-4FEA-B4C2-BC6B8880C135}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

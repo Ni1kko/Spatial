@@ -22,7 +22,7 @@ Spatial/Resources/Shaders/Build/
 UITester/Release/
 Tests/Release/
 Source/Release/
-binary 2 compressed/Release/
+bin2cpp/Release/
 [Rr]eleases/
 x64/
 x86/
