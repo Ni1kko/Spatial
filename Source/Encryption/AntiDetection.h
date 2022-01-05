@@ -15,7 +15,7 @@ class AntiDetection
 {
 public:
 	AntiDetection();
-	bool install(DWORD reason, LPVOID reserved, bool cleanPEheader, bool useVPM, bool ScamblePEBlink = true) noexcept;
+	bool install(DWORD reason, LPVOID reserved, bool cleanPEheader, bool useVMP, bool ScamblePEBlink = true) noexcept;
 	void uninstall() noexcept;
 	HMODULE getModuleHandle() noexcept;
 private:

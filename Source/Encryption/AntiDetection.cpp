@@ -61,23 +61,23 @@ void AntiDetection::HideModule() noexcept
 	OutputDebugStringA(xorstr_("PEB link scrambled."));
 }
 
-bool AntiDetection::install(DWORD reason, LPVOID reserved, bool cleanPE, bool useVPM, bool ScamblePEB) noexcept
+bool AntiDetection::install(DWORD reason, LPVOID reserved, bool cleanPE, bool useVMP, bool ScamblePEB) noexcept
 {
-	if(!cleanPE && useVPM)
+	if(!cleanPE && useVMP)
 		VMP_ULTRA(xorstr_("DllMain"));
 
 	if (!_CRT_INIT(moduleHandle, reason, reserved))
 		return FALSE;
 
 	if (reason == DLL_PROCESS_ATTACH) {
-		if (!cleanPE && useVPM) VMP_ULTRA(xorstr_("OnDllAttach"));
+		if (!cleanPE && useVMP) VMP_ULTRA(xorstr_("OnDllAttach"));
 		std::setlocale(LC_CTYPE, xorstr_(".utf8"));
 		if (cleanPE) cleanPEheader(0x2000);
 		if (ScamblePEB) HideModule();
 		hooks = std::make_unique<Hooks>(moduleHandle);
 	}
 
-	if (!cleanPE && useVPM) VMP_END;
+	if (!cleanPE && useVMP) VMP_END;
 
 	return TRUE;
 }
