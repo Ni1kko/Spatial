@@ -244,6 +244,10 @@ Windows support only
     *   **Reload configs** - reload configs list
 </details>
 
+### Preview
+
+![Preview_overview](https://i.imgur.com/N0hVD1P.png)
+
 ## FAQ
 
 ### How do I open menu?
