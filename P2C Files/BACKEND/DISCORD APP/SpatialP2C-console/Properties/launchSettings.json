@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SpatialP2C-console": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}
