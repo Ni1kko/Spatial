@@ -18,7 +18,9 @@ Spatial/Resources/Shaders/Build/
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
-[Rr]elease/
+#[Rr]elease/
+Source/Release/
+bin2cpp/Release/
 [Rr]eleases/
 x64/
 x86/

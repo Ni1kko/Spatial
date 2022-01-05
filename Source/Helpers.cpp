@@ -8,26 +8,27 @@
 #include <span>
 #include <string_view>
 #include <unordered_map>
-
-#ifdef _WIN32
+#include <sstream> 
+#include <iomanip>
 #include <Windows.h>
-#else
-#include <SDL2/SDL_messagebox.h>
-#endif
 
 #include <Encryption/xorstr.hpp>
-#include <Encryption/cx_strenc.h>
 
 #include "Menu/imgui/imgui.h"
 
-#include "../Interfaces.h"
+#include "SDK/GlobalVars.h"
+#include "SDK/Engine.h"
+#include "SDK/ClientMode.h"
+#include "SDK/Steam.h"
+#include <SDK/LocalPlayer.h>
 
 #include "ConfigStructs.h"
 #include "GameData.h"
 #include "Helpers.h"
 #include "Memory.h"
-#include "SDK/GlobalVars.h"
-#include "SDK/Engine.h"
+#include "Interfaces.h"
+
+static float alphaFactor = 1.0f;
 
 static auto rainbowColor(float time, float speed, float alpha) noexcept
 {
@@ -38,7 +39,50 @@ static auto rainbowColor(float time, float speed, float alpha) noexcept
                        alpha };
 }
 
-static float alphaFactor = 1.0f;
+static void toUpper(std::span<wchar_t> str) noexcept
+{
+    static std::unordered_map<wchar_t, wchar_t> upperCache;
+
+    for (auto& c : str) {
+        if (c >= 'a' && c <= 'z') {
+            c -= ('a' - 'A');
+        }
+        else if (c > 127) {
+            if (const auto it = upperCache.find(c); it != upperCache.end()) {
+                c = it->second;
+            }
+            else {
+                const auto upper = std::towupper(c);
+                upperCache.emplace(c, upper);
+                c = upper;
+            }
+        }
+    }
+}
+
+static bool transformWorldPositionToScreenPosition(const Matrix4x4& matrix, const Vector& worldPosition, ImVec2& screenPosition) noexcept
+{
+    const auto w = matrix._41 * worldPosition.x + matrix._42 * worldPosition.y + matrix._43 * worldPosition.z + matrix._44;
+    if (w < 0.001f)
+        return false;
+
+    screenPosition = ImGui::GetIO().DisplaySize / 2.0f;
+    screenPosition.x *= 1.0f + (matrix._11 * worldPosition.x + matrix._12 * worldPosition.y + matrix._13 * worldPosition.z + matrix._14) / w;
+    screenPosition.y *= 1.0f - (matrix._21 * worldPosition.x + matrix._22 * worldPosition.y + matrix._23 * worldPosition.z + matrix._24) / w;
+    return true;
+}
+
+static std::string double2string(double value) noexcept
+{
+    std::ostringstream oss;
+    oss << std::setprecision(8) << std::noshowpoint << value;
+    return oss.str();
+}
+
+static std::string discordURL(std::string discordcode) noexcept
+{
+    return std::string{ xorstr_("https://discord.gg/") }.append(discordcode);
+}
 
 unsigned int Helpers::calculateColor(Color4 color) noexcept
 {
@@ -89,6 +133,51 @@ unsigned int Helpers::healthColor(float fraction) noexcept
     return calculateColor(static_cast<int>(r * 255.0f), static_cast<int>(g * 255.0f), static_cast<int>(b * 255.0f), 255);
 }
 
+void Helpers::shadeVertsHSVColorGradientKeepAlpha(ImDrawList* draw_list, int vert_start_idx, int vert_end_idx, ImVec2 gradient_p0, ImVec2 gradient_p1, ImU32 col0, ImU32 col1) noexcept
+{// ImGui::ShadeVertsLinearColorGradientKeepAlpha() modified to do interpolation in HSV
+    ImVec2 gradient_extent = gradient_p1 - gradient_p0;
+    float gradient_inv_length2 = 1.0f / ImLengthSqr(gradient_extent);
+    ImDrawVert* vert_start = draw_list->VtxBuffer.Data + vert_start_idx;
+    ImDrawVert* vert_end = draw_list->VtxBuffer.Data + vert_end_idx;
+
+    ImVec4 col0HSV = ImGui::ColorConvertU32ToFloat4(col0);
+    ImVec4 col1HSV = ImGui::ColorConvertU32ToFloat4(col1);
+    ImGui::ColorConvertRGBtoHSV(col0HSV.x, col0HSV.y, col0HSV.z, col0HSV.x, col0HSV.y, col0HSV.z);
+    ImGui::ColorConvertRGBtoHSV(col1HSV.x, col1HSV.y, col1HSV.z, col1HSV.x, col1HSV.y, col1HSV.z);
+    ImVec4 colDelta = col1HSV - col0HSV;
+
+    for (ImDrawVert* vert = vert_start; vert < vert_end; vert++)
+    {
+        float d = ImDot(vert->pos - gradient_p0, gradient_extent);
+        float t = ImClamp(d * gradient_inv_length2, 0.0f, 1.0f);
+
+        float h = col0HSV.x + colDelta.x * t;
+        float s = col0HSV.y + colDelta.y * t;
+        float v = col0HSV.z + colDelta.z * t;
+
+        ImVec4 rgb;
+        ImGui::ColorConvertHSVtoRGB(h, s, v, rgb.x, rgb.y, rgb.z);
+        vert->col = (ImGui::ColorConvertFloat4ToU32(rgb) & ~IM_COL32_A_MASK) | (vert->col & IM_COL32_A_MASK);
+    }
+}
+
+ImFont* Helpers::addFontFromVFONT(const std::string& path, float size, const ImWchar* glyphRanges, bool merge) noexcept
+{
+    auto file = Helpers::loadBinaryFile(path);
+    if (!Helpers::decodeVFONT(file))
+        return nullptr;
+
+    ImFontConfig cfg;
+    cfg.FontData = file.data();
+    cfg.FontDataSize = file.size();
+    cfg.FontDataOwnedByAtlas = false;
+    cfg.MergeMode = merge;
+    cfg.GlyphRanges = glyphRanges;
+    cfg.SizePixels = size;
+
+    return ImGui::GetIO().Fonts->AddFont(&cfg);
+}
+
 ImWchar* Helpers::getFontGlyphRanges() noexcept
 {
     static ImVector<ImWchar> ranges;
@@ -116,25 +205,6 @@ std::wstring Helpers::toWideString(const std::string& str) noexcept
     if (const auto newLen = std::mbstowcs(wide.data(), str.c_str(), wide.length()); newLen != static_cast<std::size_t>(-1))
         wide.resize(newLen);
     return wide;
-}
-
-static void toUpper(std::span<wchar_t> str) noexcept
-{
-    static std::unordered_map<wchar_t, wchar_t> upperCache;
-
-    for (auto& c : str) {
-        if (c >= 'a' && c <= 'z') {
-            c -= ('a' - 'A');
-        } else if (c > 127) {
-            if (const auto it = upperCache.find(c); it != upperCache.end()) {
-                c = it->second;
-            } else {
-                const auto upper = std::towupper(c);
-                upperCache.emplace(c, upper);
-                c = upper;
-            }
-        }
-    }
 }
 
 std::wstring Helpers::toUpper(std::wstring str) noexcept
@@ -188,27 +258,12 @@ std::vector<char> Helpers::loadBinaryFile(const std::string& path) noexcept
 std::size_t Helpers::calculateVmtLength(const std::uintptr_t* vmt) noexcept
 {
     std::size_t length = 0;
-#ifdef _WIN32
+
     MEMORY_BASIC_INFORMATION memoryInfo;
     while (VirtualQuery(LPCVOID(vmt[length]), &memoryInfo, sizeof(memoryInfo)) && memoryInfo.Protect & (PAGE_EXECUTE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY))
         ++length;
-#else
-    while (vmt[length])
-        ++length;
-#endif
+
     return length;
-}
-
-static bool transformWorldPositionToScreenPosition(const Matrix4x4& matrix, const Vector& worldPosition, ImVec2& screenPosition) noexcept
-{
-    const auto w = matrix._41 * worldPosition.x + matrix._42 * worldPosition.y + matrix._43 * worldPosition.z + matrix._44;
-    if (w < 0.001f)
-        return false;
-
-    screenPosition = ImGui::GetIO().DisplaySize / 2.0f;
-    screenPosition.x *= 1.0f + (matrix._11 * worldPosition.x + matrix._12 * worldPosition.y + matrix._13 * worldPosition.z + matrix._14) / w;
-    screenPosition.y *= 1.0f - (matrix._21 * worldPosition.x + matrix._22 * worldPosition.y + matrix._23 * worldPosition.z + matrix._24) / w;
-    return true;
 }
 
 bool Helpers::worldToScreen(const Vector& worldPosition, ImVec2& screenPosition) noexcept
@@ -227,22 +282,13 @@ void Helpers::messageBox(std::string_view title, std::string_view msg, const int
 {
     const auto flags = [type]() {
         switch (type) {
-        case 1:
-            return WIN32_LINUX(MB_OK | MB_ICONWARNING, SDL_MESSAGEBOX_WARNING);
-            break;
-        case 2:
-            return WIN32_LINUX(MB_OK | MB_ICONINFORMATION, SDL_MESSAGEBOX_INFORMATION);
-            break;
-        default:
-            return WIN32_LINUX(MB_OK | MB_ICONERROR, SDL_MESSAGEBOX_ERROR);
-            break;
+            case 1: return MB_OK | MB_ICONWARNING;
+            case 2: return MB_OK | MB_ICONINFORMATION;
+            default: return MB_OK | MB_ICONERROR;
         }
     }();
-#ifdef _WIN32
+
     MessageBoxA(nullptr, msg.data(), title.data(), flags);
-#else
-    SDL_ShowSimpleMessageBox(flags, title.data(), msg.data(), nullptr);
-#endif
 }
 
 Vector Helpers::calculateRelativeAngle(const Vector& source, const Vector& destination) noexcept
@@ -252,6 +298,15 @@ Vector Helpers::calculateRelativeAngle(const Vector& source, const Vector& desti
     return angles.normalize();;
 }
 
+long Helpers::getCurrentTime() noexcept
+{
+    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+}
+
+const char* Helpers::compileTimestamp() noexcept
+{
+    return ("[" + std::string{ __TIME__ } + "] " + __DATE__).c_str();
+}
 
 const char* Helpers::getColorByte(ColorByte colorByte)  noexcept
 {
@@ -269,17 +324,17 @@ const char* Helpers::getColorByte(ColorByte colorByte)  noexcept
         case ColorByte::Orange: return xorstr_("\x10");/*ORANGE*/
         case ColorByte::LightGrey: return xorstr_("\x0A");/*LIGHT GRAY*/
         case ColorByte::LightBlue: return xorstr_("\x0B");/*LIGHT BLUE*/
-        case ColorByte::GreyPurpleForSpectaor: return xorstr_("\x0C");/*GRAY (PURPLE FOR SPEC)*/
         case ColorByte::Blue: return xorstr_("\x0D");/*BLUE*/
         case ColorByte::Pink: return xorstr_("\x0E");/*PINK*/
         case ColorByte::DarkOrange: return xorstr_("\x0F");/*DARK ORANGE*/
+        default: return xorstr_("\x0C");/*GRAY (PURPLE FOR SPEC)*/
     };
 }
 
 void Helpers::excuteSayCommand(const char* message, bool fromConsoleOrKeybind) noexcept
 {
     //build command
-    std::string command = charenc("say ");
+    std::string command = xorstr_("say ");
     command.append(message);
 
     //excute command
@@ -289,14 +344,98 @@ void Helpers::excuteSayCommand(const char* message, bool fromConsoleOrKeybind) n
 void Helpers::excutePlayCommand(const char* file, bool fromConsoleOrKeybind) noexcept
 {
     //build command (audio file must be put in csgo/sound/ directory)
-    std::string command = charenc("play ");
+    std::string command = xorstr_("play ");
     command.append(file);
 
     //excute command
     interfaces->engine->clientCmdUnrestricted(command.c_str(), fromConsoleOrKeybind);
 }
 
-long Helpers::getCurrentTime() noexcept
+void Helpers::writeDebugConsole(const char* message, bool newline) noexcept
 {
-    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();  
+    //build
+    std::string text = message;
+    if(newline)
+        text.append("\n");
+     
+    //excute
+    memory->debugMsg(text.c_str());
+}
+
+void Helpers::writeDebugConsole(const char* message, std::array<std::uint8_t, 4> color, bool newline) noexcept
+{
+    //build
+    std::string text = message;
+    if (newline)
+        text.append("\n");
+
+    //excute
+    memory->conColorMsg(color, text.c_str());
+}
+
+void Helpers::writeInGameChat(const char* message, int filter) noexcept
+{
+    if (interfaces->engine->isInGame())
+        memory->clientMode->getHudChat()->printf(filter, message);
+    else
+        Helpers::writeDebugConsole(message, true);
+}
+
+void Helpers::writeInGameChat(const char* message, ColorByte colorByte, int filter) noexcept
+{
+    std::string text;
+
+    if (interfaces->engine->isInGame()) {
+        text = Helpers::getColorByte(ColorByte::GreyPurpleForSpectaor);
+        text.append(" ");
+        text.append(Helpers::getColorByte(colorByte));
+        text.append(message);
+    }
+    
+    Helpers::writeInGameChat(text.c_str());
+}
+
+std::string Helpers::getDllNameVersion() noexcept
+{
+    std::string text{std::string { dll_name } + " " };
+    text.append(std::string{ "v" }.append(::double2string(dll_version)));
+
+    if (dll_release > 0)
+        text.append(std::string{ "r" }.append(std::to_string(dll_release)));
+
+    return text;
+}
+
+void Helpers::showWelcomeMessage() noexcept
+{
+    std::string str1{ Helpers::getDllNameVersion() };
+    str1.append(xorstr_(" P2C"));
+    Helpers::writeDebugConsole(str1.c_str(), { 0, 120, 255, 255 });
+
+    std::string str2{ xorstr_("Welcome ") };
+    str2.append(interfaces->engine->getSteamAPIContext()->steamFriends->getPersonaName());
+    Helpers::writeDebugConsole(str2.c_str(), { 0, 200, 0, 255 });
+   
+    std::string str3{ xorstr_("Join ") };
+    str3.append(dll_name);
+    str3.append(xorstr_(" P2C Discord: "));
+    Helpers::writeDebugConsole(str3.c_str(), { 201, 120, 40, 255 }, false);
+    Helpers::writeDebugConsole(::discordURL(discordcode).c_str(), true);
+}
+
+void Helpers::showDiscordUrl(ColorByte colorByte) noexcept
+{
+    std::string str3{ xorstr_("Join ") };
+    str3.append(dll_name);
+    str3.append(xorstr_(" P2C Discord: "));
+    str3.append(Helpers::getColorByte(ColorByte::White)); 
+    str3.append(::discordURL(Helpers::discordcode));
+    Helpers::writeInGameChat(str3.c_str(), colorByte);
+}
+
+void Helpers::rainbowMenuBorder(float speed) noexcept
+{
+    ImGuiStyle& style = ImGui::GetStyle();
+    ImVec4* colors = style.Colors;
+    colors[ImGuiCol_Border] = rainbowColor(memory->globalVars->realtime, speed, 1.0f);
 }

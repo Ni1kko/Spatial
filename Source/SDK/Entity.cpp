@@ -14,7 +14,6 @@
 
 bool Entity::setupBones(matrix3x4* out, int maxBones, int boneMask, float currentTime) noexcept
 {
-#ifdef _WIN32
     if (movement->fixBoneMatrix()) {
         int* render = reinterpret_cast<int*>(this + 0x278);
         int backup = *render;
@@ -26,7 +25,6 @@ bool Entity::setupBones(matrix3x4* out, int maxBones, int boneMask, float curren
         *render = backup;
         return result;
     }
-#endif
     return VirtualMethod::call<bool, 13>(this + sizeof(uintptr_t), out, maxBones, boneMask, currentTime);
 }
 

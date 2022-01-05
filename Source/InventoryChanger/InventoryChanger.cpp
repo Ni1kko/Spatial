@@ -11,7 +11,7 @@
 #define STBI_NO_FAILURE_STRINGS
 #define STBI_NO_STDIO
 #define STB_IMAGE_IMPLEMENTATION
-#include "../stb_image.h"
+#include "../Menu/stb_image.h"
 
 #include "../Menu/imgui/imgui.h"
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -20,7 +20,7 @@
 #include "../Interfaces.h"
 #include "InventoryChanger.h"
 #include "../ProtobufReader.h"
-#include "../Texture.h"
+#include "../Menu/Texture.h"
 
 #include "../nlohmann/json.hpp"
 
@@ -267,8 +267,8 @@ static bool hudUpdateRequired{ false };
 
 static void updateHud() noexcept
 {
-    if (auto hud_weapons = memory->findHudElement(memory->hud, "CCSGO_HudWeaponSelection") - WIN32_LINUX(0x28, 62)) {
-        for (int i = 0; i < *(hud_weapons + WIN32_LINUX(32, 52)); i++)
+    if (auto hud_weapons = memory->findHudElement(memory->hud, "CCSGO_HudWeaponSelection") - 0x28) {
+        for (int i = 0; i < *(hud_weapons + 32); i++)
             i = memory->clearHudWeapon(hud_weapons, i);
     }
     hudUpdateRequired = false;
@@ -882,7 +882,7 @@ void InventoryChanger::onItemEquip(Team team, int slot, std::uint64_t itemID) no
 void InventoryChanger::onSoUpdated(SharedObject* object) noexcept
 {
     if (lastEquippedCount > 0 && object->getTypeID() == 43 /* = k_EEconTypeDefaultEquippedDefinitionInstanceClient */) {
-        *reinterpret_cast<WeaponId*>(std::uintptr_t(object) + WIN32_LINUX(0x10, 0x1C)) = WeaponId::None;
+        *reinterpret_cast<WeaponId*>(std::uintptr_t(object) + 0x10) = WeaponId::None;
         --lastEquippedCount;
     }
 }

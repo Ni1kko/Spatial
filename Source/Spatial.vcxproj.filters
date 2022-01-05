@@ -224,9 +224,6 @@
     <ClCompile Include="Hacks\Troll.cpp">
       <Filter>Hacks</Filter>
     </ClCompile>
-    <ClCompile Include="Texture.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Hacks\Tickbase.cpp">
       <Filter>Hacks</Filter>
     </ClCompile>
@@ -269,7 +266,13 @@
     <ClCompile Include="Hooks.cpp">
       <Filter>Hooks</Filter>
     </ClCompile>
-    <ClCompile Include="AntiDetection.cpp">
+    <ClCompile Include="Menu\MenuHUD.cpp">
+      <Filter>Menu</Filter>
+    </ClCompile>
+    <ClCompile Include="Menu\Texture.cpp">
+      <Filter>Menu</Filter>
+    </ClCompile>
+    <ClCompile Include="Encryption\AntiDetection.cpp">
       <Filter>Encryption</Filter>
     </ClCompile>
   </ItemGroup>
@@ -529,14 +532,8 @@
     <ClInclude Include="SDK\ViewRenderBeams.h">
       <Filter>SDK</Filter>
     </ClInclude>
-    <ClInclude Include="stb_image.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="SDK\FileSystem.h">
       <Filter>SDK</Filter>
-    </ClInclude>
-    <ClInclude Include="Texture.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SDK\Steam.h">
       <Filter>SDK</Filter>
@@ -616,15 +613,6 @@
     <ClInclude Include="Hacks\Troll.h">
       <Filter>Hacks</Filter>
     </ClInclude>
-    <ClInclude Include="VMP\def.h">
-      <Filter>Encryption\VMP</Filter>
-    </ClInclude>
-    <ClInclude Include="VMP\VMProtectSDK.h">
-      <Filter>Encryption\VMP</Filter>
-    </ClInclude>
-    <ClInclude Include="AntiDetection.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Hacks\Tickbase.h">
       <Filter>Hacks</Filter>
     </ClInclude>
@@ -685,6 +673,30 @@
     <ClInclude Include="Hooks.h">
       <Filter>Hooks</Filter>
     </ClInclude>
+    <ClInclude Include="Menu\MenuHUD.h">
+      <Filter>Menu</Filter>
+    </ClInclude>
+    <ClInclude Include="Menu\stb_image.h">
+      <Filter>Menu</Filter>
+    </ClInclude>
+    <ClInclude Include="Menu\Texture.h">
+      <Filter>Menu</Filter>
+    </ClInclude>
+    <ClInclude Include="Menu\PNGTexture.h">
+      <Filter>Menu</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources\menu_bg.h">
+      <Filter>Menu\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Encryption\AntiDetection.h">
+      <Filter>Encryption</Filter>
+    </ClInclude>
+    <ClInclude Include="Encryption\VMP\def.h">
+      <Filter>Encryption\VMP</Filter>
+    </ClInclude>
+    <ClInclude Include="Encryption\VMP\VMProtectSDK.h">
+      <Filter>Encryption\VMP</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\default_vs.hlsl">
@@ -692,11 +704,11 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="VMP\VMProtectSDK32.lib">
-      <Filter>Encryption\VMP</Filter>
-    </Library>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="cpp.hint" />
+    <Library Include="Encryption\VMP\VMProtectSDK32.lib">
+      <Filter>Encryption\VMP</Filter>
+    </Library>
   </ItemGroup>
 </Project>

@@ -5,19 +5,24 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-
-#ifdef _WIN32
 #include <ShlObj.h>
 #include <Windows.h>
-#endif
 
 #include <Menu/imgui/imgui.h>
 #include <Menu/imgui/imgui_stdlib.h>
+#include <Menu/Texture.h>
 #include <Menu/imguiCustom.h>
 #include <Menu/Menu.h>
+#include <Menu/MenuHUD.h>
+#include <Menu/PNGTexture.h>
 
 #include <SDK/InputSystem.h>
 #include <SDK/GlobalVars.h>
+#include <SDK/Engine.h> 
+#include <SDK/Entity.h>
+#include <SDK/LocalPlayer.h>
+#include <SDK/NetworkChannel.h> 
+#include <SDK/Steam.h>
 
 #include <Encryption/xorstr.hpp>
 
@@ -25,6 +30,7 @@
 #include <ConfigStructs.h>
 #include <Helpers.h>
 #include <Interfaces.h>
+#include <GameData.h> 
 #include "../Memory.h"
 
 #include <InventoryChanger/InventoryChanger.h>
@@ -42,84 +48,79 @@
 #include <Hacks/Chams.h>
 #include <Hacks/Aimbot.h>
 
-const auto menuTitle = "Spatial v1.4 r2";
-std::string menuFooter = "Compile timestamp: [" + std::string{ __TIME__ } + "] " +  __DATE__;
-
-static ImFont* addFontFromVFONT(const std::string& path, float size, const ImWchar* glyphRanges, bool merge) noexcept
-{
-    auto file = Helpers::loadBinaryFile(path);
-    if (!Helpers::decodeVFONT(file))
-        return nullptr;
-
-    ImFontConfig cfg;
-    cfg.FontData = file.data();
-    cfg.FontDataSize = file.size();
-    cfg.FontDataOwnedByAtlas = false;
-    cfg.MergeMode = merge;
-    cfg.GlyphRanges = glyphRanges;
-    cfg.SizePixels = size;
-
-    return ImGui::GetIO().Fonts->AddFont(&cfg);
-}
-
-void Menu::handleToggle() noexcept
-{
-    if (Misc::isMenuKeyPressed()) {
-        open = !open;
-        if (!open)
-            interfaces->inputSystem->resetInputState();
-#ifndef _WIN32
-        ImGui::GetIO().MouseDrawCursor = gui->open;
-#endif
-    }
-}
+const auto menuTitle = Helpers::getDllNameVersion();
+const auto menuFooter = "Compile timestamp: " + std::string{ Helpers::compileTimestamp() };
 
 Menu::Menu() noexcept
 {
-    ImGuiCustom::updateColors(0);
-    ImGuiStyle& style = ImGui::GetStyle();
-
-    style.ScrollbarSize = 9.0f;
-
+    ImGuiCustom::updateColors(static_cast<ImGuiStyles>(config->style.menuColors));
+    
     ImGuiIO& io = ImGui::GetIO();
+    ImFontConfig cfg;
+
     io.IniFilename = nullptr;
     io.LogFilename = nullptr;
     io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
 
-    ImFontConfig cfg;
     cfg.SizePixels = 15.0f;
-
-#ifdef _WIN32
+    
     if (PWSTR pathToFonts; SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Fonts, 0, nullptr, &pathToFonts))) {
         const std::filesystem::path path{ pathToFonts };
         CoTaskMemFree(pathToFonts);
-
         fonts.normal15px = io.Fonts->AddFontFromFileTTF((path / "tahoma.ttf").string().c_str(), 15.0f, &cfg, Helpers::getFontGlyphRanges());
-        if (!fonts.normal15px)
-            io.Fonts->AddFontDefault(&cfg);
-
+        if (!fonts.normal15px) io.Fonts->AddFontDefault(&cfg);
         cfg.MergeMode = true;
-        static constexpr ImWchar symbol[]{
-            0x2605, 0x2605, // ★
-            0
-        };
+        static constexpr ImWchar symbol[]{ 0x2605, 0x2605,0};
         io.Fonts->AddFontFromFileTTF((path / "seguisym.ttf").string().c_str(), 15.0f, &cfg, symbol);
         cfg.MergeMode = false;
     }
-#else
-    fonts.normal15px = addFontFromVFONT("csgo/panorama/fonts/notosans-regular.vfont", 15.0f, Helpers::getFontGlyphRanges(), false);
-#endif
-    if (!fonts.normal15px)
-        io.Fonts->AddFontDefault(&cfg);
-    addFontFromVFONT("csgo/panorama/fonts/notosanskr-regular.vfont", 15.0f, io.Fonts->GetGlyphRangesKorean(), true);
-    addFontFromVFONT("csgo/panorama/fonts/notosanssc-regular.vfont", 17.0f, io.Fonts->GetGlyphRangesChineseFull(), true);
 
+    if (!fonts.normal15px) io.Fonts->AddFontDefault(&cfg);
+    Helpers::addFontFromVFONT("csgo/panorama/fonts/notosanskr-regular.vfont", 15.0f, io.Fonts->GetGlyphRangesKorean(), true);
+    Helpers::addFontFromVFONT("csgo/panorama/fonts/notosanssc-regular.vfont", 17.0f, io.Fonts->GetGlyphRangesChineseFull(), true);
+
+    //--- User Config
     //config->load(u8"default", false);
+    
+    //--- Console welcome
+    Helpers::showWelcomeMessage();
 }
 
-void Menu::render() noexcept
+void Menu::render(ImDrawList* drawList, ImVec2 displaySize) noexcept
 {
-    ImGui::Begin(menuTitle, &open, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar); {
+    if (Misc::isMenuKeyPressed()) 
+    {
+        open = !open;
+        if (!open)
+            interfaces->inputSystem->resetInputState();
+
+        Helpers::writeInGameChat(open ? xorstr_("Menu Open") : xorstr_("Menu Closed"), open ? ColorByte::Green : ColorByte::Red);
+
+        //TODO: Move out this scope and have it on timer
+        Helpers::showDiscordUrl(ColorByte::Purple);
+    }
+    
+    //Spatial HUD
+    drawList = MenuHUD::drawHUD(drawList, displaySize);
+
+    //Spatial Menu
+    drawList = drawGUI(drawList, displaySize);
+}
+
+ImDrawList* Menu::drawGUI(ImDrawList* drawList, ImVec2 displaySize) noexcept
+{
+    if (!open) 
+        return drawList;
+    
+    //Menu BG
+    //drawList->AddImage(menuBG.getTexture(), { 0, 0 }, { ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.x / 960 * 174 }, { 0, 0 }, { 1, 0.99f }, 0x00FFFFFF | (static_cast<unsigned>(0.9f + 255 * 0.1f) << IM_COL32_A_SHIFT));
+
+    //Menu Border
+    if (static_cast<ImGuiStyles>(config->style.menuColors) == ImGuiStyles::Spatial)
+        Helpers::rainbowMenuBorder();
+
+    //Menu
+    ImGui::Begin(menuTitle.c_str(), &open, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar); {
         if (ImGui::TreeNode(xorstr_("Aim"))) {
             Aimbot::drawGUI();
             ImGui::TreePop();
@@ -184,4 +185,6 @@ void Menu::render() noexcept
         ImGui::TextUnformatted(menuFooter.c_str());
     }
     ImGui::End();
+
+    return drawList;
 }

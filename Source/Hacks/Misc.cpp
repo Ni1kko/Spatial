@@ -39,6 +39,7 @@
 #include "../SDK/ItemSchema.h"
 #include "../SDK/Localize.h"
 #include "../SDK/LocalPlayer.h"
+#include "../SDK/PlayerResource.h"
 #include "../SDK/NetworkChannel.h"
 #include "../SDK/Panorama.h"
 #include "../SDK/Platform.h"
@@ -136,10 +137,6 @@ struct MiscConfig {
     };
 
     SpectatorList spectatorList;
-    struct Watermark {
-        bool enabled = false;
-    };
-    Watermark watermark;
     std::string killMessageString{ "Gotcha!" };
     bool fakeMsgToggled{ false }; int fakeMsgColor{ 6 }; std::string fakeMsgText{ "Cheater has been permanently banned from official CS:GO servers." };
     ColorToggle3 bombTimer{ 1.0f, 0.55f, 0.0f };
@@ -341,107 +338,6 @@ void Misc::recoilCrosshair(ImDrawList* drawList) noexcept
 
     if (ImVec2 pos; Helpers::worldToScreenPixelAligned(localPlayerData.aimPunch, pos))
         drawCrosshair(drawList, pos, Helpers::calculateColor(miscConfig.recoilCrosshair.asColorToggle().asColor4()));
-}
-
-static void shadeVertsHSVColorGradientKeepAlpha(ImDrawList* draw_list, int vert_start_idx, int vert_end_idx, ImVec2 gradient_p0, ImVec2 gradient_p1, ImU32 col0, ImU32 col1)
-{// ImGui::ShadeVertsLinearColorGradientKeepAlpha() modified to do interpolation in HSV
-    ImVec2 gradient_extent = gradient_p1 - gradient_p0;
-    float gradient_inv_length2 = 1.0f / ImLengthSqr(gradient_extent);
-    ImDrawVert* vert_start = draw_list->VtxBuffer.Data + vert_start_idx;
-    ImDrawVert* vert_end = draw_list->VtxBuffer.Data + vert_end_idx;
-
-    ImVec4 col0HSV = ImGui::ColorConvertU32ToFloat4(col0);
-    ImVec4 col1HSV = ImGui::ColorConvertU32ToFloat4(col1);
-    ImGui::ColorConvertRGBtoHSV(col0HSV.x, col0HSV.y, col0HSV.z, col0HSV.x, col0HSV.y, col0HSV.z);
-    ImGui::ColorConvertRGBtoHSV(col1HSV.x, col1HSV.y, col1HSV.z, col1HSV.x, col1HSV.y, col1HSV.z);
-    ImVec4 colDelta = col1HSV - col0HSV;
-
-    for (ImDrawVert* vert = vert_start; vert < vert_end; vert++)
-    {
-        float d = ImDot(vert->pos - gradient_p0, gradient_extent);
-        float t = ImClamp(d * gradient_inv_length2, 0.0f, 1.0f);
-
-        float h = col0HSV.x + colDelta.x * t;
-        float s = col0HSV.y + colDelta.y * t;
-        float v = col0HSV.z + colDelta.z * t;
-
-        ImVec4 rgb;
-        ImGui::ColorConvertHSVtoRGB(h, s, v, rgb.x, rgb.y, rgb.z);
-        vert->col = (ImGui::ColorConvertFloat4ToU32(rgb) & ~IM_COL32_A_MASK) | (vert->col & IM_COL32_A_MASK);
-    }
-}
-
-void Misc::watermark(ImDrawList* drawList) noexcept
-{
-    if (!miscConfig.watermark.enabled)
-        return;
-
-    //NAME
-    const char* name = interfaces->engine->getSteamAPIContext()->steamFriends->getPersonaName();
-
-    //FPS
-    static auto fps = 1.0f;
-    fps = 0.9f * fps + 0.1f * memory->globalVars->absoluteFrameTime;
-
-    //PING
-    const auto ping = GameData::getNetOutgoingLatency();
-
-    //TICKRATE
-    const auto tick = 1.f / memory->globalVars->intervalPerTick;
-
-    //TIME
-    std::time_t t = std::time(nullptr);
-    std::ostringstream time;
-    time << std::put_time(std::localtime(&t), ("%H:%M:%S"));
-
-    std::ostringstream format;
-    format << "Spatial"
-        << " | " << name
-        << " | " << (fps != 0.0f ? static_cast<int>(1 / fps) : 0) << " fps";
-
-    if (interfaces->engine->isClientLocalToActiveServer()) {
-        format << " | local " << tick << " tick";
-    }
-    else if (interfaces->engine->isInGame()) {
-        auto* pInfo = interfaces->engine->getNetworkChannel();
-        if (pInfo) {
-            if ((*memory->gameRules)->isValveDS())
-                format << " | official DS " << pInfo->getAddress();
-            else
-                format << " | online " << pInfo->getAddress();
-
-            format << " | " << ping << " ms " << tick << " tick";
-        }
-    }
-    else if (interfaces->engine->isConnected())
-        format << " | loading";
-
-    format << " | " << time.str().c_str();
-
-    const auto textSize = ImGui::CalcTextSize(format.str().c_str());
-    const auto displaySize = ImGui::GetIO().DisplaySize;
-
-    ImRect window{
-        displaySize.x - textSize.x - 9.f,
-        1.f,
-        displaySize.x - 1.f,
-        textSize.y + 9.f
-    };
-
-    drawList->AddRectFilled(window.Min, window.Max, ImGui::GetColorU32(ImGuiCol_WindowBg), 4);
-    const int vertStartIdx = drawList->VtxBuffer.Size;
-    drawList->AddRect(window.Min, window.Max, ImGui::GetColorU32(ImGuiCol_TitleBgActive), 4);
-    const int vertEndIdx = drawList->VtxBuffer.Size;
-
-    float r, g, b;
-    std::tie(r, g, b) = rainbowColor(3.f);
-    shadeVertsHSVColorGradientKeepAlpha(drawList, vertStartIdx, vertEndIdx, window.GetTL(), window.GetBR(), ImColor(r, g, b, 1.f), ImGui::GetColorU32(ImGuiCol_TitleBgActive));
-
-    ImVec2 textPos{
-        window.GetCenter().x - (textSize.x / 2),
-        window.GetCenter().y - (textSize.y / 2)
-    };
-    drawList->AddText(textPos, ImGui::GetColorU32(ImGuiCol_Text), format.str().c_str());
 }
 
 void Misc::prepareRevolver(UserCmd* cmd) noexcept
@@ -684,7 +580,6 @@ void Misc::antiAfkKick(UserCmd* cmd) noexcept
 
 void Misc::fixAnimationLOD(FrameStage stage) noexcept
 {
-#ifdef _WIN32
     if (miscConfig.fixAnimationLOD && stage == FrameStage::RENDER_START) {
         if (!localPlayer)
             return;
@@ -695,7 +590,6 @@ void Misc::fixAnimationLOD(FrameStage stage) noexcept
             *reinterpret_cast<int*>(entity + 0xA30) = memory->globalVars->framecount;
         }
     }
-#endif
 }
 
 void Misc::autoPistol(UserCmd* cmd) noexcept
@@ -939,7 +833,7 @@ void Misc::preserveKillfeed(bool roundStart) noexcept
     if (!deathNotice)
         return;
 
-    const auto deathNoticePanel = (*(UIPanel**)(*reinterpret_cast<std::uintptr_t*>(deathNotice WIN32_LINUX(-20 + 88, -32 + 128)) + sizeof(std::uintptr_t)));
+    const auto deathNoticePanel = (*(UIPanel**)(*reinterpret_cast<std::uintptr_t*>(deathNotice - 20 + 88) + sizeof(std::uintptr_t)));
 
     const auto childPanelCount = deathNoticePanel->getChildCount();
 
@@ -964,9 +858,20 @@ void Misc::voteRevealer(GameEvent& event) noexcept
     
     const auto votedYes = event.getInt("vote_option") == 0;
     const auto isLocal = localPlayer && entity == localPlayer.get();
-    const char color = votedYes ? '\x06' : '\x07';
+    
+    std::string message = "";
 
-    memory->clientMode->getHudChat()->printf(0, " \x0C\u2022Spatial\u2022 %c%s\x01 voted %c%s\x01", isLocal ? '\x01' : color, isLocal ? "You" : entity->getPlayerName().c_str(), color, votedYes ? "Yes" : "No");
+    message.append(isLocal ? "You" : entity->getPlayerName());
+    message.append(" ");
+    message.append(Helpers::getColorByte(ColorByte::White));
+    message.append(" Voted [");
+    message.append(Helpers::getColorByte(ColorByte::Orange));
+    message.append(votedYes ? "Yes" : "No");
+    message.append(Helpers::getColorByte(ColorByte::White));
+    message.append("]");
+
+    Helpers::writeInGameChat(message.c_str(), isLocal ? ColorByte::LightGrey : ColorByte::Purple);
+
 }
 
 void Misc::onVoteStart(const void* data, int size) noexcept
@@ -976,11 +881,11 @@ void Misc::onVoteStart(const void* data, int size) noexcept
 
     constexpr auto voteName = [](int index) {
         switch (index) {
-        case 0: return "Kick";
-        case 1: return "Change Level";
-        case 6: return "Surrender";
-        case 13: return "Start TimeOut";
-        default: return "unknown action";
+            case 0: return "Kick";
+            case 1: return "Change Map";
+            case 6: return "Surrender";
+            case 13: return "Timeout";
+            default: return "Unknown";
         }
     };
 
@@ -994,19 +899,31 @@ void Misc::onVoteStart(const void* data, int size) noexcept
     const auto isLocal = localPlayer && entity == localPlayer.get();
 
     const auto voteType = reader.readInt32(3);
-    memory->clientMode->getHudChat()->printf(0, " \x0C\u2022Spatial\u2022 %c%s\x01 call vote (\x06%s\x01)", isLocal ? '\x01' : '\x06', isLocal ? "You" : entity->getPlayerName().c_str(), voteName(voteType));
+    
+    std::string message = "";
+
+    message.append(isLocal ? "You" : entity->getPlayerName());
+    message.append(" "); 
+    message.append(Helpers::getColorByte(ColorByte::White));
+    message.append(" Voted [");
+    message.append(Helpers::getColorByte(ColorByte::Orange));
+    message.append(voteName(voteType));
+    message.append(Helpers::getColorByte(ColorByte::White));
+    message.append("]");
+
+    Helpers::writeInGameChat(message.c_str(), isLocal ? ColorByte::LightGrey : ColorByte::Purple);
 }
 
 void Misc::onVotePass() noexcept
 {
     if (miscConfig.revealVotes)
-        memory->clientMode->getHudChat()->printf(0, " \x0C\u2022Spatial\u2022\x01 Vote\x06 PASSED");
+        Helpers::writeInGameChat(std::string{ xorstr_("Vote") }.append(Helpers::getColorByte(ColorByte::LightGreen)).append(xorstr_(" PASSED")).c_str(), ColorByte::Green);
 }
 
 void Misc::onVoteFailed() noexcept
 {
     if (miscConfig.revealVotes)
-        memory->clientMode->getHudChat()->printf(0, " \x0C\u2022Spatial\u2022\x01 Vote\x07 FAILED");
+        Helpers::writeInGameChat(std::string{ xorstr_("Vote") }.append(Helpers::getColorByte(ColorByte::LightRed)).append(xorstr_(" FAILED")).c_str(), ColorByte::Red);
 }
 
 void Misc::drawOffscreenEnemies(ImDrawList* drawList) noexcept
@@ -1083,7 +1000,7 @@ void Misc::drawOffscreenEnemies(ImDrawList* drawList) noexcept
             const int vertEndIdx = drawList->VtxBuffer.Size;
 
             if (miscConfig.offscreenEnemies.healthBar.type == HealthBar::Gradient)
-                shadeVertsHSVColorGradientKeepAlpha(drawList, vertStartIdx, vertEndIdx, pos - ImVec2{ 0.0f, radius }, pos + ImVec2{ 0.0f, radius }, IM_COL32(0, 255, 0, 255), IM_COL32(255, 0, 0, 255));
+                Helpers::shadeVertsHSVColorGradientKeepAlpha(drawList, vertStartIdx, vertEndIdx, pos - ImVec2{ 0.0f, radius }, pos + ImVec2{ 0.0f, radius }, IM_COL32(0, 255, 0, 255), IM_COL32(255, 0, 0, 255));
         }
     }
 }
@@ -1101,12 +1018,10 @@ void Misc::autoAccept(const char* soundEntry) noexcept
             interfaces->panoramaUIEngine->accessUIEngine()->dispatchEvent(eventPtr);
     }
 
-#ifdef _WIN32
     auto window = FindWindowW(L"Valve001", NULL);
     FLASHWINFO flash{ sizeof(FLASHWINFO), window, FLASHW_TRAY | FLASHW_TIMERNOFG, 0, 0 };
     FlashWindowEx(&flash);
     ShowWindow(window, SW_RESTORE);
-#endif
 }
 
 void Misc::fakePrime() noexcept
@@ -1117,14 +1032,12 @@ void Misc::fakePrime() noexcept
     {
         lastState = miscConfig.fakePrime;
 
-#ifdef _WIN32
         if (DWORD oldProtect; VirtualProtect(memory->fakePrime, 4, PAGE_EXECUTE_READWRITE, &oldProtect))
         {
             constexpr uint8_t patch[]{ 0x31, 0xC0, 0x40, 0xC3 };
             std::memcpy(memory->fakePrime, patch, 4);
             VirtualProtect(memory->fakePrime, 4, oldProtect, nullptr);
         }
-#endif
     }
 }
 
@@ -1184,7 +1097,6 @@ void Misc::drawGUI() noexcept
     ImGui::Checkbox("Reveal money", &miscConfig.revealMoney);
     ImGui::Checkbox("Reveal suspect", &miscConfig.revealSuspect);
     ImGui::Checkbox("Reveal votes", &miscConfig.revealVotes);
-    ImGui::Checkbox("Watermark", &miscConfig.watermark.enabled);//TODO: move to visuals
     ImGuiCustom::colorPicker("Bomb timer", miscConfig.bombTimer);//TODO: move to visuals
 
     ImGui::Checkbox("Fix animation LOD", &miscConfig.fixAnimationLOD); //TODO: move to visuals
@@ -1342,6 +1254,131 @@ void Misc::drawGUI() noexcept
     if (ImGui::Button(xorstr_("Unload DLL"))) hooks->uninstall();
     
     ImGui::Columns(1);
+
+    {
+        GameData::Lock lock;
+             
+        const auto pr = *memory->playerResource;
+
+        bool dangerzone = false;//temp
+       
+        if (localPlayer && pr)
+        {
+            ImGui::Separator();
+
+            if (ImGui::BeginTable("playerinfo", 8))
+            {
+                ImGui::TableSetupColumn("Name");
+                ImGui::TableSetupColumn("SteamID");
+                ImGui::TableSetupColumn("Wins");
+                ImGui::TableSetupColumn("Level");
+                ImGui::TableSetupColumn("Rank");
+
+                ImGui::TableSetupColumn("Commends Friendly");
+                ImGui::TableSetupColumn("Commends Teacher");
+                ImGui::TableSetupColumn("Commends Leader");
+                ImGui::TableHeadersRow();
+
+                ImGui::TableNextRow();
+                ImGui::PushID(ImGui::TableGetRowIndex());
+                
+                auto localPlayerData = GameData::local();
+                
+                if (ImGui::TableNextColumn())
+                    ImGui::TextUnformatted((std::string{ "Localplayer ("}.append(localPlayerData.name).append(")")).c_str());
+                
+                if (ImGui::TableNextColumn()) {
+                    ImGui::TextUnformatted(localPlayerData.steamID.c_str());
+                    ImGui::SameLine();
+                    if (ImGui::Button("Copy")) {
+                        ImGui::SetClipboardText(localPlayerData.steamID.c_str());
+                    }
+                }
+                ImGuiCustom::HelpMarker("Copy your steamID.");
+                 
+                if (ImGui::TableNextColumn()) {
+                    ImGui::InputInt("Wins", &pr->wins()[localPlayer->index()]);
+                    ImGuiCustom::HelpMarker("Edit your comp wins.");
+                } 
+
+                if (ImGui::TableNextColumn()) { 
+                    ImGui::InputInt("Level", &pr->level()[localPlayer->index()]);
+                    ImGuiCustom::HelpMarker("Edit your level.");
+                }
+
+                if (ImGui::TableNextColumn()) {
+                    if (pr->rank()[localPlayer->index()] > -1 && pr->rank()[localPlayer->index()] < 20) {
+                        ImGui::Combo(
+                            xorstr_("Rank"),
+                            &pr->rank()[localPlayer->index()],
+                            dangerzone ?
+                            "Unranked\0Lab Rat I\0Lab Rat II\0Sprinting Hare I\0Sprinting Hare II\0Wild Scout I\0Wild Scout II\0Wild Scout Elite\0Hunter Fox I\0Hunter Fox II\0Hunter Fox III\0Hunter Fox Elite\0Timber Wolf\0Ember Wolf\0Wildfire Wolf\0The Howling Alpha\0"
+                            :
+                            "Unranked\0Silver I\0Silver II\0Silver III\0Silver IV\0Silver Elite\0Silver Elite Master\0Gold Nova I\0Gold Nova II\0Gold Nova III\0Gold Nova Master\0Master Guardian I\0Master Guardian II\0Master Guardian Elite\0Distinguished Master Guardian\0Legendary Eagle\0Legendary Eagle Master\0Supreme Master First Class\0The Global Elite\0"
+                        );
+                    } 
+                    ImGuiCustom::HelpMarker("Edit your comp rank.");
+                }
+                    
+                if (ImGui::TableNextColumn()) {
+                    ImGui::InputInt("Friendly", &pr->commendsFriendly()[localPlayer->index()]);
+                    ImGuiCustom::HelpMarker("Edit your friendly commends.");
+                }
+
+                if (ImGui::TableNextColumn()) {
+                    ImGui::InputInt("Teacher", &pr->commendsTeacher()[localPlayer->index()]);
+                    ImGuiCustom::HelpMarker("Edit your teacher commends.");
+                }
+
+                if (ImGui::TableNextColumn()) {
+                    ImGui::InputInt("Leader", &pr->commendsLeader()[localPlayer->index()]);
+                    ImGuiCustom::HelpMarker("Edit your leader commends.");
+                }
+                 
+                for (auto& playersData : GameData::players())
+                {
+                    auto* entity = interfaces->entityList->getEntityFromHandle(playersData.handle);
+                    if (!entity || !entity->isPlayer() || playersData.steamID.empty() || playersData.steamID.compare("0") == 0) continue;
+
+                    ImGui::TableNextRow();
+                    ImGui::PushID(ImGui::TableGetRowIndex());
+                     
+                    if (ImGui::TableNextColumn())
+                        ImGui::TextUnformatted(playersData.name.c_str());
+
+                    if (ImGui::TableNextColumn()) {
+                        ImGui::TextUnformatted(playersData.steamID.c_str()); 
+                        ImGui::SameLine();
+                        if (ImGui::Button("Copy")) {
+                            ImGui::SetClipboardText(playersData.steamID.c_str());
+                        }
+                        ImGuiCustom::HelpMarker("Copy users steamID.");
+                    }
+
+                    if (ImGui::TableNextColumn())
+                        ImGui::Text("%i", playersData.wins);
+
+                    if (ImGui::TableNextColumn())
+                        ImGui::Text("%i", playersData.level);
+
+                    if (ImGui::TableNextColumn())
+                        ImGui::TextUnformatted(playersData.rank.c_str());
+
+                    if (ImGui::TableNextColumn())
+                        ImGui::Text("%i", playersData.commends.Friendly);
+
+                    if (ImGui::TableNextColumn())
+                        ImGui::Text("%i", playersData.commends.Teacher);
+
+                    if (ImGui::TableNextColumn())
+                        ImGui::Text("%i", playersData.commends.Leader);
+                }
+
+                ImGui::EndTable();
+                ImGui::Separator();
+            }
+        }
+    }
 }
 
 
@@ -1378,12 +1415,7 @@ static void from_json(const json& j, MiscConfig::SpectatorList& sl)
     read<value_t::object>(j, "Pos", sl.pos);
     read<value_t::object>(j, "Size", sl.size);
 }
-
-static void from_json(const json& j, MiscConfig::Watermark& o)
-{
-    read(j, "Enabled", o.enabled);
-}
-
+ 
 static void from_json(const json& j, PreserveKillfeed& o)
 {
     read(j, "Enabled", o.enabled);
@@ -1410,7 +1442,6 @@ static void from_json(const json& j, MiscConfig& m)
     read(j, "Reveal suspect", m.revealSuspect);
     read(j, "Reveal votes", m.revealVotes);
     read<value_t::object>(j, "Spectator list", m.spectatorList);
-    read<value_t::object>(j, "Watermark", m.watermark);
     read<value_t::object>(j, "Offscreen Enemies", m.offscreenEnemies);
     read(j, "Fix animation LOD", m.fixAnimationLOD);
     read(j, "Disable model occlusion", m.disableModelOcclusion);
@@ -1496,11 +1527,6 @@ static void to_json(json& j, const MiscConfig::SpectatorList& o, const MiscConfi
     }
 }
 
-static void to_json(json& j, const MiscConfig::Watermark& o, const MiscConfig::Watermark& dummy = {})
-{
-    WRITE("Enabled", enabled);
-}
-
 static void to_json(json& j, const PreserveKillfeed& o, const PreserveKillfeed& dummy = {})
 {
     WRITE("Enabled", enabled);
@@ -1532,7 +1558,6 @@ static void to_json(json& j, const MiscConfig& o)
     WRITE("Reveal suspect", revealSuspect);
     WRITE("Reveal votes", revealVotes);
     WRITE("Spectator list", spectatorList);
-    WRITE("Watermark", watermark);
     WRITE("Offscreen Enemies", offscreenEnemies);
     WRITE("Fix animation LOD", fixAnimationLOD);
     WRITE("Disable model occlusion", disableModelOcclusion);

@@ -6,10 +6,12 @@
 #include <utility>
 #include <vector>
 
+#include <Encryption\xorstr.hpp>
+
 #include "SDK/matrix3x4.h"
 #include "SDK/Vector.h"
 
-#include "Texture.h"
+#include "Menu/Texture.h"
 
 struct LocalPlayerData;
 
@@ -25,6 +27,12 @@ struct SmokeData;
 
 struct Matrix4x4;
 
+struct Commends {
+    int Friendly;
+    int Teacher;
+    int Leader;
+};
+
 namespace GameData
 {
     void update() noexcept;
@@ -32,8 +40,52 @@ namespace GameData
     void clearTextures() noexcept;
     void clearUnusedAvatars() noexcept;
 
-    std::string ranks[];
-    std::string ranks_dz[];
+    const std::string ranks[] = {
+        xorstr_("Unranked"),
+        xorstr_("Silver I"),
+        xorstr_("Silver II"),
+        xorstr_("Silver III"),
+        xorstr_("Silver IV"),
+        xorstr_("Silver Elite"),
+        xorstr_("Silver Elite Master"),
+
+        xorstr_("Gold Nova I"),
+        xorstr_("Gold Nova II"),
+        xorstr_("Gold Nova III"),
+        xorstr_("Gold Nova Master"),
+        xorstr_("Master Guardian I"),
+        xorstr_("Master Guardian II"),
+        xorstr_("Master Guardian Elite"),
+
+        xorstr_("Distinguished Master Guardian"),
+        xorstr_("Legendary Eagle"),
+        xorstr_("Legendary Eagle Master"),
+        xorstr_("Supreme Master First Class"),
+        xorstr_("The Global Elite")
+    };
+
+    const std::string ranks_dz[] = {
+        GameData::ranks[0],
+        xorstr_("Lab Rat I"),
+        xorstr_("Lab Rat II"),
+
+        xorstr_("Sprinting Hare I"),
+        xorstr_("Sprinting Hare II"),
+
+        xorstr_("Wild Scout I"),
+        xorstr_("Wild Scout II"),
+        xorstr_("Wild Scout Elite"),
+
+        xorstr_("Hunter Fox I"),
+        xorstr_("Hunter Fox II"),
+        xorstr_("Hunter Fox III"),
+        xorstr_("Hunter Fox Elite"),
+
+        xorstr_("Timber Wolf"),
+        xorstr_("Ember Wolf"),
+        xorstr_("Wildfire Wolf"),
+        xorstr_("The Howling Alpha")
+    };
 
     class Lock {
     public:
@@ -63,6 +115,13 @@ namespace GameData
 
 struct LocalPlayerData {
     void update() noexcept;
+
+    std::string name;
+    std::string steamID = "";
+    std::string rank;
+    int wins;
+    int level;
+    Commends commends;
 
     bool exists = false;
     bool alive = false;
@@ -138,7 +197,11 @@ struct PlayerData : BaseData {
     int handle;
     Team team;
     std::string name;
+    std::string steamID = "";
     std::string rank;
+    int wins;
+    int level;
+    Commends commends;
     Vector headMins, headMaxs;
     Vector origin;
     std::string activeWeapon;

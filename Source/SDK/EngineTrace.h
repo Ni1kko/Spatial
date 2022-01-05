@@ -11,11 +11,7 @@ struct Ray {
     Vector start{ };
     float pad{ };
     Vector delta{ };
-#ifdef _WIN32
     std::byte pad2[40]{ };
-#elif __linux__
-    std::byte pad2[44]{ };
-#endif
     bool isRay{ true };
     bool isSwept{ };
 };

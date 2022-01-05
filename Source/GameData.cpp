@@ -14,10 +14,7 @@
 #include "Interfaces.h"
 #include "Memory.h"
 
-#include "Resources/avatar_ct.h"
-#include "Resources/avatar_tt.h"
-
-#include "stb_image.h"
+#include "Menu/stb_image.h"
 
 #include "SDK/ClassId.h"
 #include "SDK/ClientClass.h"
@@ -37,58 +34,12 @@
 #include "SDK/UtlVector.h"
 #include "SDK/WeaponId.h"
 #include "SDK/WeaponData.h"
+#include <Menu/PNGTexture.h>
 
 auto operator<(const BaseData& a, const BaseData& b) noexcept
 {
     return a.distanceToLocal > b.distanceToLocal;
 }
-
-std::string GameData::ranks[] = {
-    xorstr_("Unranked"),
-    xorstr_("Silver I"),
-    xorstr_("Silver II"),
-    xorstr_("Silver III"),
-    xorstr_("Silver IV"),
-    xorstr_("Silver Elite"),
-    xorstr_("Silver Elite Master"),
-
-    xorstr_("Gold Nova I"),
-    xorstr_("Gold Nova II"),
-    xorstr_("Gold Nova III"),
-    xorstr_("Gold Nova Master"),
-    xorstr_("Master Guardian I"),
-    xorstr_("Master Guardian II"),
-    xorstr_("Master Guardian Elite"),
-
-    xorstr_("Distinguished Master Guardian"),
-    xorstr_("Legendary Eagle"),
-    xorstr_("Legendary Eagle Master"),
-    xorstr_("Supreme Master First Class"),
-    xorstr_("The Global Elite")
-};
-
-std::string GameData::ranks_dz[] = {
-    GameData::ranks[0],
-    xorstr_("Lab Rat I"),
-    xorstr_("Lab Rat II"),
-
-    xorstr_("Sprinting Hare I"),
-    xorstr_("Sprinting Hare II"),
-
-    xorstr_("Wild Scout I"),
-    xorstr_("Wild Scout II"),
-    xorstr_("Wild Scout Elite"),
-
-    xorstr_("Hunter Fox I"),
-    xorstr_("Hunter Fox II"),
-    xorstr_("Hunter Fox III"),
-    xorstr_("Hunter Fox Elite"),
-
-    xorstr_("Timber Wolf"),
-    xorstr_("Ember Wolf"),
-    xorstr_("Wildfire Wolf"),
-    xorstr_("The Howling Alpha")
-};
 
 static Matrix4x4 viewMatrix;
 static LocalPlayerData localPlayerData;
@@ -377,6 +328,37 @@ void LocalPlayerData::update() noexcept
 
     aimPunch = localPlayer->getEyePosition() + Vector::fromAngle(interfaces->engine->getViewAngles() + localPlayer->getAimPunch()) * 1000.0f;
 
+    name = interfaces->engine->getSteamAPIContext()->steamFriends->getPersonaName();
+
+    auto* entity = interfaces->entityList->getEntityFromHandle(localPlayer->handle());
+    const auto pr = *memory->playerResource;
+
+    if (entity) {
+        
+        const auto index = entity->index();
+        
+        auto rankid = pr->rank()[index];
+        auto winscnt = pr->wins()[index];
+        auto levelcnt = pr->level()[index];
+
+        rankid = (rankid > -1 && rankid < 20) ? rankid : 0;
+        level = (levelcnt > -1 && levelcnt < 99) ? levelcnt : 0;
+        wins = (winscnt > -1 && winscnt < 99999) ? winscnt : 0;
+
+        bool dangerzone = false;//temp
+
+        rank = dangerzone ? GameData::ranks_dz[rankid] : GameData::ranks[rankid];
+
+        std::ostringstream oss_steamID;
+        oss_steamID << entity->getSteamId();
+        steamID = oss_steamID.str();
+
+        commends.Friendly = pr->commendsFriendly()[index];
+        commends.Teacher = pr->commendsTeacher()[index];
+        commends.Leader = pr->commendsLeader()[index];
+    }
+    
+
     const auto obsMode = localPlayer->getObserverMode();
     if (const auto obs = localPlayer->getObserverTarget(); obs && obsMode != ObsMode::Roaming && obsMode != ObsMode::Deathcam)
         origin = obs->getAbsOrigin();
@@ -505,12 +487,28 @@ void PlayerData::update(Entity* entity) noexcept
     };
 
     bool dangerzone = false;//temp
+    const auto index = entity->index();
     const auto pr = *memory->playerResource;
-    const auto rankid = pr->rank()[entity->index()];
-    
+
+    auto rankid = pr->rank()[index];
+    auto winscnt = pr->wins()[index];
+    auto levelcnt = pr->level()[index];
+     
+    rankid = (rankid > -1 && rankid < 20) ? rankid : 0;
+    level = (levelcnt > -1 && levelcnt < 99) ? levelcnt : 0;
+    wins = (winscnt > -1 && winscnt < 99999) ? winscnt : 0;
+
     rank = dangerzone ? GameData::ranks_dz[rankid] : GameData::ranks[rankid];
 
-    audible = isEntityAudible(entity->index());
+    std::ostringstream oss_steamID;
+    oss_steamID << entity->getSteamId();
+    steamID = oss_steamID.str();
+
+    commends.Friendly = pr->commendsFriendly()[index];
+    commends.Teacher = pr->commendsTeacher()[index];
+    commends.Leader = pr->commendsLeader()[index];
+
+    audible = isEntityAudible(index);
     spotted = entity->spotted();
     health = entity->health();
     immune = entity->gunGameImmunity();
@@ -563,39 +561,6 @@ void PlayerData::update(Entity* entity) noexcept
         headMaxs += headBox->capsuleRadius;
     }
 }
-
-struct PNGTexture {
-    template <std::size_t N>
-    PNGTexture(const std::array<char, N>& png) noexcept : pngData{ png.data() }, pngDataSize{ png.size() } {}
-
-    ImTextureID getTexture() const noexcept
-    {
-        if (!texture.get()) {
-            int width, height;
-            stbi_set_flip_vertically_on_load_thread(false);
-
-            if (const auto data = stbi_load_from_memory((const stbi_uc*)pngData, pngDataSize, &width, &height, nullptr, STBI_rgb_alpha)) {
-                texture.init(width, height, data);
-                stbi_image_free(data);
-            } else {
-                assert(false);
-            }
-        }
-
-        return texture.get();
-    }
-
-    void clearTexture() const noexcept { texture.clear(); }
-
-private:
-    const char* pngData;
-    std::size_t pngDataSize;
-
-    mutable Texture texture;
-};
-
-static const PNGTexture avatarTT{ Resource::avatar_tt };
-static const PNGTexture avatarCT{ Resource::avatar_ct };
 
 static void clearAvatarTextures() noexcept
 {

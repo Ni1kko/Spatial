@@ -1,47 +1,9 @@
-#include <memory>
-
-#ifdef _WIN32
-#include <clocale>
-#include <Windows.h>
-#endif
-
-#include "VMP/def.h"
-#include "Encryption/xorstr.hpp"
-#include "AntiDetection.h"
-
-#ifdef _WIN32
-    #ifndef _DEBUG
-       AntiDetection antiDetection;
-    #endif
-#endif
-
-#include "Hooks.h"
-
-#ifdef _WIN32
-extern "C" BOOL WINAPI _CRT_INIT(HMODULE moduleHandle, DWORD reason, LPVOID reserved);
-
+#include <Encryption/AntiDetection.h>
+ 
 BOOL APIENTRY DllEntryPoint(HMODULE moduleHandle, DWORD reason, LPVOID reserved)
-{
-    VMP_ULTRA(xorstr_("DllMain"));
-    if (!_CRT_INIT(moduleHandle, reason, reserved))
-        return FALSE;
-
-    if (reason == DLL_PROCESS_ATTACH) {
-        VMP_ULTRA(xorstr_("OnDllAttach"));
-        std::setlocale(LC_CTYPE, xorstr_(".utf8"));
-        hooks = std::make_unique<Hooks>(moduleHandle);
-    }
-    return TRUE;
-    VMP_END;
+{ 
+    if (antiDetect.getModuleHandle() != moduleHandle)
+        return antiDetect.install(reason, reserved, true, false, true);
+    
+    return FALSE;
 }
-
-#else
-
-void __attribute__((constructor)) DllEntryPoint()
-{
-    VMP_ULTRA(xorstr_("DllMain"));
-    hooks = std::make_unique<Hooks>();
-    VMP_END;
-}
-
-#endif

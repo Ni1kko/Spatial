@@ -9,6 +9,15 @@ struct ColorToggleRounding;
 struct ColorToggleThickness;
 struct ColorToggleThicknessRounding;
 
+enum ImGuiStyles
+{
+    Dark = 0,
+    Light,
+    Classic,
+    Spatial,
+    Custom
+};
+
 namespace ImGuiCustom
 {
     void colorPicker(const char* name, float color[3], float* alpha = nullptr, bool* rainbow = nullptr, float* rainbowSpeed = nullptr, bool* enable = nullptr, float* thickness = nullptr, float* rounding = nullptr) noexcept;
@@ -21,9 +30,10 @@ namespace ImGuiCustom
     void arrowButtonDisabled(const char* id, ImGuiDir dir) noexcept;
     void AddCircleImageFilled(ImTextureID user_texture_id, const ImVec2& centre, float radius, ImU32 col, int num_segments);
     void tooltip(const char* text) noexcept;
-    void updateColors(int style = -1) noexcept;
+    void updateColors(ImGuiStyles style = ImGuiStyles::Classic) noexcept;
     IMGUI_API void StyleSpatial(ImGuiStyle* dst = NULL);
     IMGUI_API void StyleCustom(ImGuiStyle* dst = NULL);
+    void HelpMarker(const char* desc, bool sameline = true) noexcept;
 }
 
 class KeyBind;
