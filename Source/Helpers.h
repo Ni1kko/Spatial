@@ -42,7 +42,7 @@ namespace Helpers
 {
     const auto dll_name = "Spatial";
     const auto dll_version = 1.6;
-    const auto dll_release = 1;
+    const auto dll_release = 2;
     const auto discordcode = "GyzJf5eNPe";
     unsigned int calculateColor(Color4 color) noexcept;
     unsigned int calculateColor(Color3 color) noexcept;

@@ -1,11 +1,4 @@
-#include <memory>
-#include <clocale>
-#include <Windows.h>
-
-#include "VMP/def.h"
-#include "xorstr.hpp"
 #include "AntiDetection.h"
-#include "Hooks.h"
 
 extern "C" BOOL WINAPI _CRT_INIT(HMODULE moduleHandle, DWORD reason, LPVOID reserved);
 
@@ -25,20 +18,17 @@ HMODULE AntiDetection::getModuleHandle() noexcept
 	return moduleHandle;
 }
 
-void AntiDetection::cleanPEheader() noexcept
+void AntiDetection::cleanPEheader(SIZE_T dwSize) noexcept
 {
-	DWORD dwMemPro;
-
-	VirtualProtect((void*)moduleHandle, 0x1000, PAGE_EXECUTE_READWRITE, &dwMemPro);
-	memset((void*)moduleHandle, 0, 0x1000);
-	VirtualProtect((void*)moduleHandle, 0x1000, dwMemPro, &dwMemPro);
-
-	OutputDebugStringA(xorstr_("CleanUp PEheader Success."));
+	VirtualProtect((void*)moduleHandle, dwSize, PAGE_EXECUTE_READWRITE, &memoryProtect);
+	memset((void*)moduleHandle, 0, dwSize);
+	VirtualProtect((void*)moduleHandle, dwSize, memoryProtect, &memoryProtect);
+	OutputDebugStringA(xorstr_("PEheader cleaned"));
 }
 
 void AntiDetection::HideModule() noexcept
 {
-	void* pPEB = nullptr;
+	void* pPEB = NULL;
 
 	_asm
 	{
@@ -68,22 +58,26 @@ void AntiDetection::HideModule() noexcept
 		pNext = *((void**)pNext);
 	} while (pCurrent != pNext);
 	
-	OutputDebugStringA(xorstr_("Cutup PEB link success."));
+	OutputDebugStringA(xorstr_("PEB link scrambled."));
 }
 
-bool AntiDetection::install(DWORD reason, LPVOID reserved) noexcept 
+bool AntiDetection::install(DWORD reason, LPVOID reserved, bool cleanPE, bool useVPM, bool ScamblePEB) noexcept
 {
-	VMP_ULTRA(xorstr_("DllMain"));
+	if(!cleanPE && useVPM)
+		VMP_ULTRA(xorstr_("DllMain"));
+
 	if (!_CRT_INIT(moduleHandle, reason, reserved))
 		return FALSE;
 
 	if (reason == DLL_PROCESS_ATTACH) {
-		VMP_ULTRA(xorstr_("OnDllAttach"));
-		std::setlocale(LC_CTYPE, xorstr_(".utf8")); 
-		cleanPEheader();
-		HideModule();
+		if (!cleanPE && useVPM) VMP_ULTRA(xorstr_("OnDllAttach"));
+		std::setlocale(LC_CTYPE, xorstr_(".utf8"));
+		if (cleanPE) cleanPEheader(0x2000);
+		if (ScamblePEB) HideModule();
 		hooks = std::make_unique<Hooks>(moduleHandle);
 	}
+
+	if (!cleanPE && useVPM) VMP_END;
+
 	return TRUE;
-	VMP_END;
 }
