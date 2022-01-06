@@ -50,6 +50,7 @@ namespace Misc
     void autoAccept(const char* soundEntry) noexcept; 
     void fakePrime() noexcept;
     void forceRelayCluster() noexcept;
+    bool enableSvPureBypass() noexcept;
     void updateEventListeners(bool forceRemove = false) noexcept;
     void updateInput() noexcept;
     void drawGUI() noexcept;

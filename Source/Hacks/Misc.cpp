@@ -158,6 +158,7 @@ struct MiscConfig {
 
     OffscreenEnemies offscreenEnemies;
     int forceRelayCluster{ 0 };
+    bool bypassSvPure{ false };
 } miscConfig;
 /////////////////////////////////////////////////////////////////
 // Functions
@@ -1050,6 +1051,11 @@ void Misc::forceRelayCluster() noexcept
     *memory->relayCluster = dataCentersList[miscConfig.forceRelayCluster];
 }
 
+bool Misc::enableSvPureBypass() noexcept
+{
+    return miscConfig.bypassSvPure;
+}
+
 void Misc::updateEventListeners(bool forceRemove) noexcept
 {
     class PurchaseEventListener : public GameEventListener {
@@ -1105,6 +1111,7 @@ void Misc::drawGUI() noexcept
     ImGui::Checkbox("Disable HUD blur", &miscConfig.disablePanoramablur);//TODO: move to visuals
     ImGui::NextColumn();
 
+    ImGui::Checkbox("Bypass SvPure", &miscConfig.bypassSvPure);
     ImGui::Checkbox("Fix tablet signal", &miscConfig.fixTabletSignal);
     ImGui::Checkbox("Fake Prime", &miscConfig.fakePrime);
     ImGui::Checkbox("Quick reload", &miscConfig.quickReload);
@@ -1466,6 +1473,7 @@ static void from_json(const json& j, MiscConfig& m)
     read(j, "Opposite Hand Knife", m.oppositeHandKnife);
     read<value_t::object>(j, "Preserve Killfeed", m.preserveKillfeed);
     read(j, "Relay cluster", m.forceRelayCluster);
+    read(j, "Bypass SvPure", m.bypassSvPure);
 }
 
 static void from_json(const json& j, MiscConfig::Reportbot& r)
@@ -1582,6 +1590,7 @@ static void to_json(json& j, const MiscConfig& o)
     WRITE("Opposite Hand Knife", oppositeHandKnife);
     WRITE("Preserve Killfeed", forceRelayCluster); 
     WRITE("Relay cluster", forceRelayCluster);
+    WRITE("Bypass SvPure", bypassSvPure);
 }
 
 json Misc::toJson() noexcept

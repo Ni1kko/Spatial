@@ -513,6 +513,20 @@ static bool __STDCALL dispatchUserMessage(UserMessageType type, int passthroughF
     return hooks->client.callOriginal<bool, 38>(type, passthroughFlags, size, data);
 }
 
+static int __STDCALL getUnverifiedFileHashes(void* thisPointer, int maxFiles)
+{
+    if (Misc::enableSvPureBypass())
+        return 0;
+    return hooks->fileSystem.callOriginal<int, 101>(thisPointer, maxFiles);
+}
+
+static int __STDCALL canLoadThirdPartyFiles(void* thisPointer, void* edx) noexcept
+{
+    if (Misc::enableSvPureBypass())
+        return 1;
+    return hooks->fileSystem.callOriginal<int, 128>(thisPointer);
+}
+
 Hooks::Hooks(HMODULE moduleHandle) noexcept : moduleHandle{ moduleHandle }
 {
     _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
@@ -560,6 +574,8 @@ void Hooks::install() noexcept
     engine.hookAt(218, &getDemoPlaybackParameters);
 
     fileSystem.init(interfaces->fileSystem);
+    fileSystem.hookAt(101, getUnverifiedFileHashes);
+    fileSystem.hookAt(128, canLoadThirdPartyFiles);
 
     inventory.init(memory->inventoryManager->getLocalInventory());
     inventory.hookAt(1, &soUpdated);
