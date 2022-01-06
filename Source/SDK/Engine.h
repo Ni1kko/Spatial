@@ -68,10 +68,12 @@ public:
     VIRTUAL_METHOD(void*, getBSPTreeQuery, 43, (), (this))
     VIRTUAL_METHOD(const char*, getLevelName, 53, (), (this))
     VIRTUAL_METHOD(NetworkChannel*, getNetworkChannel, 78, (), (this))
+    VIRTUAL_METHOD(unsigned int, GetEngineBuildNumber, 104, (), (this))
+    VIRTUAL_METHOD(const char*, GetProductVersionString, 105, (), (this))
     VIRTUAL_METHOD(void, clientCmdUnrestricted, 114, (const char* cmd, bool fromConsoleOrKeybind = false), (this, cmd, fromConsoleOrKeybind))
     VIRTUAL_METHOD_V(const SteamAPIContext*, getSteamAPIContext, 185, (), (this))
     VIRTUAL_METHOD(bool, isClientLocalToActiveServer, 197, (), (this))
-
+ 
     auto getViewAngles() noexcept
     {
         Vector ang;

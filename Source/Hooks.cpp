@@ -87,8 +87,8 @@ static LRESULT __stdcall wndProc(HWND window, UINT msg, WPARAM wParam, LPARAM lP
         gui = std::make_unique<Menu>();
         chams = std::make_unique<Chams>();
         movement = std::make_unique<Movement>();
+        
         hooks->install();
-
         return true;
     }(window);
 
@@ -518,12 +518,15 @@ Hooks::Hooks(HMODULE moduleHandle) noexcept : moduleHandle{ moduleHandle }
     _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
     _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
 
-    // interfaces and memory shouldn't be initialized in wndProc because they show MessageBox on error which would cause deadlock
     interfaces = std::make_unique<const Interfaces>();
-    memory = std::make_unique<const Memory>();
-
-    window = FindWindowW(L"Valve001", nullptr);
-    originalWndProc = WNDPROC(SetWindowLongPtrW(window, GWLP_WNDPROC, LONG_PTR(&wndProc)));
+    
+    if (!Helpers::checkForUpdates())
+    {
+        memory = std::make_unique<const Memory>();
+        window = FindWindowW(L"Valve001", nullptr);
+        originalWndProc = WNDPROC(SetWindowLongPtrW(window, GWLP_WNDPROC, LONG_PTR(&wndProc)));
+        Helpers::writeDebugConsole(std::string{ "csgo version: " }.append(Helpers::game_version).c_str(), { 0, 255, 0, 255 });
+    }
 }
 
 void Hooks::install() noexcept

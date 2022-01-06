@@ -42,7 +42,8 @@ namespace Helpers
 {
     const auto dll_name = "Spatial";
     const auto dll_version = 1.7;
-    const auto dll_release = 0;
+    const auto dll_release = 2;
+    const auto game_version = "1.38.1.3";
     const auto discordcode = "GyzJf5eNPe";
     unsigned int calculateColor(Color4 color) noexcept;
     unsigned int calculateColor(Color3 color) noexcept;
@@ -63,6 +64,7 @@ namespace Helpers
     void showWelcomeMessage() noexcept;
     void showDiscordUrl(ColorByte colorByte = ColorByte::Green) noexcept;
     void rainbowMenuBorder(float speed = 2.f) noexcept;
+    bool checkForUpdates() noexcept;
 
     constexpr auto units2meters(float units) noexcept
     {

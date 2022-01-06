@@ -439,3 +439,21 @@ void Helpers::rainbowMenuBorder(float speed) noexcept
     ImVec4* colors = style.Colors;
     colors[ImGuiCol_Border] = rainbowColor(memory->globalVars->realtime, speed, 1.0f);
 }
+
+bool Helpers::checkForUpdates() noexcept
+{ 
+    auto version = interfaces->engine->GetProductVersionString();
+
+    if (strcmp(version, game_version) != 0)
+    {
+        auto title = Helpers::getDllNameVersion();
+        auto message = std::string{ "cheat outdated" };
+
+        message.append("\nold cs:go version: ").append(game_version);
+        message.append("\ncurrent cs:go version: ").append(version);
+
+        Helpers::messageBox(title.c_str(), message.c_str());
+        std::exit(EXIT_FAILURE);
+    }
+    return false;
+}
