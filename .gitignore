@@ -21,6 +21,7 @@ Spatial/Resources/Shaders/Build/
 #[Rr]elease/
 Source/Release/
 bin2cpp/Release/
+ImGui Demo/Release/
 [Rr]eleases/
 x64/
 x86/
