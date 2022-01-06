@@ -8,6 +8,7 @@ namespace Glow
 {
     void render() noexcept;
     void clearCustomObjects() noexcept;
+    void changeThickness(float width) noexcept;
     void updateInput() noexcept;
     void drawGUI() noexcept;
 

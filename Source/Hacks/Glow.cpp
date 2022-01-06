@@ -25,6 +25,8 @@
 #include "../SDK/Utils.h"
 #include "../SDK/UtlVector.h"
 #include "../SDK/Vector.h"
+#include "../SDK/ConVar.h"
+#include "../SDK/Cvar.h"
 #include "../Menu/imguiCustom.h"
 
 #if Spatial_GLOW()
@@ -43,6 +45,8 @@ static std::unordered_map<std::string, PlayerGlow> playerGlowConfig;
 static std::unordered_map<std::string, GlowItem> glowConfig;
 static KeyBindToggle glowToggleKey;
 static KeyBind glowHoldKey;
+static float outlineWidth{ 6.0f };
+static float lastOutlineWidth{ 0.0f };
 
 static std::vector<std::pair<int, int>> customGlowEntities;
 
@@ -174,8 +178,19 @@ void Glow::clearCustomObjects() noexcept
     customGlowEntities.clear();
 }
 
+void Glow::changeThickness(float width) noexcept
+{
+    if (lastOutlineWidth != width) {
+        const auto glowWidth = interfaces->cvar->findVar("glow_outline_width");
+        if (glowWidth->getFloat() != width)
+            glowWidth->setValue(width);
+        lastOutlineWidth = width;
+    }
+}
+
 void Glow::updateInput() noexcept
 {
+    changeThickness(outlineWidth);
     glowToggleKey.handleToggle();
 }
 
@@ -220,7 +235,10 @@ void Glow::drawGUI() noexcept
     ImGui::NextColumn();
     ImGui::SetNextItemWidth(100.0f);
     ImGui::Combo("Style", &currentItem->style, "Default\0Rim3d\0Edge\0Edge Pulse\0");
-
+     
+    ImGui::SetNextItemWidth(100.0f);
+    ImGui::SliderFloat("Thickness", &outlineWidth, 0.80f, 25.0f, "%0.1f");
+    
     ImGui::Columns(1);
 }
 
@@ -246,6 +264,7 @@ json Glow::toJson() noexcept
     j["Players"] = playerGlowConfig;
     to_json(j["Toggle Key"], glowToggleKey, {});
     to_json(j["Hold Key"], glowHoldKey, {});
+    to_json(j["Outline Width"], outlineWidth, {});
     return j;
 }
 
@@ -271,6 +290,7 @@ void Glow::fromJson(const json& j) noexcept
     read(j, "Players", playerGlowConfig);
     read(j, "Toggle Key", glowToggleKey);
     read(j, "Hold Key", glowHoldKey);
+    read(j, "Outline Width", outlineWidth);
 }
 
 void Glow::resetConfig() noexcept
@@ -279,6 +299,7 @@ void Glow::resetConfig() noexcept
     playerGlowConfig = {};
     glowToggleKey = {};
     glowHoldKey = {};
+    outlineWidth = {};
 }
 
 #else
