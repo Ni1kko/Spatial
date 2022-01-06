@@ -210,6 +210,7 @@
     <ClInclude Include="Encryption\cx_pcg32.h" />
     <ClInclude Include="Encryption\cx_strenc.h" />
     <ClInclude Include="Encryption\fnv.h" />
+    <ClInclude Include="Encryption\lazy_importer.hpp" />
     <ClInclude Include="Encryption\VMP\def.h" />
     <ClInclude Include="Encryption\VMP\VMProtectSDK.h" />
     <ClInclude Include="Encryption\xorstr.hpp" />
