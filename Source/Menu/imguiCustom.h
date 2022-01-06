@@ -27,6 +27,13 @@ namespace ImGuiCustom
     void colorPicker(const char* name, ColorToggleRounding& colorConfig) noexcept;
     void colorPicker(const char* name, ColorToggleThickness& colorConfig) noexcept;
     void colorPicker(const char* name, ColorToggleThicknessRounding& colorConfig) noexcept;
+    void colorPickerCircle(const char* name, float color[3], float* alpha = nullptr, bool* rainbow = nullptr, float* rainbowSpeed = nullptr, bool* enable = nullptr, float* thickness = nullptr, float* rounding = nullptr) noexcept;
+    void colorPickerCircle(const char* name, ColorToggle3& colorConfig) noexcept;
+    void colorPickerCircle(const char* name, Color4& colorConfig, bool* enable = nullptr, float* thickness = nullptr) noexcept;
+    void colorPickerCircle(const char* name, ColorToggle& colorConfig) noexcept;
+    void colorPickerCircle(const char* name, ColorToggleRounding& colorConfig) noexcept;
+    void colorPickerCircle(const char* name, ColorToggleThickness& colorConfig) noexcept;
+    void colorPickerCircle(const char* name, ColorToggleThicknessRounding& colorConfig) noexcept;
     void arrowButtonDisabled(const char* id, ImGuiDir dir) noexcept;
     void AddCircleImageFilled(ImTextureID user_texture_id, const ImVec2& centre, float radius, ImU32 col, int num_segments);
     void tooltip(const char* text) noexcept;
