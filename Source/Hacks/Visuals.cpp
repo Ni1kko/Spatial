@@ -723,13 +723,13 @@ float Visuals::aspectRatio() noexcept
     return visualsConfig.aspectratio;
 }
 
-void Visuals::ragdollForce(int width) noexcept
+void Visuals::ragdollForce(int force) noexcept
 {
-    if (lastRagdollForce != width) {
-        const auto force = interfaces->cvar->findVar("phys_pushscale");
-        if (force->getInt() != width)
-            force->setValue(width);
-        lastRagdollForce = width;
+    if (lastRagdollForce != force) {
+        const auto phys_pushscale = interfaces->cvar->findVar("phys_pushscale");
+        if (phys_pushscale->getInt() != force)
+            phys_pushscale->setValue(force);
+        lastRagdollForce = force;
     }
 }
 

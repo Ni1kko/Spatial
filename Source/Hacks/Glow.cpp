@@ -181,9 +181,9 @@ void Glow::clearCustomObjects() noexcept
 void Glow::changeThickness(float width) noexcept
 {
     if (lastOutlineWidth != width) {
-        const auto glowWidth = interfaces->cvar->findVar("glow_outline_width");
-        if (glowWidth->getFloat() != width)
-            glowWidth->setValue(width);
+        const auto glow_outline_width = interfaces->cvar->findVar("glow_outline_width");
+        if (glow_outline_width->getFloat() != width)
+            glow_outline_width->setValue(width);
         lastOutlineWidth = width;
     }
 }
