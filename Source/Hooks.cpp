@@ -556,6 +556,8 @@ void Hooks::install() noexcept
     engine.hookAt(101, &getScreenAspectRatio);
     engine.hookAt(218, &getDemoPlaybackParameters);
 
+    fileSystem.init(interfaces->fileSystem);
+
     inventory.init(memory->inventoryManager->getLocalInventory());
     inventory.hookAt(1, &soUpdated);
 
@@ -625,6 +627,7 @@ void Hooks::uninstall() noexcept
     client.restore();
     clientMode.restore();
     engine.restore();
+    fileSystem.restore();
     inventory.restore();
     inventoryManager.restore();
     modelRender.restore();
