@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bin2cpp", "bin2cpp\bin2cpp.vcxproj", "{906F304B-60A3-4FEA-B4C2-BC6B8880C135}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "imgui_demo", "ImGui Demo\imgui_demo.vcxproj", "{4165A294-21F2-44CA-9B38-E3F935ABADF5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -34,6 +36,14 @@ Global
 		{906F304B-60A3-4FEA-B4C2-BC6B8880C135}.Release|x64.Build.0 = Release|x64
 		{906F304B-60A3-4FEA-B4C2-BC6B8880C135}.Release|x86.ActiveCfg = Release|Win32
 		{906F304B-60A3-4FEA-B4C2-BC6B8880C135}.Release|x86.Build.0 = Release|Win32
+		{4165A294-21F2-44CA-9B38-E3F935ABADF5}.Debug|x64.ActiveCfg = Debug|x64
+		{4165A294-21F2-44CA-9B38-E3F935ABADF5}.Debug|x64.Build.0 = Debug|x64
+		{4165A294-21F2-44CA-9B38-E3F935ABADF5}.Debug|x86.ActiveCfg = Debug|Win32
+		{4165A294-21F2-44CA-9B38-E3F935ABADF5}.Debug|x86.Build.0 = Debug|Win32
+		{4165A294-21F2-44CA-9B38-E3F935ABADF5}.Release|x64.ActiveCfg = Release|x64
+		{4165A294-21F2-44CA-9B38-E3F935ABADF5}.Release|x64.Build.0 = Release|x64
+		{4165A294-21F2-44CA-9B38-E3F935ABADF5}.Release|x86.ActiveCfg = Release|Win32
+		{4165A294-21F2-44CA-9B38-E3F935ABADF5}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

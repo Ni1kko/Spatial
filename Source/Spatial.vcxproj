@@ -276,6 +276,7 @@
     <ClInclude Include="Resources\avatar_tt.h" />
     <ClInclude Include="Resources\menu_bg.h" />
     <ClInclude Include="Resources\Resource.h" />
+    <ClInclude Include="Resources\Shaders\Build\default_vs.h" />
     <ClInclude Include="SDK\AnimState.h" />
     <ClInclude Include="SDK\Client.h" />
     <ClInclude Include="SDK\ClientMode.h" />

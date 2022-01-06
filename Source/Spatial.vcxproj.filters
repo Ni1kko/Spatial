@@ -48,6 +48,9 @@
     <Filter Include="Menu\Resources\Shaders">
       <UniqueIdentifier>{6f1f2a48-d1e6-4e87-b967-4b7e41157a5b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Menu\Resources\Shaders\Build">
+      <UniqueIdentifier>{1dea111e-552d-43fc-9640-5ae8aebb530d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Memory.cpp">
@@ -696,6 +699,9 @@
     </ClInclude>
     <ClInclude Include="Encryption\VMP\VMProtectSDK.h">
       <Filter>Encryption\VMP</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources\Shaders\Build\default_vs.h">
+      <Filter>Menu\Resources\Shaders\Build</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
