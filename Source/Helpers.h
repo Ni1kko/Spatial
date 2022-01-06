@@ -45,6 +45,7 @@ namespace Helpers
     const auto dll_release = 2;
     const auto game_version = "1.38.1.3";
     const auto discordcode = "GyzJf5eNPe";
+    const auto maintainer_discordname = "Ni1kko#1652";
     unsigned int calculateColor(Color4 color) noexcept;
     unsigned int calculateColor(Color3 color) noexcept;
     unsigned int calculateColor(int r, int g, int b, int a) noexcept;

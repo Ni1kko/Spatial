@@ -451,6 +451,7 @@ bool Helpers::checkForUpdates() noexcept
 
         message.append("\nold cs:go version: ").append(game_version);
         message.append("\ncurrent cs:go version: ").append(version);
+        message.append("\n\n Please Notify: ").append(maintainer_discordname);
 
         Helpers::messageBox(title.c_str(), message.c_str());
         std::exit(EXIT_FAILURE);
