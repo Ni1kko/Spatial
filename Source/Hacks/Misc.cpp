@@ -13,6 +13,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "../Menu/imgui/imgui_internal.h"
 #include "../Menu/imgui/imgui_stdlib.h"
+#include "../Menu/imguiCustom.h"
 
 #include "../ConfigStructs.h"
 #include "../InputUtil.h"

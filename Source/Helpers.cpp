@@ -33,7 +33,7 @@ static float alphaFactor = 1.0f;
 static auto rainbowColor(float time, float speed, float alpha) noexcept
 {
     constexpr float pi = std::numbers::pi_v<float>;
-    return std::array{ std::sin(speed * time) * 0.5f + 0.5f,
+    return ImVec4{ std::sin(speed * time) * 0.5f + 0.5f,
                        std::sin(speed * time + 2 * pi / 3) * 0.5f + 0.5f,
                        std::sin(speed * time + 4 * pi / 3) * 0.5f + 0.5f,
                        alpha };
@@ -90,7 +90,7 @@ unsigned int Helpers::calculateColor(Color4 color) noexcept
 
    // if (!config->ignoreFlashbang)
         color.color[3] *= (255.0f - GameData::local().flashDuration) / 255.0f;
-    return ImGui::ColorConvertFloat4ToU32(color.rainbow ? rainbowColor(memory->globalVars->realtime, color.rainbowSpeed, color.color[3]) : color.color);
+    return ImGui::ColorConvertFloat4ToU32(color.rainbow ? rainbowColor(memory->globalVars->realtime, color.rainbowSpeed, color.color[3]) : ImVec4{ color.color[0], color.color[1], color.color[2],  color.color[3] });
 }
 
 unsigned int Helpers::calculateColor(Color3 color) noexcept
@@ -435,7 +435,7 @@ void Helpers::showDiscordUrl(ColorByte colorByte) noexcept
 
 void Helpers::rainbowMenuBorder(float speed) noexcept
 {
-    ImGuiStyle& style = ImGui::GetStyle();
-    ImVec4* colors = style.Colors;
+    ImGuiStyle* style = &ImGui::GetStyle();
+    ImVec4* colors = style->Colors;
     colors[ImGuiCol_Border] = rainbowColor(memory->globalVars->realtime, speed, 1.0f);
 }

@@ -43,4 +43,8 @@ namespace ImGui
     void progressBarFullWidth(float fraction, float height) noexcept;
     void textUnformattedCentered(const char* text) noexcept;
     void hotkey(const char* label, KeyBind& key, float samelineOffset = 0.0f, const ImVec2& size = { 100.0f, 0.0f }) noexcept;
+    IMGUI_API bool InputTextWithHint(const char* label, const char* hint, std::u8string* str, ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = NULL, void* user_data = NULL);
 }
+
+static inline bool operator==(const ImVec2& lhs, const ImVec2& rhs) { return (lhs.x == rhs.x && lhs.y == rhs.y); }
+static inline bool operator!=(const ImVec2& lhs, const ImVec2& rhs) { return (lhs == rhs); }

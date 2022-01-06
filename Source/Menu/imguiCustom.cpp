@@ -1,10 +1,39 @@
 #include <Menu/imgui/imgui.h>
+#include "Menu/imgui/imgui_impl_dx9.h"
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <Menu/imgui/imgui_internal.h>
 
 #include <Menu/imguiCustom.h>
 #include <ConfigStructs.h>
 #include <InputUtil.h>
+
+struct InputTextCallback_UserDataU8
+{
+    std::u8string* Str;
+    ImGuiInputTextCallback  ChainCallback;
+    void* ChainCallbackUserData;
+};
+
+static int InputTextCallbackU8(ImGuiInputTextCallbackData* data)
+{
+    InputTextCallback_UserDataU8* user_data = (InputTextCallback_UserDataU8*)data->UserData;
+    if (data->EventFlag == ImGuiInputTextFlags_CallbackResize)
+    {
+        // Resize string callback
+        // If for some reason we refuse the new length (BufTextLen) and/or capacity (BufSize) we need to set them back to what we want.
+        std::u8string* str = user_data->Str;
+        IM_ASSERT((const char8_t*)data->Buf == str->c_str());
+        str->resize(data->BufTextLen);
+        data->Buf = (char*)str->c_str();
+    }
+    else if (user_data->ChainCallback)
+    {
+        // Forward to user callback, if any
+        data->UserData = user_data->ChainCallbackUserData;
+        return user_data->ChainCallback(data);
+    }
+    return 0;
+}
 
 void ImGuiCustom::AddCircleImageFilled(ImTextureID user_texture_id, const ImVec2& centre, float radius, ImU32 col, int num_segments)
 {
@@ -144,7 +173,7 @@ void ImGuiCustom::arrowButtonDisabled(const char* id, ImGuiDir dir) noexcept
 {
     float sz = ImGui::GetFrameHeight();
     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-    ImGui::ArrowButtonEx(id, dir, ImVec2{ sz, sz }, ImGuiButtonFlags_Disabled);
+    ImGui::ArrowButtonEx(id, dir, ImVec2{ sz, sz });
     ImGui::PopStyleVar();
 }
 
@@ -154,7 +183,7 @@ void ImGuiCustom::tooltip(const char* text) noexcept
     if (ImGui::IsItemHovered()) ImGui::SetTooltip(text);
 }
 
-void ImGuiCustom::StyleSpatial(ImGuiStyle* dst)
+IMGUI_API void ImGuiCustom::StyleSpatial(ImGuiStyle* dst)
 {
     ImGuiStyle* style = dst ? dst : &ImGui::GetStyle();
     ImVec4* colors = style->Colors;
@@ -214,7 +243,7 @@ void ImGuiCustom::StyleSpatial(ImGuiStyle* dst)
     colors[ImGuiCol_DragDropTarget] = ImVec4(1.00f, 0.00f, 0.40f, 1.00f);
 }
 
-void ImGuiCustom::StyleCustom(ImGuiStyle* dst)
+IMGUI_API void ImGuiCustom::StyleCustom(ImGuiStyle* dst)
 {
     ImGuiStyle* style = dst ? dst : &ImGui::GetStyle();
     ImVec4* colors = style->Colors;
@@ -337,4 +366,15 @@ void ImGuiCustom:: HelpMarker(const char* desc, bool sameline) noexcept
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
     }
+}
+
+IMGUI_API bool ImGui::InputTextWithHint(const char* label, const char* hint, std::u8string* str, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data)
+{
+    IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
+    flags |= ImGuiInputTextFlags_CallbackResize;
+    InputTextCallback_UserDataU8 cb_user_data;
+    cb_user_data.Str = str;
+    cb_user_data.ChainCallback = callback;
+    cb_user_data.ChainCallbackUserData = user_data;
+    return InputTextWithHint(label, hint, (char*)str->c_str(), str->capacity() + 1, flags, InputTextCallbackU8, &cb_user_data);
 }

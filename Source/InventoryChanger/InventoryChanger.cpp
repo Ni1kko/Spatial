@@ -634,7 +634,7 @@ namespace ImGui
             window->DC.CursorPos.y = cursorPosNext;
         }
 
-        if (pressed && (window->Flags & ImGuiWindowFlags_Popup) && !(window->DC.ItemFlags & ImGuiItemFlags_SelectableDontClosePopup))
+        if (pressed && (window->Flags & ImGuiWindowFlags_Popup))
             CloseCurrentPopup();
 
         return pressed;
