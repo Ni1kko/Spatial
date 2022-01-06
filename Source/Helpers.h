@@ -41,8 +41,8 @@ enum ColorByte
 namespace Helpers
 {
     const auto dll_name = "Spatial";
-    const auto dll_version = 1.6;
-    const auto dll_release = 3;
+    const auto dll_version = 1.7;
+    const auto dll_release = 0;
     const auto discordcode = "GyzJf5eNPe";
     unsigned int calculateColor(Color4 color) noexcept;
     unsigned int calculateColor(Color3 color) noexcept;

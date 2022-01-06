@@ -177,8 +177,8 @@ void ImGuiCustom::StyleSpatial(ImGuiStyle* dst)
     style->TabBorderSize = 1.0f;
 
     style->WindowPadding = ImVec2{ 20.0f, 10.0f };
-    style->FramePadding = ImVec2{ 6.0f, 6.0f };
-    style->CellPadding = ImVec2{ 5.0f, 3.0f };
+    style->FramePadding = ImVec2{ 4.0f, 4.0f };
+    style->CellPadding = ImVec2{ 4.0f, 2.0f };
     style->ItemSpacing = ImVec2{ 10.0f, 4.0f };
     style->ItemInnerSpacing = ImVec2{ 10.0f, 4.0f };
 
@@ -297,7 +297,7 @@ static void StyleReset()
     style->ColorButtonPosition = ImGuiDir_Right;
 
     //Default others
-    style->WindowTitleAlign = ImVec2{ 50.0f, 50.0f };
+    style->WindowTitleAlign = ImVec2{ 0.00f, 0.05f };
     style->GrabMinSize = 10.0f;
     style->ScrollbarSize = 14.0f;
 
