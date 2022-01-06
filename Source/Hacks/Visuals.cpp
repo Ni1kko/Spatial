@@ -75,6 +75,7 @@ struct VisualsConfig {
     bool zoom{ false };
     KeyBindToggle zoomKey;
     int ragdollForce{ 1 };
+    bool fullBright{ false };
     bool thirdperson{ false };
     KeyBindToggle thirdpersonKey;
     int thirdpersonDistance{ 0 };
@@ -122,6 +123,7 @@ struct VisualsConfig {
 } visualsConfig;
 
 static int lastRagdollForce{ 0 };
+static bool lastFullBrightState{ false };
 
 static bool worldToScreen(const Vector& in, ImVec2& out) noexcept
 {
@@ -733,6 +735,15 @@ void Visuals::ragdollForce(int force) noexcept
     }
 }
 
+void Visuals::fullBright(bool toggle) noexcept
+{
+    if (lastFullBrightState != toggle) {
+        const auto mat_fullbright = interfaces->cvar->findVar("mat_fullbright");
+        mat_fullbright->setValue(toggle);
+        lastFullBrightState = toggle;
+    }
+}
+
 void Visuals::updateEventListeners(bool forceRemove) noexcept
 {
     class ImpactEventListener : public GameEventListener {
@@ -757,6 +768,7 @@ void Visuals::updateInput() noexcept
     visualsConfig.thirdpersonKey.handleToggle();
     visualsConfig.zoomKey.handleToggle();
     ragdollForce(visualsConfig.ragdollForce);
+    fullBright(visualsConfig.fullBright);
 }
 
 void Visuals::drawGUI() noexcept
@@ -855,10 +867,14 @@ void Visuals::drawGUI() noexcept
     ImGui::PopID();
     ImGui::PushID(4);
     ImGui::SliderInt("", &visualsConfig.flashReduction, 0, 100, "Flash reduction: %d%%");
-    ImGui::PopID();
-    ImGui::PushID(5);
-    ImGui::SliderFloat("", &visualsConfig.brightness, 0.0f, 1.0f, "Brightness: %.2f");
-    ImGui::PopID();
+    ImGui::PopID(); 
+    if (!visualsConfig.fullBright) {
+        ImGui::PushID(5);
+        ImGui::SliderFloat("", &visualsConfig.brightness, 0.0f, 1.0f, "Brightness: %.2f");
+        ImGui::PopID();
+        ImGui::SameLine();
+    }
+    ImGui::Checkbox(visualsConfig.fullBright ? "Max Brightness" : "Max", &visualsConfig.fullBright);
     ImGui::PushID(6);
     ImGui::SliderInt("", &visualsConfig.ragdollForce, 1, 800, "Ragdoll Force: %d%%");
     ImGui::PopID();
@@ -927,6 +943,7 @@ static void from_json(const json& j, VisualsConfig& v)
     read(j, "Thirdperson key", v.thirdpersonKey);
     read(j, "Thirdperson distance", v.thirdpersonDistance);
     read(j, "Ragdoll Force", v.ragdollForce);
+    read(j, "Full Bright", v.fullBright);
     read(j, "Viewmodel FOV", v.viewmodelFov);
     read(j, "Custom Position", v.customPos);
     read(j, "Viewmodel X", v.x);
@@ -1004,6 +1021,7 @@ static void to_json(json& j, const VisualsConfig& o)
     WRITE("Thirdperson key", thirdpersonKey);
     WRITE("Thirdperson distance", thirdpersonDistance);
     WRITE("Ragdoll Force", ragdollForce);
+    WRITE("Full Bright", fullBright);
     WRITE("Viewmodel FOV", viewmodelFov);
     WRITE("Custom Position", customPos);
     WRITE("Viewmodel X", x);
