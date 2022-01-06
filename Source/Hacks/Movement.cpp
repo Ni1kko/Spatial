@@ -411,7 +411,7 @@ void Movement::drawGUI() noexcept
 static void from_json(const json& j, Movement::Config& m)
 {
     read(j, "Fix MouseDelta", m.fixMouseDelta);
-    read(j, "Fix bone Matrix", m.fixBoneMatrix);
+    read(j, "Fix Bone Matrix", m.fixBoneMatrix);
     read(j, "Fix Movement", m.fixMovement);
     read(j, "Auto Strafe", m.autoStrafe);
     read(j, "Fast Stop", m.fastStop);
@@ -424,7 +424,7 @@ static void from_json(const json& j, Movement::Config& m)
     read(j, "Slow Walk Key", m.slowwalkKey);
     read(j, "Set Max angle delta", m.setMaxAngleDelta);
     read(j, "Max angle delta", m.maxAngleDelta); 
-    read(j, "Auto Peek Key", m.autoPeek);
+    read(j, "Auto Peek", m.autoPeek);
     read(j, "Auto Peek Key", m.autoPeekKey);
 }
 
@@ -446,7 +446,7 @@ static void to_json(json& j, const Movement::Config& o)
     WRITE("Set Max angle delta", setMaxAngleDelta);
     WRITE("Max angle delta", maxAngleDelta);
     WRITE("Fast plant", fastPlant);
-    WRITE("Auto Peek Key", autoPeek);
+    WRITE("Auto Peek", autoPeek);
     WRITE("Auto Peek Key", autoPeekKey);
 }
 
