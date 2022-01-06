@@ -235,10 +235,11 @@ void Glow::drawGUI() noexcept
     ImGui::NextColumn();
     ImGui::SetNextItemWidth(100.0f);
     ImGui::Combo("Style", &currentItem->style, "Default\0Rim3d\0Edge\0Edge Pulse\0");
-     
-    ImGui::SetNextItemWidth(100.0f);
-    ImGui::SliderFloat("Thickness", &outlineWidth, 0.80f, 25.0f, "%0.1f");
-    
+    if (currentItem->style == 0) {
+        ImGui::SetNextItemWidth(100.0f);
+        ImGui::SliderFloat("Thickness", &outlineWidth, 0.80f, 25.0f, "%0.1f");
+    }
+
     ImGui::Columns(1);
 }
 
