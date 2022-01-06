@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{4165A294-21F2-44CA-9B38-E3F935ABADF5}</ProjectGuid>
-    <RootNamespace>example_win32_directx9</RootNamespace>
+    <RootNamespace>imgui_demo</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -160,7 +160,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="debuggers\imgui.natvis" />
-    <None Include="..\README.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ImGui\imconfig.h" />

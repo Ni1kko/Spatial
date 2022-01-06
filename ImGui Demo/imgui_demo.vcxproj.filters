@@ -36,7 +36,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\README.txt" />
     <None Include="debuggers\imgui.natvis">
       <Filter>sources</Filter>
     </None>
