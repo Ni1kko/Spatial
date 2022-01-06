@@ -1,18 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="sources">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
     <Filter Include="ImGui">
       <UniqueIdentifier>{eb383ea9-41c1-4b35-9d68-98e06b28da4b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Menu">
+      <UniqueIdentifier>{7037e5c1-9930-462d-9cb8-ca08f4bf1874}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>sources</Filter>
-    </ClCompile>
     <ClCompile Include="ImGui\imgui_tables.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
@@ -34,11 +30,10 @@
     <ClCompile Include="ImGui\imgui_impl_win32.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="debuggers\imgui.natvis">
-      <Filter>sources</Filter>
-    </None>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Menu\Menu.cpp">
+      <Filter>Menu</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ImGui\imstb_rectpack.h">
@@ -65,5 +60,11 @@
     <ClInclude Include="ImGui\imgui_impl_win32.h">
       <Filter>ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="Menu\Menu.h">
+      <Filter>Menu</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="debuggers\imgui.natvis" />
   </ItemGroup>
 </Project>
