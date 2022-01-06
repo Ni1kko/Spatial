@@ -74,6 +74,7 @@ struct VisualsConfig {
     ColorToggle autoPeekToggle{ 1.0f, 1.0f, 1.0f, 1.0f };
     bool zoom{ false };
     KeyBindToggle zoomKey;
+    int ragdollForce{ 1 };
     bool thirdperson{ false };
     KeyBindToggle thirdpersonKey;
     int thirdpersonDistance{ 0 };
@@ -119,6 +120,8 @@ struct VisualsConfig {
     } smokeTimer;
 
 } visualsConfig;
+
+static int lastRagdollForce{ 0 };
 
 static bool worldToScreen(const Vector& in, ImVec2& out) noexcept
 {
@@ -720,6 +723,16 @@ float Visuals::aspectRatio() noexcept
     return visualsConfig.aspectratio;
 }
 
+void Visuals::ragdollForce(int width) noexcept
+{
+    if (lastRagdollForce != width) {
+        const auto force = interfaces->cvar->findVar("phys_pushscale");
+        if (force->getInt() != width)
+            force->setValue(width);
+        lastRagdollForce = width;
+    }
+}
+
 void Visuals::updateEventListeners(bool forceRemove) noexcept
 {
     class ImpactEventListener : public GameEventListener {
@@ -743,6 +756,7 @@ void Visuals::updateInput() noexcept
 {
     visualsConfig.thirdpersonKey.handleToggle();
     visualsConfig.zoomKey.handleToggle();
+    ragdollForce(visualsConfig.ragdollForce);
 }
 
 void Visuals::drawGUI() noexcept
@@ -845,6 +859,9 @@ void Visuals::drawGUI() noexcept
     ImGui::PushID(5);
     ImGui::SliderFloat("", &visualsConfig.brightness, 0.0f, 1.0f, "Brightness: %.2f");
     ImGui::PopID();
+    ImGui::PushID(6);
+    ImGui::SliderInt("", &visualsConfig.ragdollForce, 1, 800, "Ragdoll Force: %d%%");
+    ImGui::PopID();
     ImGui::PopItemWidth();
     ImGui::Combo("Skybox", &visualsConfig.skybox, Visuals::skyboxList.data(), Visuals::skyboxList.size());
     ImGuiCustom::colorPicker("World color", visualsConfig.world);
@@ -909,6 +926,7 @@ static void from_json(const json& j, VisualsConfig& v)
     read(j, "Thirdperson", v.thirdperson);
     read(j, "Thirdperson key", v.thirdpersonKey);
     read(j, "Thirdperson distance", v.thirdpersonDistance);
+    read(j, "Ragdoll Force", v.ragdollForce);
     read(j, "Viewmodel FOV", v.viewmodelFov);
     read(j, "Custom Position", v.customPos);
     read(j, "Viewmodel X", v.x);
@@ -985,6 +1003,7 @@ static void to_json(json& j, const VisualsConfig& o)
     WRITE("Thirdperson", thirdperson);
     WRITE("Thirdperson key", thirdpersonKey);
     WRITE("Thirdperson distance", thirdpersonDistance);
+    WRITE("Ragdoll Force", ragdollForce);
     WRITE("Viewmodel FOV", viewmodelFov);
     WRITE("Custom Position", customPos);
     WRITE("Viewmodel X", x);
