@@ -150,6 +150,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ConfigStructs.cpp" />
+    <ClCompile Include="Helpers.cpp" />
     <ClCompile Include="ImGui\imgui.cpp" />
     <ClCompile Include="ImGui\imgui_demo.cpp" />
     <ClCompile Include="ImGui\imgui_draw.cpp" />
@@ -157,13 +159,18 @@
     <ClCompile Include="ImGui\imgui_impl_win32.cpp" />
     <ClCompile Include="ImGui\imgui_tables.cpp" />
     <ClCompile Include="ImGui\imgui_widgets.cpp" />
+    <ClCompile Include="InputUtil.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Menu\imguiCustom.cpp" />
     <ClCompile Include="Menu\Menu.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="cpp.hint" />
     <None Include="debuggers\imgui.natvis" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ConfigStructs.h" />
+    <ClInclude Include="Helpers.h" />
     <ClInclude Include="ImGui\imconfig.h" />
     <ClInclude Include="ImGui\imgui.h" />
     <ClInclude Include="ImGui\imgui_impl_dx9.h" />
@@ -172,7 +179,11 @@
     <ClInclude Include="ImGui\imstb_rectpack.h" />
     <ClInclude Include="ImGui\imstb_textedit.h" />
     <ClInclude Include="ImGui\imstb_truetype.h" />
+    <ClInclude Include="InputUtil.h" />
+    <ClInclude Include="JsonForward.h" />
+    <ClInclude Include="Menu\imguiCustom.h" />
     <ClInclude Include="Menu\Menu.h" />
+    <ClInclude Include="nlohmann\json.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

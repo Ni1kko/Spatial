@@ -8,11 +8,13 @@
 #include <ShlObj.h>
 #include <Windows.h>
 
-#include "..\ImGui\imgui.h"
-#include "..\ImGui\imgui_impl_dx9.h"
-#include "..\ImGui\imgui_impl_win32.h"
+#include "../ImGui/imgui.h"
+#include "../ImGui/imgui_impl_dx9.h"
+#include "../ImGui/imgui_impl_win32.h"
 
 #include "Menu.h"
+#include "imguiCustom.h"
+#include "../Helpers.h"
 
 static bool render_demo = true;
 
@@ -27,7 +29,7 @@ Menu::Menu() noexcept
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     
 
     // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
+    ImGuiCustom::updateColors(ImGuiStyles::Spatial);
     
     
     // Load Fonts
@@ -48,6 +50,7 @@ Menu::Menu() noexcept
 
 void Menu::render() noexcept
 { 
+    Helpers::rainbowMenuBorder();
     renderDemo();
     renderTest();
 }

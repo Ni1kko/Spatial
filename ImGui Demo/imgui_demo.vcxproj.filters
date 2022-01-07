@@ -7,6 +7,9 @@
     <Filter Include="Menu">
       <UniqueIdentifier>{7037e5c1-9930-462d-9cb8-ca08f4bf1874}</UniqueIdentifier>
     </Filter>
+    <Filter Include="nlohmann">
+      <UniqueIdentifier>{d42dfc86-cee1-4579-8dc9-a8d4282dfad1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ImGui\imgui_tables.cpp">
@@ -34,6 +37,12 @@
     <ClCompile Include="Menu\Menu.cpp">
       <Filter>Menu</Filter>
     </ClCompile>
+    <ClCompile Include="Menu\imguiCustom.cpp">
+      <Filter>Menu</Filter>
+    </ClCompile>
+    <ClCompile Include="InputUtil.cpp" />
+    <ClCompile Include="ConfigStructs.cpp" />
+    <ClCompile Include="Helpers.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ImGui\imstb_rectpack.h">
@@ -63,8 +72,19 @@
     <ClInclude Include="Menu\Menu.h">
       <Filter>Menu</Filter>
     </ClInclude>
+    <ClInclude Include="Menu\imguiCustom.h">
+      <Filter>Menu</Filter>
+    </ClInclude>
+    <ClInclude Include="nlohmann\json.hpp">
+      <Filter>nlohmann</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonForward.h" />
+    <ClInclude Include="InputUtil.h" />
+    <ClInclude Include="ConfigStructs.h" />
+    <ClInclude Include="Helpers.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="debuggers\imgui.natvis" />
+    <None Include="cpp.hint" />
   </ItemGroup>
 </Project>
