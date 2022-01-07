@@ -38,8 +38,6 @@ enum ColorByte
     DarkOrange
 };
 
-constexpr Vector operator-(float sub, const std::array<float, 3>& a) noexcept { return Vector{ sub - a[0], sub - a[1], sub - a[2] }; }
-
 namespace Helpers
 {
     const auto dll_name = "Spatial";

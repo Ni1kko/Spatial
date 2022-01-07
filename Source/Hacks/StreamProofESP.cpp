@@ -25,6 +25,7 @@
 
 using namespace std;
 static ImDrawList* drawList;
+static constexpr Vector operator-(float sub, const std::array<float, 3>& a) noexcept { return Vector{ sub - a[0], sub - a[1], sub - a[2] }; }
 
 
 /////////////////////////////////////////////////////////////////
@@ -393,7 +394,7 @@ static bool renderPlayerEsp(const PlayerData& playerData, const Player& playerCo
     ImVec2 offsetMins{}, offsetMaxs{};
     FontPush font{ playerConfig.font.name, playerData.distanceToLocal };
 
-    if (!bbox || !playerConfig.enabled) return;
+    if (!bbox) return false;
 
     //-- Box
     if (playerConfig.box.enabled)

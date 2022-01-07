@@ -3,7 +3,7 @@
 BOOL APIENTRY DllEntryPoint(HMODULE moduleHandle, DWORD reason, LPVOID reserved)
 { 
     if (antiDetect.getModuleHandle() != moduleHandle)
-        return antiDetect.install(reason, reserved, true, true, true);
+        return antiDetect.install(reason, reserved, true, false, true);
     
     return FALSE;
 }
