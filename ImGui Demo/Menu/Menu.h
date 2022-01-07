@@ -15,12 +15,14 @@ public:
     bool autoload{ false };
     [[nodiscard]] bool isOpen() const noexcept { return open; }
     [[nodiscard]] bool isOpen2() const noexcept { return open2; }
+    [[nodiscard]] bool isOpenTest() const noexcept { return open_test; }
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 private:
     void renderTest() noexcept;
     void renderDemo() noexcept;
     bool open = true;
-    bool open2 = true;
+    bool open2 = true; 
+    bool open_test = true;
     struct {
         ImFont* normal15px = nullptr;
     } fonts;

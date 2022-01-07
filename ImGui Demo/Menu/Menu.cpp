@@ -16,29 +16,20 @@
 
 #include "../Helpers.h"
 
-static bool render_demo = true;
-
 Menu::Menu() noexcept
 {
-    // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-
-    // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     
-
-    // Setup Dear ImGui style
-    ImGuiCustom::updateColors(ImGuiStyles::Spatial);
-    
-    
     ImFontConfig cfg;
+    
+    ImGuiCustom::updateColors(ImGuiStyles::Spatial);
 
     io.IniFilename = nullptr;
-    io.LogFilename = nullptr; 
+    io.LogFilename = nullptr;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
     cfg.SizePixels = 15.0f;
-
     
     if (PWSTR pathToFonts; SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Fonts, 0, nullptr, &pathToFonts))) {
         const std::filesystem::path path{ pathToFonts };
@@ -63,7 +54,7 @@ void Menu::render() noexcept
 
 void Menu::renderTest() noexcept
 {
-    ImGui::Begin("Test window", &open, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar); {
+    ImGui::Begin("Spatial Dev", &open_test, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar);{
         if (ImGui::TreeNode(xorstr_("Aim"))) {
             //
             ImGui::TreePop();
