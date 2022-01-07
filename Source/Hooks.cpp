@@ -574,8 +574,8 @@ void Hooks::install() noexcept
     engine.hookAt(218, &getDemoPlaybackParameters);
 
     fileSystem.init(interfaces->fileSystem);
-    fileSystem.hookAt(101, getUnverifiedFileHashes);
-    fileSystem.hookAt(128, canLoadThirdPartyFiles);
+    //fileSystem.hookAt(101, getUnverifiedFileHashes);
+    //fileSystem.hookAt(128, canLoadThirdPartyFiles);
 
     inventory.init(memory->inventoryManager->getLocalInventory());
     inventory.hookAt(1, &soUpdated);
