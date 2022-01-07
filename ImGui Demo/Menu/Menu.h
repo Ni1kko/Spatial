@@ -21,6 +21,9 @@ private:
     void renderDemo() noexcept;
     bool open = true;
     bool open2 = true;
+    struct {
+        ImFont* normal15px = nullptr;
+    } fonts;
 };
 
 inline std::unique_ptr<Menu> menu;
