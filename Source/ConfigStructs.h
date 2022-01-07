@@ -108,6 +108,16 @@ struct HealthBar : ColorToggle {
     int type = Type::Gradient;
 };
 
+struct HealthText : ColorToggle {
+    enum Type {
+        Solid,
+        HealthBased
+    };
+
+    int type = Type::HealthBased;
+};
+
+
 struct Player : Shared {
     Player() : Shared{}
     {
@@ -119,6 +129,7 @@ struct Player : Shared {
     bool audibleOnly = false;
     bool spottedOnly = false;
     HealthBar healthBar;
+    HealthText health;
     ColorToggle rank;
     ColorToggleThickness skeleton;
     Box headBox;
@@ -180,6 +191,7 @@ void to_json(json& j, const Color3& o, const Color3& dummy = {});
 void to_json(json& j, const ColorToggle3& o, const ColorToggle3& dummy = {});
 void to_json(json& j, const ColorToggleThickness& o, const ColorToggleThickness& dummy = {});
 void to_json(json& j, const HealthBar& o, const HealthBar& dummy = {});
+void to_json(json& j, const HealthText& o, const HealthText& dummy = {});
 
 template <value_t Type, typename T>
 std::enable_if_t<!std::is_same_v<T, bool>> read(const json& j, const char* key, T& o) noexcept
@@ -243,4 +255,5 @@ void from_json(const json& j, ColorToggle& ct);
 void from_json(const json& j, Color3& c);
 void from_json(const json& j, ColorToggle3& ct);
 void from_json(const json& j, HealthBar& o);
+void from_json(const json& j, HealthText& o);
 void from_json(const json& j, ColorToggleThickness& ctt);

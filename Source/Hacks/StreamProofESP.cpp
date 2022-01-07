@@ -23,7 +23,7 @@
 #include "../GameData.h"
 
 
-
+using namespace std;
 
 
 /////////////////////////////////////////////////////////////////
@@ -110,7 +110,6 @@ public:
         return valid;
     }
 };
-
 
 /////////////////////////////////////////////////////////////////
 // ESP Helper Functions
@@ -322,6 +321,25 @@ static void drawHealthBar(const HealthBar& config, const ImVec2& pos, float heig
     drawList->PopClipRect();
 }
 
+static void drawHealth(const HealthText& config, BoundingBox bbox, ImVec2 distances, int remainingHealth) noexcept
+{
+    if (!config.enabled)
+        return;
+
+    const auto dangerzone = false;//temp
+    const auto height = (bbox.max.y - bbox.min.y);
+    const auto maxhealth = dangerzone ? 120.0f : 100.0f;
+    const auto position = bbox.min - ImVec2{ 5.0f, 0.0f } + ImVec2{ 0.0f, (maxhealth - remainingHealth) / maxhealth * height };
+ 
+    string text = std::to_string(remainingHealth).append(" HP");
+    Color4 color = config.asColor4();
+
+    if (config.type == HealthText::HealthBased)
+        color = Color4{ remainingHealth / maxhealth, 0.0f, 1.0f, 1.0f };
+    
+    renderText(distances.x, distances.y, color, text.c_str(), position);
+}
+
 static void renderPlayerBox(const PlayerData& playerData, const Player& config) noexcept
 {
     const BoundingBox bbox{ playerData, config.box.scale };
@@ -334,6 +352,7 @@ static void renderPlayerBox(const PlayerData& playerData, const Player& config) 
     ImVec2 offsetMins{}, offsetMaxs{};
 
     drawHealthBar(config.healthBar, bbox.min - ImVec2{ 5.0f, 0.0f }, (bbox.max.y - bbox.min.y), playerData.health);
+    drawHealth(config.health, bbox, ImVec2{ playerData.distanceToLocal, config.textCullDistance }, playerData.health);
 
     FontPush font{ config.font.name, playerData.distanceToLocal };
  
@@ -345,7 +364,7 @@ static void renderPlayerBox(const PlayerData& playerData, const Player& config) 
 
     if (config.name.enabled) {
         const auto nameSize = renderText(playerData.distanceToLocal, config.textCullDistance, config.name.asColor4(), playerData.name.c_str(), { (bbox.min.x + bbox.max.x) / 2, bbox.min.y - 2 });
-        offsetMins.y -= nameSize.y + 2;
+        offsetMins.y -= nameSize.y + 4;
     }
 
     if (config.flashDuration.enabled && playerData.flashDuration > 0.0f) {
@@ -912,24 +931,42 @@ void StreamProofESP::drawGUI() noexcept
 
             ImGui::SameLine(spacing);
             ImGui::Checkbox("Health Bar", &playerConfig.healthBar.enabled);
-            ImGui::SameLine();
-
-            ImGui::PushID("Health Bar");
-
-            if (ImGui::Button("..."))
-                ImGui::OpenPopup("");
-
-            if (ImGui::BeginPopup("")) {
-                ImGui::SetNextItemWidth(95.0f);
-                ImGui::Combo("Type", &playerConfig.healthBar.type, "Gradient\0Solid\0Health-based\0");
-                if (playerConfig.healthBar.type == HealthBar::Solid) {
-                    ImGui::SameLine();
-                    ImGuiCustom::colorPicker("", playerConfig.healthBar.asColor4());
+            if (playerConfig.healthBar.enabled)
+            {
+                ImGui::SameLine();
+                ImGui::PushID("Health Bar");
+                if (ImGui::Button("...")) ImGui::OpenPopup("");
+                if (ImGui::BeginPopup("")) 
+                {
+                    ImGui::SetNextItemWidth(95.0f);
+                    ImGui::Combo("Type", &playerConfig.healthBar.type, "Gradient\0Solid\0Health-based\0");
+                    if (playerConfig.healthBar.type == HealthBar::Solid) {
+                        ImGui::SameLine();
+                        ImGuiCustom::colorPicker("", playerConfig.healthBar.asColor4());
+                    }
+                    ImGui::EndPopup();
                 }
-                ImGui::EndPopup();
+                ImGui::PopID();
             }
 
-            ImGui::PopID();
+            ImGuiCustom::colorPicker("Health", playerConfig.health);
+            if (playerConfig.health.enabled) 
+            {
+                ImGui::SameLine();
+                ImGui::PushID("Health Text");
+                if (ImGui::Button("...")) ImGui::OpenPopup("");
+                if (ImGui::BeginPopup("")) {
+                    ImGui::SetNextItemWidth(95.0f);
+                    ImGui::Combo("Type", &playerConfig.health.type, "Solid\0Health-based\0");
+                    if (playerConfig.health.type == HealthText::Solid) {
+                        ImGui::SameLine();
+                        ImGuiCustom::colorPicker("", playerConfig.healthBar.asColor4());
+                    }
+                    ImGui::EndPopup();
+                }
+                ImGui::PopID();
+            }
+              
         } else if (currentCategory == 2) {
             auto& weaponConfig = config->streamProofESP.weapons[currentItem];
             ImGuiCustom::colorPicker("Ammo", weaponConfig.ammo);

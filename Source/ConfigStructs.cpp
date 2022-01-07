@@ -59,6 +59,12 @@ void to_json(json& j, const HealthBar& o, const HealthBar& dummy)
     WRITE("Type", type);
 }
 
+void to_json(json& j, const HealthText& o, const HealthText& dummy)
+{
+    to_json(j, static_cast<const ColorToggle&>(o), dummy);
+    WRITE("Type", type);
+}
+
 void read(const json& j, const char* key, bool& o) noexcept
 {
     if (!j.contains(key))
@@ -162,6 +168,12 @@ void from_json(const json& j, ColorToggle3& ct)
 }
 
 void from_json(const json& j, HealthBar& o)
+{
+    from_json(j, static_cast<ColorToggle&>(o));
+    read(j, "Type", o.type);
+}
+
+void from_json(const json& j, HealthText& o)
 {
     from_json(j, static_cast<ColorToggle&>(o));
     read(j, "Type", o.type);
