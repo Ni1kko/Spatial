@@ -7,11 +7,13 @@
 #include <vector>
 #include <ShlObj.h>
 #include <Windows.h>
+#include <iostream>
+#include <filesystem>
 
 #include "../ImGui/imgui.h"
-
-#include "Menu.h"
 #include "imguiCustom.h"
+#include "Menu.h"
+
 #include "../Helpers.h"
 
 static bool render_demo = true;
@@ -33,12 +35,11 @@ Menu::Menu() noexcept
     ImFontConfig cfg;
 
     io.IniFilename = nullptr;
-    io.LogFilename = nullptr;
-    io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
+    io.LogFilename = nullptr; 
 
     cfg.SizePixels = 15.0f;
 
-    /*
+    
     if (PWSTR pathToFonts; SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Fonts, 0, nullptr, &pathToFonts))) {
         const std::filesystem::path path{ pathToFonts };
         CoTaskMemFree(pathToFonts);
@@ -51,7 +52,6 @@ Menu::Menu() noexcept
     }
 
     if (!fonts.normal15px) io.Fonts->AddFontDefault(&cfg);
-    */
 }
 
 void Menu::render() noexcept
