@@ -43,6 +43,25 @@ Menu::Menu() noexcept
     }
 
     if (!fonts.normal15px) io.Fonts->AddFontDefault(&cfg);
+
+    window.name = xorstr_("Spatial Dev");
+    window.flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar;
+
+    window.tabs.aim.name = xorstr_("Aim");
+    window.tabs.antiaim.name = xorstr_("AntiAim");
+    window.tabs.triggerbot.name = xorstr_("Triggerbot");
+    window.tabs.backtrack.name = xorstr_("BackTrack");
+    window.tabs.movement.name = xorstr_("Movement");
+    window.tabs.network.name = xorstr_("Network");
+    window.tabs.glow.name = xorstr_("Glow");
+    window.tabs.chams.name = xorstr_("Chams");
+    window.tabs.esp.name = xorstr_("ESP");
+    window.tabs.visuals.name = xorstr_("Visuals");
+    window.tabs.inventory.name = xorstr_("Inventory");
+    window.tabs.sound.name = xorstr_("Sound");
+    window.tabs.misc.name = xorstr_("Misc");
+    window.tabs.troll.name = xorstr_("Troll");
+    window.tabs.config.name = xorstr_("Config");
 }
 
 void Menu::render() noexcept
@@ -51,18 +70,48 @@ void Menu::render() noexcept
     renderDemo();
     renderTest();
 }
+  
+void Menu::tabShow(Tab* tab) noexcept
+{
+    window.tabs.aim.open = false;
+    window.tabs.antiaim.open = false;
+    window.tabs.triggerbot.open = false;
+    window.tabs.backtrack.open = false;
+    window.tabs.movement.open = false;
+    window.tabs.network.open = false;
+    window.tabs.glow.open = false;
+    window.tabs.esp.open = false;
+    window.tabs.visuals.open = false;
+    window.tabs.inventory.open = false;
+    window.tabs.sound.open = false;
+    window.tabs.misc.open = false;
+    window.tabs.troll.open = false;
+    window.tabs.config.open = false;
+    tab->open = true;
+}
 
 void Menu::renderTest() noexcept
 {
-    ImGui::Begin("Spatial Dev", &open_test, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar);{
-        if (ImGui::TreeNode(xorstr_("Aim"))) {
-            //
+    ImGui::Begin(window.name, &window.open, window.flags);{
+         
+        if (ImGui::TreeNode(window.tabs.aim.name)) tabShow(&window.tabs.aim); else window.tabs.aim.open = false;
+        if (window.tabs.aim.open) {
+            ImGui::TextUnformatted("aim test tab line1");
+            ImGui::TextUnformatted("aim test tab line2");
+            ImGui::TextUnformatted("aim test tab line3");
+            ImGui::TextUnformatted("aim test tab line4");
             ImGui::TreePop();
         }
-        if (ImGui::TreeNode(xorstr_("AntiAim"))) {
-            //
+
+        if (ImGui::TreeNode(window.tabs.antiaim.name)) tabShow(&window.tabs.antiaim); else window.tabs.antiaim.open = false;
+        if (window.tabs.antiaim.open) {
+            ImGui::TextUnformatted("antiaim test tab line1");
+            ImGui::TextUnformatted("antiaim test tab line2");
+            ImGui::TextUnformatted("antiaim test tab line3");
+            ImGui::TextUnformatted("antiaim test tab line4");
             ImGui::TreePop();
         }
+
         if (ImGui::TreeNode(xorstr_("Triggerbot"))) {
             //
             ImGui::TreePop();
