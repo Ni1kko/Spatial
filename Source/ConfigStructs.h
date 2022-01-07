@@ -51,7 +51,8 @@ struct ColorToggleThickness : private ColorToggle {
 
     ColorToggle& asColorToggle() noexcept { return static_cast<ColorToggle&>(*this); }
     const ColorToggle& asColorToggle() const noexcept { return static_cast<const ColorToggle&>(*this); }
-};
+    const bool enabled() const noexcept { return asColorToggle().enabled; }
+}; 
 
 struct ColorToggleRounding : ColorToggle {
     float rounding = 0.0f;
@@ -72,7 +73,6 @@ struct Snapline : ColorToggleThickness {
         Top,
         Crosshair
     };
-
     int type = Bottom;
 };
 

@@ -38,6 +38,8 @@ enum ColorByte
     DarkOrange
 };
 
+constexpr Vector operator-(float sub, const std::array<float, 3>& a) noexcept { return Vector{ sub - a[0], sub - a[1], sub - a[2] }; }
+
 namespace Helpers
 {
     const auto dll_name = "Spatial";
@@ -117,6 +119,7 @@ namespace Helpers
     long getCurrentTime() noexcept;
     bool worldToScreen(const Vector& worldPosition, ImVec2& screenPosition) noexcept;
     bool worldToScreenPixelAligned(const Vector& worldPosition, ImVec2& screenPosition) noexcept;
+    std::pair<std::array<ImVec2, 8>, std::size_t> convexHull(std::array<ImVec2, 8> points) noexcept;
 
     [[nodiscard]] constexpr auto isMP5LabRats(WeaponId weaponID, int paintKit) noexcept
     {

@@ -458,3 +458,28 @@ bool Helpers::checkForUpdates() noexcept
     }
     return false;
 }
+
+std::pair<std::array<ImVec2, 8>, std::size_t> Helpers::convexHull(std::array<ImVec2, 8> points) noexcept
+{// convex hull using Graham's scan
+    std::swap(points[0], *std::ranges::min_element(points, [](const auto& a, const auto& b) { return a.y < b.y || (a.y == b.y && a.x < b.x); }));
+
+    constexpr auto orientation = [](const ImVec2& a, const ImVec2& b, const ImVec2& c) {
+        return (b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y);
+    };
+
+    std::sort(points.begin() + 1, points.end(), [&](const auto& a, const auto& b) {
+        const auto o = orientation(points[0], a, b);
+        return o == 0.0f ? ImLengthSqr(points[0] - a) < ImLengthSqr(points[0] - b) : o < 0.0f;
+        });
+
+    std::array<ImVec2, 8> hull;
+    std::size_t count = 0;
+
+    for (const auto& p : points) {
+        while (count >= 2 && orientation(hull[count - 2], hull[count - 1], p) >= 0.0f)
+            --count;
+        hull[count++] = p;
+    }
+
+    return std::make_pair(hull, count);
+}

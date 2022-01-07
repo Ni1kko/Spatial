@@ -24,19 +24,6 @@
 
 
 using namespace std;
-
-
-/////////////////////////////////////////////////////////////////
-// Operators
-/////////////////////////////////////////////////////////////////
-
-static constexpr auto operator-(float sub, const std::array<float, 3>& a) noexcept { return Vector{ sub - a[0], sub - a[1], sub - a[2] }; }
-
-
-/////////////////////////////////////////////////////////////////
-// Vars
-/////////////////////////////////////////////////////////////////
-
 static ImDrawList* drawList;
 
 
@@ -111,49 +98,25 @@ public:
     }
 };
 
+
 /////////////////////////////////////////////////////////////////
-// ESP Helper Functions
+// Drawing Functions
 /////////////////////////////////////////////////////////////////
 
-static std::pair<std::array<ImVec2, 8>, std::size_t> convexHull(std::array<ImVec2, 8> points) noexcept
-{// convex hull using Graham's scan
-    std::swap(points[0], *std::ranges::min_element(points, [](const auto& a, const auto& b) { return a.y < b.y || (a.y == b.y && a.x < b.x); }));
-
-    constexpr auto orientation = [](const ImVec2& a, const ImVec2& b, const ImVec2& c) {
-        return (b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y);
-    };
-
-    std::sort(points.begin() + 1, points.end(), [&](const auto& a, const auto& b) {
-        const auto o = orientation(points[0], a, b);
-        return o == 0.0f ? ImLengthSqr(points[0] - a) < ImLengthSqr(points[0] - b) : o < 0.0f;
-    });
-
-    std::array<ImVec2, 8> hull;
-    std::size_t count = 0;
-
-    for (const auto& p : points) {
-        while (count >= 2 && orientation(hull[count - 2], hull[count - 1], p) >= 0.0f)
-            --count;
-        hull[count++] = p;
-    }
-
-    return std::make_pair(hull, count);
-}
-
-static void addLineWithShadow(const ImVec2& p1, const ImVec2& p2, ImU32 col) noexcept
+static void drawLineWithShadow(const ImVec2& p1, const ImVec2& p2, ImU32 col) noexcept
 {
     drawList->AddLine(p1 + ImVec2{ 1.0f, 1.0f }, p2 + ImVec2{ 1.0f, 1.0f }, col & IM_COL32_A_MASK);
     drawList->AddLine(p1, p2, col);
 }
 
-static void addRectFilled(const ImVec2& p1, const ImVec2& p2, ImU32 col, bool shadow) noexcept
+static void drawRectFilled(const ImVec2& p1, const ImVec2& p2, ImU32 col, bool shadow) noexcept
 {
     if (shadow)
         drawList->AddRectFilled(p1 + ImVec2{ 1.0f, 1.0f }, p2 + ImVec2{ 1.0f, 1.0f }, col & IM_COL32_A_MASK);
     drawList->AddRectFilled(p1, p2, col);
 }
 
-static void renderBox(const BoundingBox& bbox, const Box& config) noexcept
+static void drawBox(const BoundingBox& bbox, const Box& config) noexcept
 {
     if (!config.enabled)
         return;
@@ -179,22 +142,22 @@ static void renderBox(const BoundingBox& bbox, const Box& config) noexcept
         const auto quarterWidth = IM_FLOOR((bbox.max.x - bbox.min.x) * 0.25f);
         const auto quarterHeight = IM_FLOOR((bbox.max.y - bbox.min.y) * 0.25f);
 
-        addRectFilled(bbox.min, { bbox.min.x + 1.0f, bbox.min.y + quarterHeight }, color, wantsShadow);
-        addRectFilled(bbox.min, { bbox.min.x + quarterWidth, bbox.min.y + 1.0f }, color, wantsShadow);
+        drawRectFilled(bbox.min, { bbox.min.x + 1.0f, bbox.min.y + quarterHeight }, color, wantsShadow);
+        drawRectFilled(bbox.min, { bbox.min.x + quarterWidth, bbox.min.y + 1.0f }, color, wantsShadow);
 
-        addRectFilled({ bbox.max.x, bbox.min.y }, { bbox.max.x - quarterWidth, bbox.min.y + 1.0f }, color, wantsShadow);
-        addRectFilled({ bbox.max.x - 1.0f, bbox.min.y }, { bbox.max.x, bbox.min.y + quarterHeight }, color, wantsShadow);
+        drawRectFilled({ bbox.max.x, bbox.min.y }, { bbox.max.x - quarterWidth, bbox.min.y + 1.0f }, color, wantsShadow);
+        drawRectFilled({ bbox.max.x - 1.0f, bbox.min.y }, { bbox.max.x, bbox.min.y + quarterHeight }, color, wantsShadow);
 
-        addRectFilled({ bbox.min.x, bbox.max.y }, { bbox.min.x + 1.0f, bbox.max.y - quarterHeight }, color, wantsShadow);
-        addRectFilled({ bbox.min.x, bbox.max.y - 1.0f }, { bbox.min.x + quarterWidth, bbox.max.y }, color, wantsShadow);
+        drawRectFilled({ bbox.min.x, bbox.max.y }, { bbox.min.x + 1.0f, bbox.max.y - quarterHeight }, color, wantsShadow);
+        drawRectFilled({ bbox.min.x, bbox.max.y - 1.0f }, { bbox.min.x + quarterWidth, bbox.max.y }, color, wantsShadow);
 
-        addRectFilled(bbox.max, { bbox.max.x - quarterWidth, bbox.max.y - 1.0f }, color, wantsShadow);
-        addRectFilled(bbox.max, { bbox.max.x - 1.0f, bbox.max.y - quarterHeight }, color, wantsShadow);
+        drawRectFilled(bbox.max, { bbox.max.x - quarterWidth, bbox.max.y - 1.0f }, color, wantsShadow);
+        drawRectFilled(bbox.max, { bbox.max.x - 1.0f, bbox.max.y - quarterHeight }, color, wantsShadow);
         break;
     }
     case Box::_3d:
         if (config.fill.enabled) {
-            auto [hull, count] = convexHull(bbox.vertices);
+            auto [hull, count] = Helpers::convexHull(bbox.vertices);
             std::reverse(hull.begin(), hull.begin() + count); // make them clockwise for antialiasing
             drawList->AddConvexPolyFilled(hull.data(), count, fillColor);
         } else {
@@ -215,7 +178,7 @@ static void renderBox(const BoundingBox& bbox, const Box& config) noexcept
         break;
     case Box::_3dCorners:
         if (config.fill.enabled) {
-            auto [hull, count] = convexHull(bbox.vertices);
+            auto [hull, count] = Helpers::convexHull(bbox.vertices);
             std::reverse(hull.begin(), hull.begin() + count); // make them clockwise for antialiasing
             drawList->AddConvexPolyFilled(hull.data(), count, fillColor);
         } else {
@@ -241,7 +204,7 @@ static void renderBox(const BoundingBox& bbox, const Box& config) noexcept
     }
 }
 
-static ImVec2 renderText(float distance, float cullDistance, const Color4& textCfg, const char* text, const ImVec2& pos, bool centered = true, bool adjustHeight = true) noexcept
+static ImVec2 drawText(float distance, float cullDistance, const Color4& textCfg, const char* text, const ImVec2& pos, bool centered = true, bool adjustHeight = true) noexcept
 {
     if (cullDistance && Helpers::units2meters(distance) > cullDistance)
         return { };
@@ -260,7 +223,7 @@ static ImVec2 renderText(float distance, float cullDistance, const Color4& textC
 
 static void drawSnapline(const Snapline& config, const ImVec2& min, const ImVec2& max) noexcept
 {
-    if (!config.asColorToggle().enabled)
+    if (!config.enabled())
         return;
 
     const auto& screenSize = ImGui::GetIO().DisplaySize;
@@ -291,9 +254,6 @@ static void drawSnapline(const Snapline& config, const ImVec2& min, const ImVec2
 
 static void drawHealthBar(const HealthBar& config, const ImVec2& pos, float height, int health) noexcept
 {
-    if (!config.enabled)
-        return;
-
     constexpr float width = 3.0f;
 
     drawList->PushClipRect(pos + ImVec2{ 0.0f, (100 - health) / 100.0f * height }, pos + ImVec2{ width + 1.0f, height + 1.0f });
@@ -321,11 +281,8 @@ static void drawHealthBar(const HealthBar& config, const ImVec2& pos, float heig
     drawList->PopClipRect();
 }
 
-static void drawHealth(const HealthText& config, BoundingBox bbox, ImVec2 distances, int remainingHealth) noexcept
+static ImVec2 drawHealth(const HealthText& config, BoundingBox bbox, ImVec2 distances, int remainingHealth) noexcept
 {
-    if (!config.enabled)
-        return;
-
     const auto dangerzone = false;//temp
     const auto height = (bbox.max.y - bbox.min.y);
     const auto maxhealth = dangerzone ? 120.0f : 100.0f;
@@ -337,129 +294,12 @@ static void drawHealth(const HealthText& config, BoundingBox bbox, ImVec2 distan
     if (config.type == HealthText::HealthBased)
         color = Color4{ remainingHealth / maxhealth, 0.0f, 1.0f, 1.0f };
     
-    renderText(distances.x, distances.y, color, text.c_str(), position);
-}
-
-static void renderPlayerBox(const PlayerData& playerData, const Player& config) noexcept
-{
-    const BoundingBox bbox{ playerData, config.box.scale };
-
-    if (!bbox)
-        return;
-
-    renderBox(bbox, config.box);
-
-    ImVec2 offsetMins{}, offsetMaxs{};
-
-    drawHealthBar(config.healthBar, bbox.min - ImVec2{ 5.0f, 0.0f }, (bbox.max.y - bbox.min.y), playerData.health);
-    drawHealth(config.health, bbox, ImVec2{ playerData.distanceToLocal, config.textCullDistance }, playerData.health);
-
-    FontPush font{ config.font.name, playerData.distanceToLocal };
- 
-    if (config.rank.enabled)
-    {
-        const auto rankTextSize = renderText(playerData.distanceToLocal, config.textCullDistance,config.rank.asColor4(), playerData.rank.c_str(), { (bbox.min.x + bbox.max.x) / 2, bbox.min.y - 2 }, true, false);
-        offsetMins.y -= rankTextSize.y + 2;
-    }
-
-    if (config.name.enabled) {
-        const auto nameSize = renderText(playerData.distanceToLocal, config.textCullDistance, config.name.asColor4(), playerData.name.c_str(), { (bbox.min.x + bbox.max.x) / 2, bbox.min.y - 2 });
-        offsetMins.y -= nameSize.y + 4;
-    }
-
-    if (config.flashDuration.enabled && playerData.flashDuration > 0.0f) {
-        const auto radius = std::max(5.0f - playerData.distanceToLocal / 600.0f, 1.0f);
-        ImVec2 flashDurationPos{ (bbox.min.x + bbox.max.x) / 2, bbox.min.y + offsetMins.y - radius * 1.5f };
-
-        const auto color = Helpers::calculateColor(config.flashDuration.asColor4());
-        constexpr float pi = std::numbers::pi_v<float>;
-        drawList->PathArcTo(flashDurationPos + ImVec2{ 1.0f, 1.0f }, radius, pi / 2 - (playerData.flashDuration / 255.0f * pi), pi / 2 + (playerData.flashDuration / 255.0f * pi), 40);
-        drawList->PathStroke(color & IM_COL32_A_MASK, false, 0.9f + radius * 0.1f);
-
-        drawList->PathArcTo(flashDurationPos, radius, pi / 2 - (playerData.flashDuration / 255.0f * pi), pi / 2 + (playerData.flashDuration / 255.0f * pi), 40);
-        drawList->PathStroke(color, false, 0.9f + radius * 0.1f);
-
-        offsetMins.y -= radius * 2.5f;
-    }
-
-    if (config.weapon.enabled && !playerData.activeWeapon.empty()) {
-        const auto weaponTextSize = renderText(playerData.distanceToLocal, config.textCullDistance, config.weapon.asColor4(), playerData.activeWeapon.c_str(), { (bbox.min.x + bbox.max.x) / 2, bbox.max.y + 1 }, true, false);
-        offsetMaxs.y += weaponTextSize.y + 2.0f;
-    }
-
-    drawSnapline(config.snapline, bbox.min + offsetMins, bbox.max + offsetMaxs);
-
-}
-
-static void renderWeaponBox(const WeaponData& weaponData, const Weapon& config) noexcept
-{
-    const BoundingBox bbox{ weaponData, config.box.scale };
-
-    if (!bbox)
-        return;
-
-    renderBox(bbox, config.box);
-    drawSnapline(config.snapline, bbox.min, bbox.max);
-
-    FontPush font{ config.font.name, weaponData.distanceToLocal };
-
-    if (config.name.enabled && !weaponData.displayName.empty()) {
-        renderText(weaponData.distanceToLocal, config.textCullDistance, config.name.asColor4(), weaponData.displayName.c_str(), { (bbox.min.x + bbox.max.x) / 2, bbox.min.y - 2 });
-    }
-
-    if (config.ammo.enabled && weaponData.clip != -1) {
-        const auto text{ std::to_string(weaponData.clip) + " / " + std::to_string(weaponData.reserveAmmo) };
-        renderText(weaponData.distanceToLocal, config.textCullDistance, config.ammo.asColor4(), text.c_str(), { (bbox.min.x + bbox.max.x) / 2, bbox.max.y + 1 }, true, false);
-    }
-}
-
-static void renderEntityBox(const BaseData& entityData, const char* name, const Shared& config) noexcept
-{
-    const BoundingBox bbox{ entityData, config.box.scale };
-
-    if (!bbox)
-        return;
-
-    renderBox(bbox, config.box);
-    drawSnapline(config.snapline, bbox.min, bbox.max);
-
-    FontPush font{ config.font.name, entityData.distanceToLocal };
-
-    if (config.name.enabled)
-        renderText(entityData.distanceToLocal, config.textCullDistance, config.name.asColor4(), name, { (bbox.min.x + bbox.max.x) / 2, bbox.min.y - 5 });
-}
-
-static void drawProjectileTrajectory(const Trail& config, const std::vector<std::pair<float, Vector>>& trajectory) noexcept
-{
-    if (!config.asColorToggle().enabled)
-        return;
-
-    std::vector<ImVec2> points, shadowPoints;
-
-    const auto color = Helpers::calculateColor(config.asColorToggle().asColor4());
-
-    for (const auto& [time, point] : trajectory) {
-        if (ImVec2 pos; time + config.time >= memory->globalVars->realtime && Helpers::worldToScreen(point, pos)) {
-            if (config.type == Trail::Line) {
-                points.push_back(pos);
-                shadowPoints.push_back(pos + ImVec2{ 1.0f, 1.0f });
-            } else if (config.type == Trail::Circles) {
-                drawList->AddCircle(pos, 3.5f - point.distTo(GameData::local().origin) / 700.0f, color, 12, config.thickness);
-            } else if (config.type == Trail::FilledCircles) {
-                drawList->AddCircleFilled(pos, 3.5f - point.distTo(GameData::local().origin) / 700.0f, color);
-            }
-        }
-    }
-
-    if (config.type == Trail::Line) {
-        drawList->AddPolyline(shadowPoints.data(), shadowPoints.size(), color & IM_COL32_A_MASK, false, config.thickness);
-        drawList->AddPolyline(points.data(), points.size(), color, false, config.thickness);
-    }
+    return drawText(distances.x, distances.y, color, text.c_str(), position);
 }
 
 static void drawPlayerSkeleton(const ColorToggleThickness& config, const std::vector<std::pair<Vector, Vector>>& bones) noexcept
 {
-    if (!config.asColorToggle().enabled)
+    if (!config.enabled())
         return;
 
     const auto color = Helpers::calculateColor(config.asColorToggle().asColor4());
@@ -486,6 +326,55 @@ static void drawPlayerSkeleton(const ColorToggleThickness& config, const std::ve
         drawList->AddLine(bonePoint, parentPoint, color, config.thickness);
 }
 
+static void drawEntityBox(const BaseData& entityData, const char* name, const Shared& config) noexcept
+{
+    const BoundingBox bbox{ entityData, config.box.scale };
+
+    if (!bbox)
+        return;
+
+    drawBox(bbox, config.box);
+    drawSnapline(config.snapline, bbox.min, bbox.max);
+
+    FontPush font{ config.font.name, entityData.distanceToLocal };
+
+    if (config.name.enabled)
+        drawText(entityData.distanceToLocal, config.textCullDistance, config.name.asColor4(), name, { (bbox.min.x + bbox.max.x) / 2, bbox.min.y - 5 });
+}
+
+static void drawProjectileTrajectory(const Trail& config, const std::vector<std::pair<float, Vector>>& trajectory) noexcept
+{
+    if (!config.enabled())
+        return;
+
+    std::vector<ImVec2> points, shadowPoints;
+
+    const auto color = Helpers::calculateColor(config.asColorToggle().asColor4());
+
+    for (const auto& [time, point] : trajectory) {
+        if (ImVec2 pos; time + config.time >= memory->globalVars->realtime && Helpers::worldToScreen(point, pos)) {
+            if (config.type == Trail::Line) {
+                points.push_back(pos);
+                shadowPoints.push_back(pos + ImVec2{ 1.0f, 1.0f });
+            } else if (config.type == Trail::Circles) {
+                drawList->AddCircle(pos, 3.5f - point.distTo(GameData::local().origin) / 700.0f, color, 12, config.thickness);
+            } else if (config.type == Trail::FilledCircles) {
+                drawList->AddCircleFilled(pos, 3.5f - point.distTo(GameData::local().origin) / 700.0f, color);
+            }
+        }
+    }
+
+    if (config.type == Trail::Line) {
+        drawList->AddPolyline(shadowPoints.data(), shadowPoints.size(), color & IM_COL32_A_MASK, false, config.thickness);
+        drawList->AddPolyline(points.data(), points.size(), color, false, config.thickness);
+    }
+}
+
+
+/////////////////////////////////////////////////////////////////
+// Render Functions
+/////////////////////////////////////////////////////////////////
+
 static bool renderPlayerEsp(const PlayerData& playerData, const Player& playerConfig) noexcept
 {
     if (!playerConfig.enabled)
@@ -500,12 +389,77 @@ static bool renderPlayerEsp(const PlayerData& playerData, const Player& playerCo
 
     Helpers::setAlphaFactor(Helpers::getAlphaFactor() * playerData.fadingAlpha());
 
-    renderPlayerBox(playerData, playerConfig);
-    drawPlayerSkeleton(playerConfig.skeleton, playerData.bones);
+    const BoundingBox bbox{ playerData, playerConfig.box.scale };
+    ImVec2 offsetMins{}, offsetMaxs{};
+    FontPush font{ playerConfig.font.name, playerData.distanceToLocal };
 
+    if (!bbox || !playerConfig.enabled) return;
+
+    //-- Box
+    if (playerConfig.box.enabled)
+        drawBox(bbox, playerConfig.box);
+
+    //-- HP Bar
+    if (playerConfig.healthBar.enabled)
+        drawHealthBar(playerConfig.healthBar, bbox.min - ImVec2{ 5.0f, 0.0f }, (bbox.max.y - bbox.min.y), playerData.health);
+
+    //-- HP Text
+    if (playerConfig.health.enabled)
+    {
+        const auto nameSize = drawHealth(playerConfig.health, bbox, ImVec2{ playerData.distanceToLocal, playerConfig.textCullDistance }, playerData.health);
+        offsetMins.y -= nameSize.y + 4;
+    }
+
+    //-- Rank
+    if (playerConfig.rank.enabled)
+    {
+        const auto rankTextSize = drawText(playerData.distanceToLocal, playerConfig.textCullDistance, playerConfig.rank.asColor4(), playerData.rank.c_str(), { (bbox.min.x + bbox.max.x) / 2, bbox.min.y - 2 }, true, false);
+        offsetMins.y -= rankTextSize.y + 2;
+    }
+
+    //-- Name
+    if (playerConfig.name.enabled)
+    {
+        const auto nameSize = drawText(playerData.distanceToLocal, playerConfig.textCullDistance, playerConfig.name.asColor4(), playerData.name.c_str(), { (bbox.min.x + bbox.max.x) / 2, bbox.min.y - 2 });
+        offsetMins.y -= nameSize.y + 4;
+    }
+
+    //-- Flash Duration
+    if (playerConfig.flashDuration.enabled && playerData.flashDuration > 0.0f)
+    {
+        const auto radius = std::max(5.0f - playerData.distanceToLocal / 600.0f, 1.0f);
+        ImVec2 flashDurationPos{ (bbox.min.x + bbox.max.x) / 2, bbox.min.y + offsetMins.y - radius * 1.5f };
+
+        const auto color = Helpers::calculateColor(playerConfig.flashDuration.asColor4());
+        constexpr float pi = std::numbers::pi_v<float>;
+        drawList->PathArcTo(flashDurationPos + ImVec2{ 1.0f, 1.0f }, radius, pi / 2 - (playerData.flashDuration / 255.0f * pi), pi / 2 + (playerData.flashDuration / 255.0f * pi), 40);
+        drawList->PathStroke(color & IM_COL32_A_MASK, false, 0.9f + radius * 0.1f);
+
+        drawList->PathArcTo(flashDurationPos, radius, pi / 2 - (playerData.flashDuration / 255.0f * pi), pi / 2 + (playerData.flashDuration / 255.0f * pi), 40);
+        drawList->PathStroke(color, false, 0.9f + radius * 0.1f);
+
+        offsetMins.y -= radius * 2.5f;
+    }
+
+    //-- Active Weapon
+    if (playerConfig.weapon.enabled && !playerData.activeWeapon.empty())
+    {
+        const auto weaponTextSize = drawText(playerData.distanceToLocal, playerConfig.textCullDistance, playerConfig.weapon.asColor4(), playerData.activeWeapon.c_str(), { (bbox.min.x + bbox.max.x) / 2, bbox.max.y + 1 }, true, false);
+        offsetMaxs.y += weaponTextSize.y + 2.0f;
+    }
+
+    //-- Snapline
+    if (playerConfig.snapline.enabled())
+        drawSnapline(playerConfig.snapline, bbox.min + offsetMins, bbox.max + offsetMaxs);
+
+    //-- Skeleton
+    if (playerConfig.skeleton.enabled())
+        drawPlayerSkeleton(playerConfig.skeleton, playerData.bones);
+
+    //-- Head Box
     if (const BoundingBox headBbox{ playerData.headMins, playerData.headMaxs, playerConfig.headBox.scale })
-        renderBox(headBbox, playerConfig.headBox);
-
+        drawBox(headBbox, playerConfig.headBox);
+     
     Helpers::setAlphaFactor(1.0f);
 
     return true;
@@ -515,16 +469,33 @@ static void renderWeaponEsp(const WeaponData& weaponData, const Weapon& parentCo
 {
     const auto& config = itemConfig.enabled ? itemConfig : (parentConfig.enabled ? parentConfig : ::config->streamProofESP.weapons["All"]);
     if (config.enabled) {
-        renderWeaponBox(weaponData, config);
+        const BoundingBox bbox{ weaponData, config.box.scale };
+
+        if (!bbox)
+            return;
+
+        drawBox(bbox, config.box);
+        drawSnapline(config.snapline, bbox.min, bbox.max);
+
+        FontPush font{ config.font.name, weaponData.distanceToLocal };
+
+        if (config.name.enabled && !weaponData.displayName.empty()) {
+            drawText(weaponData.distanceToLocal, config.textCullDistance, config.name.asColor4(), weaponData.displayName.c_str(), { (bbox.min.x + bbox.max.x) / 2, bbox.min.y - 2 });
+        }
+
+        if (config.ammo.enabled && weaponData.clip != -1) {
+            const auto text{ std::to_string(weaponData.clip) + " / " + std::to_string(weaponData.reserveAmmo) };
+            drawText(weaponData.distanceToLocal, config.textCullDistance, config.ammo.asColor4(), text.c_str(), { (bbox.min.x + bbox.max.x) / 2, bbox.max.y + 1 }, true, false);
+        }
     }
 }
 
 static void renderEntityEsp(const BaseData& entityData, const std::unordered_map<std::string, Shared>& map, const char* name) noexcept
 {
     if (const auto cfg = map.find(name); cfg != map.cend() && cfg->second.enabled) {
-        renderEntityBox(entityData, name, cfg->second);
+        drawEntityBox(entityData, name, cfg->second);
     } else if (const auto cfg = map.find("All"); cfg != map.cend() && cfg->second.enabled) {
-        renderEntityBox(entityData, name, cfg->second);
+        drawEntityBox(entityData, name, cfg->second);
     }
 }
 
@@ -534,7 +505,7 @@ static void renderProjectileEsp(const ProjectileData& projectileData, const Proj
 
     if (config.enabled) {
         if (!projectileData.exploded)
-            renderEntityBox(projectileData, name, config);
+            drawEntityBox(projectileData, name, config);
 
         if (config.trails.enabled) {
             if (projectileData.thrownByLocalPlayer)
