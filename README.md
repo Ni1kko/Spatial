@@ -10,7 +10,7 @@
 
 #### Preview
 
-![Preview_overview](https://i.imgur.com/N3vt11i.png)
+![Preview_overview](https://im6.ezgif.com/tmp/ezgif-6-413d9f7ddf.gif)
 
 ## FAQ
 
