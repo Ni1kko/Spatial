@@ -206,13 +206,12 @@ void Config::drawGUI() noexcept
                             case 1: config->aimbot = { }; break;
                             case 2: config->triggerbot = { }; break;
                             case 3: movement->resetConfig(); break;
-                            case 4: config->chams = { }; break;
-                            case 5: config->streamProofESP = { }; break;
-                            case 6: Visuals::resetConfig(); break;
-                            case 7: InventoryChanger::resetConfig(); InventoryChanger::scheduleHudUpdate(); break;
-                            case 8: Sound::resetConfig(); break;
-                            case 9: config->style = { }; ImGuiCustom::updateColors(static_cast<ImGuiStyles>(config->style.menuColors)); break;
-                            case 10: Troll::resetConfig(); break;
+                            case 4: config->streamProofESP = { }; break;
+                            case 5: Visuals::resetConfig(); break;
+                            case 6: InventoryChanger::resetConfig(); InventoryChanger::scheduleHudUpdate(); break;
+                            case 7: Sound::resetConfig(); break;
+                            case 8: config->style = { }; ImGuiCustom::updateColors(static_cast<ImGuiStyles>(config->style.menuColors)); break;
+                            case 9: Troll::resetConfig(); break;
                         }
                     }
                 }
@@ -372,24 +371,6 @@ static void from_json(const json& j, Config::Triggerbot& t)
     read(j, "Min damage", t.minDamage);
     read(j, "Killshot", t.killshot);
     read(j, "Burst Time", t.burstTime);
-}
-
-static void from_json(const json& j, Config::Chams::Material& m)
-{
-    from_json(j, static_cast<Color4&>(m));
-
-    read(j, "Enabled", m.enabled);
-    read(j, "Health based", m.healthBased);
-    read(j, "Blinking", m.blinking);
-    read(j, "Wireframe", m.wireframe);
-    read(j, "Cover", m.cover);
-    read(j, "Ignore-Z", m.ignorez);
-    read(j, "Material", m.material);
-}
-
-static void from_json(const json& j, Config::Chams& c)
-{
-    read_array_opt(j, "Materials", c.materials);
 }
 
 static void from_json(const json& j, Config::StreamProofESP& e)
@@ -555,25 +536,6 @@ static void to_json(json& j, const Config::Triggerbot& o, const Config::Triggerb
     WRITE("Burst Time", burstTime);
 }
 
-static void to_json(json& j, const Config::Chams::Material& o)
-{
-    const Config::Chams::Material dummy;
-
-    to_json(j, static_cast<const Color4&>(o), dummy);
-    WRITE("Enabled", enabled);
-    WRITE("Health based", healthBased);
-    WRITE("Blinking", blinking);
-    WRITE("Wireframe", wireframe);
-    WRITE("Cover", cover);
-    WRITE("Ignore-Z", ignorez);
-    WRITE("Material", material);
-}
-
-static void to_json(json& j, const Config::Chams& o)
-{
-    j["Materials"] = o.materials;
-}
-
 static void to_json(json& j, const Config::StreamProofESP& o, const Config::StreamProofESP& dummy = {})
 {
     WRITE("Toggle Key", toggleKey);
@@ -669,9 +631,6 @@ void Config::load(const char8_t* name, bool incremental) noexcept
     read(j, "Triggerbot", triggerbot);
     read(j, "Triggerbot Key", triggerbotHoldKey);
 
-    read(j, "Chams", chams);
-    read(j["Chams"], "Toggle Key", chamsToggleKey);
-    read(j["Chams"], "Hold Key", chamsHoldKey);
     read<value_t::object>(j, "Draw Aimbot FOV", drawaimbotFov);
     read<value_t::object>(j, "ESP", streamProofESP);
     read<value_t::object>(j, "Style", style);
@@ -702,10 +661,7 @@ void Config::save(size_t id) const noexcept
     to_json(j["Triggerbot Key"], triggerbotHoldKey, {});
 
     j["Movement"] = movement->toJson();
-    j["Chams"] = chams;
     j["Draw Aimbot FOV"] = drawaimbotFov;
-    to_json(j["Chams"]["Toggle Key"], chamsToggleKey, {});
-    to_json(j["Chams"]["Hold Key"], chamsHoldKey, {});
     j["ESP"] = streamProofESP;
     j["Sound"] = Sound::toJson();
     j["Visuals"] = Visuals::toJson();
@@ -729,7 +685,6 @@ void Config::reset() noexcept
 {
     aimbot = { };
     triggerbot = { };
-    chams = { };
     streamProofESP = { };
     style = { };
 

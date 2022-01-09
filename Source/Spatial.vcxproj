@@ -113,7 +113,6 @@
     </ClCompile>
     <ClCompile Include="GameData.cpp" />
     <ClCompile Include="Hacks\Aimbot.cpp" />
-    <ClCompile Include="Hacks\Chams.cpp" />
     <ClCompile Include="Hacks\EnginePrediction.cpp" />
     <ClCompile Include="Hacks\Movement.cpp" />
     <ClCompile Include="Hacks\Sound.cpp" />
@@ -215,7 +214,6 @@
     <ClInclude Include="freetype\freetype\config\ftoption.h" />
     <ClInclude Include="GameData.h" />
     <ClInclude Include="Hacks\Aimbot.h" />
-    <ClInclude Include="Hacks\Chams.h" />
     <ClInclude Include="Hacks\EnginePrediction.h" />
     <ClInclude Include="Hacks\Misc.h" />
     <ClInclude Include="Hacks\Movement.h" />

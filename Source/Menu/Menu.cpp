@@ -41,7 +41,6 @@
 #include <Hacks/Troll.h>
 #include <Hacks/Movement.h>
 #include <Hacks/Triggerbot.h>
-#include <Hacks/Chams.h>
 #include <Hacks/Aimbot.h>
 
 const auto menuTitle = Helpers::getDllNameVersion();
@@ -127,10 +126,6 @@ ImDrawList* Menu::drawGUI(ImDrawList* drawList, ImVec2 displaySize) noexcept
         }
         if (ImGui::TreeNode(xorstr_("Movement"))) {
             movement->drawGUI();
-            ImGui::TreePop();
-        }
-        if (ImGui::TreeNode(xorstr_("Chams"))) {
-            chams->drawGUI();
             ImGui::TreePop();
         }
         if (ImGui::TreeNode(xorstr_("ESP"))) {

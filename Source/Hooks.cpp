@@ -23,7 +23,6 @@
 #include "Memory.h"
 
 #include "Hacks/Aimbot.h"
-#include "Hacks/Chams.h"
 #include "Hacks/EnginePrediction.h"
 #include "Hacks/StreamProofESP.h"
 #include "Hacks/Misc.h"
@@ -81,7 +80,6 @@ static LRESULT __stdcall wndProc(HWND window, UINT msg, WPARAM wParam, LPARAM lP
         ImGui_ImplWin32_Init(window);
         config = std::make_unique<Config>();
         gui = std::make_unique<Menu>();
-        chams = std::make_unique<Chams>();
         movement = std::make_unique<Movement>();
         
         hooks->install();
@@ -132,7 +130,6 @@ static HRESULT __stdcall present(IDirect3DDevice9* device, const RECT* src, cons
         StreamProofESP::updateInput();
         Misc::updateInput();
         Triggerbot::updateInput();
-        chams->updateInput();
         Troll::chatSpam(ChatSpamEvents::Timed);
         gui->render(ImGui::GetBackgroundDrawList(), displaySize);
     }
@@ -249,9 +246,6 @@ static void __STDCALL drawModelExecute(void* ctx, void* state, const ModelRender
 
     if (Visuals::removeHands(info.model->name) || Visuals::removeSleeves(info.model->name) || Visuals::removeWeapons(info.model->name))
         return;
-
-    if (!chams->render(ctx, state, info, customBoneToWorld))
-        hooks->modelRender.callOriginal<void, 21>(ctx, state, std::cref(info), customBoneToWorld);
 
     interfaces->studioRender->forcedMaterialOverride(nullptr);
 }

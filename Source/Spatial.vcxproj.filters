@@ -68,9 +68,6 @@
     <ClCompile Include="Hacks\Triggerbot.cpp">
       <Filter>Hacks</Filter>
     </ClCompile>
-    <ClCompile Include="Hacks\Chams.cpp">
-      <Filter>Hacks</Filter>
-    </ClCompile>
     <ClCompile Include="Hacks\Aimbot.cpp">
       <Filter>Hacks</Filter>
     </ClCompile>
@@ -315,9 +312,6 @@
     </ClInclude>
     <ClInclude Include="SDK\Utils.h">
       <Filter>SDK</Filter>
-    </ClInclude>
-    <ClInclude Include="Hacks\Chams.h">
-      <Filter>Hacks</Filter>
     </ClInclude>
     <ClInclude Include="SDK\RenderView.h">
       <Filter>SDK</Filter>
