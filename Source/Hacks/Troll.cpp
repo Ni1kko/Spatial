@@ -154,9 +154,6 @@ std::vector<std::string> chatSpamList =
 /////////////////////////////////////////////////////////////////
 
 struct TrollConfig {
-
-    bool blockbot { false };
-    KeyBind blockbotKey{ KeyBind::V };
     bool doorSpam { false }; 
     float doorSpamRange { 0.f }; 
     int chatSpamMode { 0 };
@@ -170,67 +167,6 @@ struct TrollConfig {
 /////////////////////////////////////////////////////////////////
 // Functions
 /////////////////////////////////////////////////////////////////
-
-void Troll::blockbot(UserCmd* cmd) noexcept
-{
-    if (!trollConfig.blockbot || !trollConfig.blockbotKey.isDown())
-        return;
-
-    if (!localPlayer || !localPlayer->isAlive())
-        return;
-
-    if (const auto mt = localPlayer->moveType(); mt == MoveType::LADDER || mt == MoveType::NOCLIP)
-        return;
-
-    float bestDistance = 200.0f;
-    int plyIndex = -1;
-
-    for (int i = 1; i < interfaces->engine->getMaxClients(); i++)
-    {
-        Entity* ply = interfaces->entityList->getEntity(i);
-
-        if (!ply)
-            continue;
-
-        if (!ply->isAlive() || ply->isDormant() || ply == localPlayer.get())
-            continue;
-
-        float distance = localPlayer->origin().distTo(ply->origin());
-
-        if (distance < bestDistance)
-        {
-            bestDistance = distance;
-            plyIndex = i;
-        }
-    }
-
-    if (plyIndex == -1)
-        return;
-
-    Entity* target = interfaces->entityList->getEntity(plyIndex);
-
-    if (!target)
-        return;
-
-    if (localPlayer->origin().z - target->origin().z > 20)
-    {
-        Vector vecForward = target->origin() - localPlayer->origin();
-
-        cmd->forwardmove = ((sin(Helpers::deg2rad(cmd->viewangles.y)) * vecForward.y) + (cos(Helpers::deg2rad(cmd->viewangles.y)) * vecForward.x)) * 450.0f;
-        cmd->sidemove = ((cos(Helpers::deg2rad(cmd->viewangles.y)) * -vecForward.y) + (sin(Helpers::deg2rad(cmd->viewangles.y)) * vecForward.x)) * 450.0f;
-    }
-    else {
-        Vector angles = Helpers::calculateRelativeAngle(localPlayer->origin(), target->origin());
-
-        angles.y = angles.y - localPlayer->eyeAngles().y;
-        angles.normalize();
-
-        if (angles.y < 0.0f)
-            cmd->sidemove = 450.0f;
-        else if (angles.y > 0.0f)
-            cmd->sidemove = -450.0f;
-    }
-}
 
 void Troll::doorSpam(UserCmd* cmd) noexcept
 {
@@ -302,19 +238,7 @@ void Troll::chatSpam(ChatSpamEvents spamEvent) noexcept
 /////////////////////////////////////////////////////////////////
 
 void Troll::drawGUI() noexcept
-{
-    //col 1
-    ImGui::Columns(2, nullptr, false);
-    ImGui::SetColumnOffset(1, 325.0f); 
-    ImGui::Checkbox("Block Bot", &trollConfig.blockbot);
-    ImGui::SameLine();
-    ImGui::PushID("Block Bot Key");
-    ImGui::hotkey("", trollConfig.blockbotKey);
-    ImGui::PopID();
-    ImGui::Spacing();
-
-    //col 2
-    ImGui::NextColumn();
+{ 
     ImGui::Checkbox("Door spam", &trollConfig.doorSpam);
     ImGui::SameLine();
     ImGui::PushItemWidth(220.0f);
@@ -322,6 +246,7 @@ void Troll::drawGUI() noexcept
     ImGui::SliderFloat("", &trollConfig.doorSpamRange, 0, 500, "Range (%.0f) meters");
     ImGui::PopID();
     ImGui::PopItemWidth();
+
     ImGui::PushItemWidth(80.0f); 
     ImGui::PushID("Spam Mode");
     ImGui::Combo("", &trollConfig.chatSpamMode, "Off\0Random\0Custom\0Nuke\0Basmala\0");
@@ -354,8 +279,6 @@ void Troll::drawGUI() noexcept
             ImGui::PopID();
         }
     }
-     
-    ImGui::Columns(1);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -364,8 +287,6 @@ void Troll::drawGUI() noexcept
 
 static void from_json(const json& j, TrollConfig& m)
 {
-    read(j, xorstr_("Block Bot"), m.blockbot);
-    read(j, xorstr_("Slowwalk key"), m.blockbotKey);
     read(j, xorstr_("Door spam"), m.doorSpam);
     read(j, xorstr_("Door spam range"), m.doorSpamRange);
     read(j, xorstr_("Chat spam mode"), m.chatSpamMode);
@@ -378,8 +299,6 @@ static void from_json(const json& j, TrollConfig& m)
 static void to_json(json& j, const TrollConfig& o)
 {
     const TrollConfig dummy;
-    WRITE(xorstr_("Block Bot"), blockbot);
-    WRITE(xorstr_("Block Bot Key"), blockbotKey);
     WRITE(xorstr_("Door spam"), doorSpam);
     WRITE(xorstr_("Door spam range"), doorSpamRange);
     WRITE(xorstr_("Chat spam mode"), chatSpamMode);

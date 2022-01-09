@@ -140,7 +140,7 @@ ImDrawList* Menu::drawGUI(ImDrawList* drawList, ImVec2 displaySize) noexcept
             InventoryChanger::drawGUI();
             ImGui::TreePop();
         }
-        if (ImGui::TreeNode(xorstr_("Sound"))) {
+        if (ImGui::TreeNode(xorstr_("Sounds"))) {
             Sound::drawGUI();
             ImGui::TreePop();
         }

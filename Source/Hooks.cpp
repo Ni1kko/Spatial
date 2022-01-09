@@ -179,7 +179,6 @@ static bool __STDCALL createMove(float inputSampleTime, UserCmd* cmd) noexcept
     Misc::quickReload(cmd);
     Misc::fixTabletSignal();
     movement->slowwalk(cmd);
-    Troll::blockbot(cmd);
     Visuals::viewModel();
 
     EnginePrediction::run(cmd);

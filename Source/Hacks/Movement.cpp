@@ -355,6 +355,67 @@ void Movement::autoPeek(UserCmd* cmd, Vector currentViewAngles) noexcept
     }
 }
 
+void Movement::blockbot(UserCmd* cmd) noexcept
+{
+    if (!config.blockbot || !config.blockbotKey.isDown())
+        return;
+
+    if (!localPlayer || !localPlayer->isAlive())
+        return;
+
+    if (const auto mt = localPlayer->moveType(); mt == MoveType::LADDER || mt == MoveType::NOCLIP)
+        return;
+
+    float bestDistance = 200.0f;
+    int plyIndex = -1;
+
+    for (int i = 1; i < interfaces->engine->getMaxClients(); i++)
+    {
+        Entity* ply = interfaces->entityList->getEntity(i);
+
+        if (!ply)
+            continue;
+
+        if (!ply->isAlive() || ply->isDormant() || ply == localPlayer.get())
+            continue;
+
+        float distance = localPlayer->origin().distTo(ply->origin());
+
+        if (distance < bestDistance)
+        {
+            bestDistance = distance;
+            plyIndex = i;
+        }
+    }
+
+    if (plyIndex == -1)
+        return;
+
+    Entity* target = interfaces->entityList->getEntity(plyIndex);
+
+    if (!target)
+        return;
+
+    if (localPlayer->origin().z - target->origin().z > 20)
+    {
+        Vector vecForward = target->origin() - localPlayer->origin();
+
+        cmd->forwardmove = ((sin(Helpers::deg2rad(cmd->viewangles.y)) * vecForward.y) + (cos(Helpers::deg2rad(cmd->viewangles.y)) * vecForward.x)) * 450.0f;
+        cmd->sidemove = ((cos(Helpers::deg2rad(cmd->viewangles.y)) * -vecForward.y) + (sin(Helpers::deg2rad(cmd->viewangles.y)) * vecForward.x)) * 450.0f;
+    }
+    else {
+        Vector angles = Helpers::calculateRelativeAngle(localPlayer->origin(), target->origin());
+
+        angles.y = angles.y - localPlayer->eyeAngles().y;
+        angles.normalize();
+
+        if (angles.y < 0.0f)
+            cmd->sidemove = 450.0f;
+        else if (angles.y > 0.0f)
+            cmd->sidemove = -450.0f;
+    }
+}
+
 /////////////////////////////////////////////////////////////////
 // GUI Function
 /////////////////////////////////////////////////////////////////
@@ -402,6 +463,15 @@ void Movement::drawGUI() noexcept
         ImGui::hotkey("", config.slowwalkKey);
         ImGui::PopID();
     }
+
+    ImGui::Checkbox("Block Bot", &config.blockbot);
+    if (config.blockbot) {
+        ImGui::SameLine();
+        ImGui::PushID("Block Bot Key");
+        ImGui::hotkey("", config.blockbotKey);
+        ImGui::PopID();
+    }
+    
 }
 
 /////////////////////////////////////////////////////////////////
@@ -426,6 +496,8 @@ static void from_json(const json& j, Movement::Config& m)
     read(j, "Max angle delta", m.maxAngleDelta); 
     read(j, "Auto Peek", m.autoPeek);
     read(j, "Auto Peek Key", m.autoPeekKey);
+    read(j, "Block Bot", m.blockbot);
+    read(j, "Slowwalk key", m.blockbotKey);
 }
 
 static void to_json(json& j, const Movement::Config& o)
@@ -448,6 +520,8 @@ static void to_json(json& j, const Movement::Config& o)
     WRITE("Fast plant", fastPlant);
     WRITE("Auto Peek", autoPeek);
     WRITE("Auto Peek Key", autoPeekKey);
+    WRITE("Block Bot", blockbot);
+    WRITE("Block Bot Key", blockbotKey);
 }
 
 json Movement::toJson() noexcept

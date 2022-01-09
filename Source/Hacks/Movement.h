@@ -29,6 +29,7 @@ public:
     float maxAngleDelta() noexcept;
     void fastPlant(UserCmd*) noexcept;
     void autoPeek(UserCmd* cmd, Vector currentViewAngles) noexcept;
+    void blockbot(UserCmd* cmd) noexcept;
 
     // GUI
     void drawGUI() noexcept;
@@ -56,6 +57,7 @@ public:
         bool fastPlant{ false };
 
         bool autoPeek{ false }; KeyBindToggle autoPeekKey;
+        bool blockbot{ false }; KeyBind blockbotKey{ KeyBind::V };
     } config;
 };
 
