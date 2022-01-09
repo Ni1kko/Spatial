@@ -90,7 +90,7 @@ Config::Config() noexcept : path{ buildConfigsFolderPath() }
 
 void Config::drawGUI() noexcept
 {
-    ImGui::PushItemWidth(160.0f); 
+    /*ImGui::PushItemWidth(160.0f);
     if (ImGui::Combo(xorstr_("Menu Theme"), &style.menuColors, xorstr_("Dark\0Light\0Classic\0Spatial\0Custom\0")))
         ImGuiCustom::updateColors(static_cast<ImGuiStyles>(style.menuColors));
     ImGui::PopItemWidth();
@@ -102,7 +102,7 @@ void Config::drawGUI() noexcept
             ImGuiCustom::colorPicker(ImGui::GetStyleColorName(i), (float*)&style.Colors[i], &style.Colors[i].w);
         }
     }
-    ImGui::Separator();
+    ImGui::Separator();*/
 
     ImGui::Columns(2, nullptr, false);
     ImGui::SetColumnOffset(1, 190.0f);
