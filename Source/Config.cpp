@@ -22,7 +22,6 @@
 #include "Hacks/Sound.h"
 #include "Hacks/Visuals.h"
 #include "Hacks/Misc.h"
-#include "Hacks/Troll.h"
 #include <Hacks/Movement.h>
 #include <Helpers.h>
 #include <InventoryChanger/InventoryConfig.h>
@@ -109,7 +108,7 @@ void Config::drawGUI() noexcept
     
     static bool incrementalLoad = false;
     //ImGui::Checkbox(xorstr_("Incremental Load"), &incrementalLoad);
-    ImGui::TextUnformatted("Saved Conifgs");
+    //ImGui::TextUnformatted("Saved Conifgs");
     ImGui::PushItemWidth(160.0f);
 
     auto& configItems = getConfigs();
@@ -211,7 +210,6 @@ void Config::drawGUI() noexcept
                             case 6: InventoryChanger::resetConfig(); InventoryChanger::scheduleHudUpdate(); break;
                             case 7: Sound::resetConfig(); break;
                             case 8: config->style = { }; ImGuiCustom::updateColors(static_cast<ImGuiStyles>(config->style.menuColors)); break;
-                            case 9: Troll::resetConfig(); break;
                         }
                     }
                 }
@@ -640,7 +638,6 @@ void Config::load(const char8_t* name, bool incremental) noexcept
     InventoryChanger::fromJson(j["Inventory Changer"]);
     Sound::fromJson(j["Sound"]);
     Misc::fromJson(j["Misc"]);
-    Troll::fromJson(j["Troll"]);
 }
 
 /// <summary>
@@ -666,7 +663,6 @@ void Config::save(size_t id) const noexcept
     j["Sound"] = Sound::toJson();
     j["Visuals"] = Visuals::toJson();
     j["Misc"] = Misc::toJson();
-    j["Troll"] = Troll::toJson();
     j["Style"] = style;
     j["Inventory Changer"] = InventoryChanger::toJson();
 
@@ -693,7 +689,6 @@ void Config::reset() noexcept
     InventoryChanger::resetConfig();
     Sound::resetConfig();
     Misc::resetConfig();
-    Troll::resetConfig();
 }
 
 void Config::add(const char8_t* name) noexcept

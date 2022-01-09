@@ -16,7 +16,6 @@
 #include "SDK/Engine.h"
 #include "SDK/LocalPlayer.h"
 #include "SDK/Entity.h"
-#include <Hacks/Troll.h>
 #include <Hacks/Sound.h>
 
 namespace
@@ -32,7 +31,7 @@ namespace
                 case fnv::hash("player_death"):         EventListener::OnKilledEvent(*event); break;
                 case fnv::hash("player_hurt"):          EventListener::OnDamgeEvent(*event);  break;
                 case fnv::hash("vote_cast"):            Misc::voteRevealer(*event); break;
-                case fnv::hash("round_mvp"):            InventoryChanger::onRoundMVP(*event); Troll::chatSpam(ChatSpamEvents::OnMVP); break;
+                case fnv::hash("round_mvp"):            InventoryChanger::onRoundMVP(*event); break;
                 case fnv::hash("cs_win_panel_match"):   Misc::autoDisconnect(); break;
             }
         }
@@ -86,19 +85,13 @@ void EventListener::OnKilledEvent(GameEvent &event) noexcept
     if (!localPlayer) return;
 
     const auto localUserId = localPlayer->getUserId();
-    auto DeathByPlayer = event.getInt("attacker") != localUserId;
-    auto DeathByBySuicde = event.getInt("userid") == localUserId;
     
     InventoryChanger::overrideHudIcon(event);
 
-    if (DeathByPlayer) {
+    if (event.getInt("attacker") != localUserId) {
         Misc::killMessage(event);
         Sound::playKillSound(event);
-        InventoryChanger::updateStatTrak(event); 
-        Troll::chatSpam(ChatSpamEvents::OnKill);
-    }
-    else if (DeathByBySuicde) {
-        Troll::chatSpam(ChatSpamEvents::OnDeath);
+        InventoryChanger::updateStatTrak(event);
     }
 }
 
@@ -107,5 +100,4 @@ void EventListener::OnDamgeEvent(GameEvent &event) noexcept
     Sound::playHitSound(event);
     Visuals::hitEffect(&event);
     Visuals::hitMarker(&event);
-    Troll::chatSpam(ChatSpamEvents::OnDMG);
 }

@@ -26,7 +26,6 @@
 #include "Hacks/EnginePrediction.h"
 #include "Hacks/StreamProofESP.h"
 #include "Hacks/Misc.h"
-#include "Hacks/Troll.h"
 #include "Hacks/Sound.h"
 #include "Hacks/Triggerbot.h"
 #include "Hacks/Visuals.h"
@@ -130,7 +129,6 @@ static HRESULT __stdcall present(IDirect3DDevice9* device, const RECT* src, cons
         StreamProofESP::updateInput();
         Misc::updateInput();
         Triggerbot::updateInput();
-        Troll::chatSpam(ChatSpamEvents::Timed);
         gui->render(ImGui::GetBackgroundDrawList(), displaySize);
     }
 
@@ -189,7 +187,6 @@ static bool __STDCALL createMove(float inputSampleTime, UserCmd* cmd) noexcept
     movement->edgejump(cmd);
     movement->moonwalk(cmd);
     movement->fastPlant(cmd);
-    Troll::doorSpam(cmd);
 
     
     auto viewAnglesDelta{ cmd->viewangles - previousViewAngles };
@@ -286,7 +283,6 @@ static void __STDCALL frameStageNotify(FrameStage stage) noexcept
         Visuals::removeVisualRecoil(stage);
         Visuals::applyZoom(stage);
         Misc::fixAnimationLOD(stage);
-        Troll::chatSpam(ChatSpamEvents::OnKey);
     }
     InventoryChanger::run(stage);
 

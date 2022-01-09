@@ -212,9 +212,6 @@
     <ClCompile Include="InventoryChanger\InventoryConfig.cpp">
       <Filter>Hacks\InventoryChanger</Filter>
     </ClCompile>
-    <ClCompile Include="Hacks\Troll.cpp">
-      <Filter>Hacks</Filter>
-    </ClCompile>
     <ClCompile Include="Menu\Menu.cpp">
       <Filter>Menu</Filter>
     </ClCompile>
@@ -585,9 +582,6 @@
     </ClInclude>
     <ClInclude Include="InventoryChanger\TournamentMatches.h">
       <Filter>Hacks\InventoryChanger</Filter>
-    </ClInclude>
-    <ClInclude Include="Hacks\Troll.h">
-      <Filter>Hacks</Filter>
     </ClInclude>
     <ClInclude Include="Encryption\cx_pcg32.h">
       <Filter>Encryption</Filter>

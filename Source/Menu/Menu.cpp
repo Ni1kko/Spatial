@@ -38,7 +38,6 @@
 #include <Hacks/Sound.h>
 #include <Hacks/StreamProofESP.h>
 #include <Hacks/Misc.h>
-#include <Hacks/Troll.h>
 #include <Hacks/Movement.h>
 #include <Hacks/Triggerbot.h>
 #include <Hacks/Aimbot.h>
@@ -146,10 +145,6 @@ ImDrawList* Menu::drawGUI(ImDrawList* drawList, ImVec2 displaySize) noexcept
         }
         if (ImGui::TreeNode(xorstr_("Misc"))) {
             Misc::drawGUI();
-            ImGui::TreePop();
-        }
-        if (ImGui::TreeNode(xorstr_("Troll"))) {
-            Troll::drawGUI();
             ImGui::TreePop();
         }
         if (ImGui::TreeNode(xorstr_("Config"))) {

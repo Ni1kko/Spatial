@@ -599,7 +599,10 @@ void StreamProofESP::drawGUI() noexcept
         }
     };
 
-    if (ImGui::BeginListBox("##list", { 170.0f, 300.0f })) {
+    const auto width = 200.0f;
+    const auto height = 450.0f;
+
+    if (ImGui::BeginListBox("##list", { width, height })) {
         constexpr std::array categories{ "Enemies", "Allies", "Weapons", "Projectiles", "Loot Crates", "Other Entities" };
 
         for (std::size_t i = 0; i < categories.size(); ++i) {
@@ -821,164 +824,160 @@ void StreamProofESP::drawGUI() noexcept
 
     ImGui::SameLine();
 
-    if (ImGui::BeginChild("##child", { 400.0f, 0.0f })) {
+    if (ImGui::BeginChild("##child", { width + 100.0f, height })) {
         auto& sharedConfig = getConfigShared(currentCategory, currentItem);
-
         ImGui::Checkbox("Enabled", &sharedConfig.enabled);
-        ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 260.0f);
-        ImGui::SetNextItemWidth(220.0f);
-        if (ImGui::BeginCombo("Font", config->getSystemFonts()[sharedConfig.font.index].c_str())) {
-            for (size_t i = 0; i < config->getSystemFonts().size(); i++) {
-                bool isSelected = config->getSystemFonts()[i] == sharedConfig.font.name;
-                if (ImGui::Selectable(config->getSystemFonts()[i].c_str(), isSelected, 0, { 250.0f, 0.0f })) {
-                    sharedConfig.font.index = i;
-                    sharedConfig.font.name = config->getSystemFonts()[i];
-                    config->scheduleFontLoad(sharedConfig.font.name);
-                }
-                if (isSelected)
-                    ImGui::SetItemDefaultFocus();
-            }
-            ImGui::EndCombo();
-        }
-
-        ImGui::Separator();
-
-        constexpr auto spacing = 250.0f;
-        ImGuiCustom::colorPicker("Snapline", sharedConfig.snapline);
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(90.0f);
-        ImGui::Combo("##1", &sharedConfig.snapline.type, "Bottom\0Top\0Crosshair\0");
-        ImGui::SameLine(spacing);
-        ImGuiCustom::colorPicker("Box", sharedConfig.box);
-        ImGui::SameLine();
-
-        ImGui::PushID("Box");
-
-        if (ImGui::Button("..."))
-            ImGui::OpenPopup("");
-
-        if (ImGui::BeginPopup("")) {
-            ImGui::SetNextItemWidth(95.0f);
-            ImGui::Combo("Type", &sharedConfig.box.type, "2D\0" "2D corners\0" "3D\0" "3D corners\0");
-            ImGui::SetNextItemWidth(275.0f);
-            ImGui::SliderFloat3("Scale", sharedConfig.box.scale.data(), 0.0f, 0.50f, "%.2f");
-            ImGuiCustom::colorPicker("Fill", sharedConfig.box.fill);
-            ImGui::EndPopup();
-        }
-
-        ImGui::PopID();
-
-        ImGuiCustom::colorPicker("Name", sharedConfig.name);
-        ImGui::SameLine(spacing);
-
-        if (currentCategory < 2) {
-            auto& playerConfig = getConfigPlayer(currentCategory, currentItem);
-            ImGuiCustom::colorPicker("Ranks", playerConfig.rank);
-            ImGuiCustom::colorPicker("Weapon", playerConfig.weapon);
-            ImGuiCustom::colorPicker("Flash Duration", playerConfig.flashDuration);
-            ImGui::SameLine(spacing);
-            ImGuiCustom::colorPicker("Skeleton", playerConfig.skeleton);
-            ImGui::Checkbox("Audible Only", &playerConfig.audibleOnly);
-            ImGui::SameLine(spacing);
-            ImGui::Checkbox("Spotted Only", &playerConfig.spottedOnly);
-
-            ImGuiCustom::colorPicker("Head Box", playerConfig.headBox);
-            ImGui::SameLine();
-
-            ImGui::PushID("Head Box");
-
-            if (ImGui::Button("..."))
-                ImGui::OpenPopup("");
-
-            if (ImGui::BeginPopup("")) {
-                ImGui::SetNextItemWidth(95.0f);
-                ImGui::Combo("Type", &playerConfig.headBox.type, "2D\0" "2D corners\0" "3D\0" "3D corners\0");
-                ImGui::SetNextItemWidth(275.0f);
-                ImGui::SliderFloat3("Scale", playerConfig.headBox.scale.data(), 0.0f, 0.50f, "%.2f");
-                ImGuiCustom::colorPicker("Fill", playerConfig.headBox.fill);
-                ImGui::EndPopup();
-            }
-
-            ImGui::PopID();
-
-            ImGui::SameLine(spacing);
-            ImGui::Checkbox("Health Bar", &playerConfig.healthBar.enabled);
-            if (playerConfig.healthBar.enabled)
-            {
-                ImGui::SameLine();
-                ImGui::PushID("Health Bar");
-                if (ImGui::Button("...")) ImGui::OpenPopup("");
-                if (ImGui::BeginPopup("")) 
-                {
-                    ImGui::SetNextItemWidth(95.0f);
-                    ImGui::Combo("Type", &playerConfig.healthBar.type, "Gradient\0Solid\0Health-based\0");
-                    if (playerConfig.healthBar.type == HealthBar::Solid) {
-                        ImGui::SameLine();
-                        ImGuiCustom::colorPicker("", playerConfig.healthBar.asColor4());
+        if (sharedConfig.enabled) {
+            /*ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 260.0f);
+            ImGui::SetNextItemWidth(120.0f);
+            if (ImGui::BeginCombo("Font", config->getSystemFonts()[sharedConfig.font.index].c_str())) {
+                for (size_t i = 0; i < config->getSystemFonts().size(); i++) {
+                    bool isSelected = config->getSystemFonts()[i] == sharedConfig.font.name;
+                    if (ImGui::Selectable(config->getSystemFonts()[i].c_str(), isSelected, 0, { 250.0f, 0.0f })) {
+                        sharedConfig.font.index = i;
+                        sharedConfig.font.name = config->getSystemFonts()[i];
+                        config->scheduleFontLoad(sharedConfig.font.name);
                     }
-                    ImGui::EndPopup();
+                    if (isSelected)
+                        ImGui::SetItemDefaultFocus();
                 }
-                ImGui::PopID();
+                ImGui::EndCombo();
+            }*/
+
+            ImGui::Separator();
+
+
+            if (currentCategory < 2) {
+                auto& playerConfig = getConfigPlayer(currentCategory, currentItem);
+                ImGui::Checkbox("Audible Only", &playerConfig.audibleOnly);
+                ImGui::Checkbox("Spotted Only", &playerConfig.spottedOnly);
             }
 
-            ImGuiCustom::colorPicker("Health", playerConfig.health);
-            if (playerConfig.health.enabled) 
-            {
+            ImGuiCustom::colorPicker("Name", sharedConfig.name);
+
+            ImGuiCustom::colorPicker("Snapline", sharedConfig.snapline);
+            if (sharedConfig.snapline.enabled()) {
                 ImGui::SameLine();
-                ImGui::PushID("Health Text");
+                ImGui::SetNextItemWidth(90.0f);
+                ImGui::Combo("##1", &sharedConfig.snapline.type, "Bottom\0Top\0Crosshair\0");
+            }
+
+            ImGuiCustom::colorPicker("Box", sharedConfig.box);
+            if (sharedConfig.box.enabled) {
+                ImGui::SameLine();
+                ImGui::PushID("Box");
                 if (ImGui::Button("...")) ImGui::OpenPopup("");
                 if (ImGui::BeginPopup("")) {
                     ImGui::SetNextItemWidth(95.0f);
-                    ImGui::Combo("Type", &playerConfig.health.type, "Solid\0Health-based\0");
-                    if (playerConfig.health.type == HealthText::Solid) {
-                        ImGui::SameLine();
-                        ImGuiCustom::colorPicker("", playerConfig.healthBar.asColor4());
-                    }
+                    ImGui::Combo("Type", &sharedConfig.box.type, "2D\0" "2D corners\0" "3D\0" "3D corners\0");
+                    ImGui::SetNextItemWidth(275.0f);
+                    ImGui::SliderFloat3("Scale", sharedConfig.box.scale.data(), 0.0f, 0.50f, "%.2f");
+                    ImGuiCustom::colorPicker("Fill", sharedConfig.box.fill);
                     ImGui::EndPopup();
                 }
                 ImGui::PopID();
             }
-              
-        } else if (currentCategory == 2) {
-            auto& weaponConfig = config->streamProofESP.weapons[currentItem];
-            ImGuiCustom::colorPicker("Ammo", weaponConfig.ammo);
-        } else if (currentCategory == 3) {
-            auto& trails = config->streamProofESP.projectiles[currentItem].trails;
 
-            ImGui::Checkbox("Trails", &trails.enabled);
-            ImGui::SameLine(spacing + 77.0f);
-            ImGui::PushID("Trails");
+            if (currentCategory < 2) {
+                auto& playerConfig = getConfigPlayer(currentCategory, currentItem);
+                ImGuiCustom::colorPicker("Rank", playerConfig.rank);
+                ImGuiCustom::colorPicker("Weapon", playerConfig.weapon);
+                ImGuiCustom::colorPicker("Flash Duration", playerConfig.flashDuration);
+                ImGuiCustom::colorPicker("Skeleton", playerConfig.skeleton);
 
-            if (ImGui::Button("..."))
-                ImGui::OpenPopup("");
-
-            if (ImGui::BeginPopup("")) {
-                constexpr auto trailPicker = [](const char* name, Trail& trail) noexcept {
-                    ImGui::PushID(name);
-                    ImGuiCustom::colorPicker(name, trail);
-                    ImGui::SameLine(150.0f);
-                    ImGui::SetNextItemWidth(95.0f);
-                    ImGui::Combo("", &trail.type, "Line\0Circles\0Filled Circles\0");
+                ImGuiCustom::colorPicker("Head Box", playerConfig.headBox);
+                if (playerConfig.headBox.enabled) {
                     ImGui::SameLine();
-                    ImGui::SetNextItemWidth(95.0f);
-                    ImGui::InputFloat("Time", &trail.time, 0.1f, 0.5f, "%.1fs");
-                    trail.time = std::clamp(trail.time, 1.0f, 60.0f);
+                    ImGui::PushID("Head Box");
+                    if (ImGui::Button("...")) ImGui::OpenPopup("");
+                    if (ImGui::BeginPopup("")) {
+                        ImGui::SetNextItemWidth(95.0f);
+                        ImGui::Combo("Type", &playerConfig.headBox.type, "2D\0" "2D corners\0" "3D\0" "3D corners\0");
+                        ImGui::SetNextItemWidth(275.0f);
+                        ImGui::SliderFloat3("Scale", playerConfig.headBox.scale.data(), 0.0f, 0.50f, "%.2f");
+                        ImGuiCustom::colorPicker("Fill", playerConfig.headBox.fill);
+                        ImGui::EndPopup();
+                    }
                     ImGui::PopID();
-                };
+                }
 
-                trailPicker("Local Player", trails.localPlayer);
-                trailPicker("Allies", trails.allies);
-                trailPicker("Enemies", trails.enemies);
-                ImGui::EndPopup();
+                ImGuiCustom::colorPicker("Health", playerConfig.health);
+                if (playerConfig.health.enabled)
+                {
+                    ImGui::SameLine();
+                    ImGui::PushID("Health Text");
+                    if (ImGui::Button("...")) ImGui::OpenPopup("");
+                    if (ImGui::BeginPopup("")) {
+                        ImGui::SetNextItemWidth(95.0f);
+                        ImGui::Combo("Type", &playerConfig.health.type, "Solid\0Health-based\0");
+                        if (playerConfig.health.type == HealthText::Solid) {
+                            ImGui::SameLine();
+                            ImGuiCustom::colorPicker("", playerConfig.healthBar.asColor4());
+                        }
+                        ImGui::EndPopup();
+                    }
+                    ImGui::PopID();
+                }
+
+                ImGui::Checkbox("Health Bar", &playerConfig.healthBar.enabled);
+                if (playerConfig.healthBar.enabled)
+                {
+                    ImGui::SameLine();
+                    ImGui::PushID("Health Bar");
+                    if (ImGui::Button("...")) ImGui::OpenPopup("");
+                    if (ImGui::BeginPopup(""))
+                    {
+                        ImGui::SetNextItemWidth(95.0f);
+                        ImGui::Combo("Type", &playerConfig.healthBar.type, "Gradient\0Solid\0Health-based\0");
+                        if (playerConfig.healthBar.type == HealthBar::Solid) {
+                            ImGui::SameLine();
+                            ImGuiCustom::colorPicker("", playerConfig.healthBar.asColor4());
+                        }
+                        ImGui::EndPopup();
+                    }
+                    ImGui::PopID();
+                }
+
+            }
+            else if (currentCategory == 2) {
+                auto& weaponConfig = config->streamProofESP.weapons[currentItem];
+                ImGuiCustom::colorPicker("Ammo", weaponConfig.ammo);
+            }
+            else if (currentCategory == 3) {
+                auto& trails = config->streamProofESP.projectiles[currentItem].trails;
+
+                ImGui::Checkbox("Trails", &trails.enabled);
+                if (trails.enabled) {
+                    ImGui::SameLine();
+                    ImGui::PushID("Trails");
+                    if (ImGui::Button("...")) ImGui::OpenPopup("");
+                    if (ImGui::BeginPopup("")) {
+                        constexpr auto trailPicker = [](const char* name, Trail& trail) noexcept {
+                            ImGui::PushID(name);
+                            ImGuiCustom::colorPicker(name, trail);
+                            ImGui::SameLine();
+                            ImGui::SetNextItemWidth(95.0f);
+                            ImGui::Combo("", &trail.type, "Line\0Circles\0Filled Circles\0");
+                            ImGui::SameLine();
+                            ImGui::SetNextItemWidth(95.0f);
+                            ImGui::InputFloat("Time", &trail.time, 0.1f, 0.5f, "%.1fs");
+                            trail.time = std::clamp(trail.time, 1.0f, 60.0f);
+                            ImGui::PopID();
+                        };
+
+                        trailPicker("Local Player", trails.localPlayer);
+                        trailPicker("Allies", trails.allies);
+                        trailPicker("Enemies", trails.enemies);
+                        ImGui::EndPopup();
+                    }
+                    ImGui::PopID();
+                }
             }
 
-            ImGui::PopID();
+            ImGui::SetNextItemWidth(125.0f);
+            ImGui::InputFloat("Text Cull Distance", &sharedConfig.textCullDistance, 0.4f, 0.8f, "%.1fm");
+            sharedConfig.textCullDistance = std::clamp(sharedConfig.textCullDistance, 0.0f, 999.9f); 
         }
-
-        ImGui::SetNextItemWidth(95.0f);
-        ImGui::InputFloat("Text Cull Distance", &sharedConfig.textCullDistance, 0.4f, 0.8f, "%.1fm");
-        sharedConfig.textCullDistance = std::clamp(sharedConfig.textCullDistance, 0.0f, 999.9f);
-         
         ImGui::EndChild();
     }
 }
