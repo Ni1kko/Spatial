@@ -83,9 +83,6 @@
     <ClCompile Include="Hacks\Visuals.cpp">
       <Filter>Hacks</Filter>
     </ClCompile>
-    <ClCompile Include="Hacks\Backtrack.cpp">
-      <Filter>Hacks</Filter>
-    </ClCompile>
     <ClCompile Include="SDK\GlobalVars.cpp">
       <Filter>SDK</Filter>
     </ClCompile>
@@ -390,9 +387,6 @@
     </ClInclude>
     <ClInclude Include="SDK\FrameStage.h">
       <Filter>SDK</Filter>
-    </ClInclude>
-    <ClInclude Include="Hacks\Backtrack.h">
-      <Filter>Hacks</Filter>
     </ClInclude>
     <ClInclude Include="SDK\VarMapping.h">
       <Filter>SDK</Filter>

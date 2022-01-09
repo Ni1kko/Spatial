@@ -20,7 +20,6 @@
 #include "Config.h"
 
 #include "Hacks/AntiAim.h"
-#include "Hacks/Backtrack.h"
 #include "Hacks/Glow.h"
 #include "InventoryChanger/InventoryChanger.h"
 #include "Hacks/Sound.h"
@@ -29,6 +28,7 @@
 #include "Hacks/Troll.h"
 #include "Hacks/Tickbase.h"
 #include <Hacks/Movement.h>
+#include <Helpers.h>
 
 int CALLBACK fontCallback(const LOGFONTW* lpelfe, const TEXTMETRICW*, DWORD, LPARAM lParam)
 {
@@ -207,7 +207,6 @@ void Config::drawGUI() noexcept
                             case 0: config->reset(); ImGuiCustom::updateColors(static_cast<ImGuiStyles>(config->style.menuColors)); Misc::updateClanTag(true); InventoryChanger::scheduleHudUpdate(); break;
                             case 1: config->aimbot = { }; break;
                             case 2: config->triggerbot = { }; break;
-                            case 3: Backtrack::resetConfig(); break;
                             case 4: movement->resetConfig(); break;
                             case 5: AntiAim::resetConfig(); break;
                             case 6: Glow::resetConfig(); break;
@@ -683,7 +682,6 @@ void Config::load(const char8_t* name, bool incremental) noexcept
     read<value_t::object>(j, "Style", style);
 
     AntiAim::fromJson(j["Anti aim"]);
-    Backtrack::fromJson(j["Backtrack"]);
     movement->fromJson(j["Movement"]);
     Glow::fromJson(j["Glow"]);
     Visuals::fromJson(j["Visuals"]);
@@ -711,7 +709,6 @@ void Config::save(size_t id) const noexcept
     j["Triggerbot"] = triggerbot;
     to_json(j["Triggerbot Key"], triggerbotHoldKey, {});
 
-    j["Backtrack"] = Backtrack::toJson();
     j["Movement"] = movement->toJson();
     j["Anti aim"] = AntiAim::toJson();
     j["Glow"] = Glow::toJson();
@@ -748,7 +745,6 @@ void Config::reset() noexcept
     style = { };
 
     AntiAim::resetConfig();
-    Backtrack::resetConfig();
     movement->resetConfig();
     Glow::resetConfig();
     Visuals::resetConfig();

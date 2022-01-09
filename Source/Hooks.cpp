@@ -24,7 +24,6 @@
 
 #include "Hacks/Aimbot.h"
 #include "Hacks/AntiAim.h"
-#include "Hacks/Backtrack.h"
 #include "Hacks/Chams.h"
 #include "Hacks/EnginePrediction.h"
 #include "Hacks/StreamProofESP.h"
@@ -194,7 +193,6 @@ static bool __STDCALL createMove(float inputSampleTime, UserCmd* cmd) noexcept
 
     Aimbot::run(cmd);
     Triggerbot::run(cmd);
-    Backtrack::run(cmd);
     movement->autoPeek(cmd, currentViewAngles);
     movement->edgejump(cmd);
     movement->moonwalk(cmd);
@@ -279,7 +277,6 @@ static bool __FASTCALL svCheatsGetBool(void* _this) noexcept
 
 static void __STDCALL frameStageNotify(FrameStage stage) noexcept
 {
-    [[maybe_unused]] static auto backtrackInit = (Backtrack::init(), false);
     [[maybe_unused]] static auto aimbotInit = (Aimbot::init(), false);
 
     if (interfaces->engine->isConnected() && !interfaces->engine->isInGame())
@@ -307,7 +304,6 @@ static void __STDCALL frameStageNotify(FrameStage stage) noexcept
         Visuals::removeVisualRecoil(stage);
         Visuals::applyZoom(stage);
         Misc::fixAnimationLOD(stage);
-        Backtrack::update(stage);
         Troll::chatSpam(ChatSpamEvents::OnKey);
     }
     InventoryChanger::run(stage);

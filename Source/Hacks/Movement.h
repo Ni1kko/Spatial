@@ -4,6 +4,8 @@
 #include "../SDK/GameEvent.h"
 #include "../InputUtil.h"
 
+#include "../SDK/Vector.h"
+
 class Movement { 
 //private:
 public:

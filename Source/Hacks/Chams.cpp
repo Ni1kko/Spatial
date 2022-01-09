@@ -13,7 +13,6 @@
 #include "../Hooks.h"
 #include "../Interfaces.h"
 #include "../Memory.h"
-#include "Backtrack.h"
 #include "../InputUtil.h"
 #include "../SDK/ClassId.h"
 #include "../SDK/ClientClass.h"
@@ -182,14 +181,6 @@ void Chams::renderPlayer(Entity* player) noexcept
         applyChams(config->chams["Local player"].materials, health);
     } else if (localPlayer->isOtherEnemy(player)) {
         applyChams(config->chams["Enemies"].materials, health);
-
-        const auto records = Backtrack::getRecords(player->index());
-        if (records && !records->empty() && Backtrack::valid(records->front().simulationTime)) {
-            if (!appliedChams)
-                hooks->modelRender.callOriginal<void, 21>(ctx, state, info, customBoneToWorld);
-            applyChams(config->chams["Backtrack"].materials, health, records->back().matrix);
-            interfaces->studioRender->forcedMaterialOverride(nullptr);
-        }
     } else {
         applyChams(config->chams["Allies"].materials, health);
     }

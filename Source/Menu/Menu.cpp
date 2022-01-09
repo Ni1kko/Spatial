@@ -37,7 +37,6 @@
 #include <Hacks/Visuals.h>
 #include <Hacks/Glow.h>
 #include <Hacks/AntiAim.h>
-#include <Hacks/Backtrack.h>
 #include <Hacks/Sound.h>
 #include <Hacks/StreamProofESP.h>
 #include <Hacks/Misc.h>
@@ -131,10 +130,6 @@ ImDrawList* Menu::drawGUI(ImDrawList* drawList, ImVec2 displaySize) noexcept
         }
         if (ImGui::TreeNode(xorstr_("Triggerbot"))) {
             Triggerbot::drawGUI();
-            ImGui::TreePop();
-        }
-        if (ImGui::TreeNode(xorstr_("BackTrack"))) {
-            Backtrack::drawGUI();
             ImGui::TreePop();
         }
         if (ImGui::TreeNode(xorstr_("Movement"))) {
