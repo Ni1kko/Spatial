@@ -23,7 +23,6 @@
 #include "Memory.h"
 
 #include "Hacks/Aimbot.h"
-#include "Hacks/AntiAim.h"
 #include "Hacks/Chams.h"
 #include "Hacks/EnginePrediction.h"
 #include "Hacks/StreamProofESP.h"
@@ -201,7 +200,6 @@ static bool __STDCALL createMove(float inputSampleTime, UserCmd* cmd) noexcept
 
     if (!(cmd->buttons & (UserCmd::IN_ATTACK | UserCmd::IN_ATTACK2))) {
         Tickbase::chokePackets(sendPacket);
-        AntiAim::run(cmd, previousViewAngles, currentViewAngles, sendPacket);
     }
 
     auto viewAnglesDelta{ cmd->viewangles - previousViewAngles };

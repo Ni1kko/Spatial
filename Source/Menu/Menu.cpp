@@ -36,7 +36,6 @@
 #include <InventoryChanger/InventoryChanger.h>
 #include <Hacks/Visuals.h>
 #include <Hacks/Glow.h>
-#include <Hacks/AntiAim.h>
 #include <Hacks/Sound.h>
 #include <Hacks/StreamProofESP.h>
 #include <Hacks/Misc.h>
@@ -122,10 +121,6 @@ ImDrawList* Menu::drawGUI(ImDrawList* drawList, ImVec2 displaySize) noexcept
     ImGui::Begin(menuTitle.c_str(), &open, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar); {
         if (ImGui::TreeNode(xorstr_("Aim"))) {
             Aimbot::drawGUI();
-            ImGui::TreePop();
-        }
-        if (ImGui::TreeNode(xorstr_("AntiAim"))) {
-            AntiAim::drawGUI();
             ImGui::TreePop();
         }
         if (ImGui::TreeNode(xorstr_("Triggerbot"))) {

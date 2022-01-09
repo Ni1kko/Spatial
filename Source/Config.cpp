@@ -19,7 +19,6 @@
 
 #include "Config.h"
 
-#include "Hacks/AntiAim.h"
 #include "Hacks/Glow.h"
 #include "InventoryChanger/InventoryChanger.h"
 #include "Hacks/Sound.h"
@@ -207,17 +206,16 @@ void Config::drawGUI() noexcept
                             case 0: config->reset(); ImGuiCustom::updateColors(static_cast<ImGuiStyles>(config->style.menuColors)); Misc::updateClanTag(true); InventoryChanger::scheduleHudUpdate(); break;
                             case 1: config->aimbot = { }; break;
                             case 2: config->triggerbot = { }; break;
-                            case 4: movement->resetConfig(); break;
-                            case 5: AntiAim::resetConfig(); break;
-                            case 6: Glow::resetConfig(); break;
-                            case 7: config->chams = { }; break;
-                            case 8: config->streamProofESP = { }; break;
-                            case 9: Visuals::resetConfig(); break;
-                            case 10: InventoryChanger::resetConfig(); InventoryChanger::scheduleHudUpdate(); break;
-                            case 11: Sound::resetConfig(); break;
-                            case 12: config->style = { }; ImGuiCustom::updateColors(static_cast<ImGuiStyles>(config->style.menuColors)); break;
-                            case 13: Troll::resetConfig(); break;
-                            case 14: Tickbase::resetConfig(); break;
+                            case 3: movement->resetConfig(); break; 
+                            case 4: Glow::resetConfig(); break;
+                            case 5: config->chams = { }; break;
+                            case 6: config->streamProofESP = { }; break;
+                            case 7: Visuals::resetConfig(); break;
+                            case 8: InventoryChanger::resetConfig(); InventoryChanger::scheduleHudUpdate(); break;
+                            case 9: Sound::resetConfig(); break;
+                            case 10: config->style = { }; ImGuiCustom::updateColors(static_cast<ImGuiStyles>(config->style.menuColors)); break;
+                            case 11: Troll::resetConfig(); break;
+                            case 12: Tickbase::resetConfig(); break;
                         }
                     }
                 }
@@ -681,7 +679,6 @@ void Config::load(const char8_t* name, bool incremental) noexcept
     read<value_t::object>(j, "ESP", streamProofESP);
     read<value_t::object>(j, "Style", style);
 
-    AntiAim::fromJson(j["Anti aim"]);
     movement->fromJson(j["Movement"]);
     Glow::fromJson(j["Glow"]);
     Visuals::fromJson(j["Visuals"]);
@@ -710,7 +707,6 @@ void Config::save(size_t id) const noexcept
     to_json(j["Triggerbot Key"], triggerbotHoldKey, {});
 
     j["Movement"] = movement->toJson();
-    j["Anti aim"] = AntiAim::toJson();
     j["Glow"] = Glow::toJson();
     j["Chams"] = chams;
     j["Draw Aimbot FOV"] = drawaimbotFov;
@@ -744,7 +740,6 @@ void Config::reset() noexcept
     streamProofESP = { };
     style = { };
 
-    AntiAim::resetConfig();
     movement->resetConfig();
     Glow::resetConfig();
     Visuals::resetConfig();
