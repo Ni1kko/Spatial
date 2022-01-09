@@ -15,8 +15,6 @@ namespace Misc
     bool shouldRevealSuspect() noexcept;
     bool shouldDisableModelOcclusion() noexcept;
     bool isRadarHackOn() noexcept;
-    bool isMenuKeyPressed() noexcept;
-    KeyBind menuKeyBind() noexcept;
     void updateClanTag(bool = false) noexcept;
     void spectatorList() noexcept;
     void noscopeCrosshair(ImDrawList* drawlist) noexcept;

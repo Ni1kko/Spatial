@@ -105,9 +105,12 @@ public:
     bool loadScheduledFonts() noexcept;
     const auto& getSystemFonts() const noexcept { return systemFonts; }
     const auto& getFonts() const noexcept { return fonts; }
-
+    KeyBind menuKeyBind() noexcept;
+    bool isMenuKeyPressed() noexcept;
 
     float timeToNextConfigRefresh = 0.1f;
+
+    KeyBind menuKey{ KeyBind::INSERT };
 private:
     std::vector<std::string> scheduledFonts{ "Default" };
     std::vector<std::string> systemFonts{ "Default" };

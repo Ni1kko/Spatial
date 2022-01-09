@@ -87,9 +87,21 @@ Config::Config() noexcept : path{ buildConfigsFolderPath() }
     std::sort(std::next(systemFonts.begin()), systemFonts.end());
 }
 
+KeyBind Config::menuKeyBind() noexcept
+{
+    return config->menuKey;
+}
+
+bool Config::isMenuKeyPressed() noexcept
+{
+    return menuKeyBind().isPressed();
+}
+
 void Config::drawGUI() noexcept
 {
-    /*ImGui::PushItemWidth(160.0f);
+    ImGui::hotkey("Menu Key", config->menuKey);
+    ImGui::SameLine();
+    ImGui::PushItemWidth(160.0f);
     if (ImGui::Combo(xorstr_("Menu Theme"), &style.menuColors, xorstr_("Dark\0Light\0Classic\0Spatial\0Custom\0")))
         ImGuiCustom::updateColors(static_cast<ImGuiStyles>(style.menuColors));
     ImGui::PopItemWidth();
@@ -101,14 +113,14 @@ void Config::drawGUI() noexcept
             ImGuiCustom::colorPicker(ImGui::GetStyleColorName(i), (float*)&style.Colors[i], &style.Colors[i].w);
         }
     }
-    ImGui::Separator();*/
+    ImGui::Separator();
 
     ImGui::Columns(2, nullptr, false);
     ImGui::SetColumnOffset(1, 190.0f);
     
     static bool incrementalLoad = false;
     //ImGui::Checkbox(xorstr_("Incremental Load"), &incrementalLoad);
-    //ImGui::TextUnformatted("Saved Conifgs");
+    ImGui::TextUnformatted("Saved Conifgs");
     ImGui::PushItemWidth(160.0f);
 
     auto& configItems = getConfigs();
@@ -629,6 +641,8 @@ void Config::load(const char8_t* name, bool incremental) noexcept
     read(j, "Triggerbot", triggerbot);
     read(j, "Triggerbot Key", triggerbotHoldKey);
 
+    read(j, "Menu key", menuKey);
+
     read<value_t::object>(j, "Draw Aimbot FOV", drawaimbotFov);
     read<value_t::object>(j, "ESP", streamProofESP);
     read<value_t::object>(j, "Style", style);
@@ -656,6 +670,7 @@ void Config::save(size_t id) const noexcept
 
     j["Triggerbot"] = triggerbot;
     to_json(j["Triggerbot Key"], triggerbotHoldKey, {});
+    to_json(j["Menu key"], menuKey, {});
 
     j["Movement"] = movement->toJson();
     j["Draw Aimbot FOV"] = drawaimbotFov;

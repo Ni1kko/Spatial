@@ -82,7 +82,7 @@ Menu::Menu() noexcept
 
 void Menu::render(ImDrawList* drawList, ImVec2 displaySize) noexcept
 {
-    if (Misc::isMenuKeyPressed()) 
+    if (config->isMenuKeyPressed()) 
     {
         open = !open;
         if (!open)

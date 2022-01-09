@@ -63,10 +63,8 @@
 // Vars
 /////////////////////////////////////////////////////////////////
 
-static bool windowOpen = false;
 static std::vector<std::uint64_t> reportedPlayers;
 static int reportbotRound;
-
 
 /////////////////////////////////////////////////////////////////
 // Structs
@@ -78,7 +76,7 @@ struct PreserveKillfeed {
 };
 
 struct OffscreenEnemies : ColorToggle {
-    OffscreenEnemies() : ColorToggle{ 1.0f, 0.26f, 0.21f, 1.0f } {}
+    OffscreenEnemies() : ColorToggle{ 0.0f, 0.0f, 0.0f, 1.0f } {}
     HealthBar healthBar;
 };
 
@@ -98,7 +96,6 @@ struct PurchaseList {
 struct MiscConfig {
     MiscConfig() { clanTag[0] = '\0'; }
 
-    KeyBind menuKey{ KeyBind::INSERT };
     bool antiAfkKick{ false };
     bool autoDisconnect{ false };
     bool customClanTag{ false };
@@ -137,9 +134,9 @@ struct MiscConfig {
     };
 
     SpectatorList spectatorList;
-    std::string killMessageString{ "Gotcha!" };
+    std::string killMessageString{ "Ez" };
     bool fakeMsgToggled{ false }; int fakeMsgColor{ 6 }; std::string fakeMsgText{ "Cheater has been permanently banned from official CS:GO servers." };
-    ColorToggle3 bombTimer{ 1.0f, 0.55f, 0.0f };
+    ColorToggle3 bombTimer{ 0.0f, 0.0f, 0.0f };
     KeyBind prepareRevolverKey;
     bool quickHealthshot = false; KeyBind quickHealthshotKey;
     PurchaseList purchaseList;
@@ -182,16 +179,6 @@ bool Misc::shouldDisableModelOcclusion() noexcept
 bool Misc::isRadarHackOn() noexcept
 {
     return miscConfig.radarHack;
-}
-
-KeyBind Misc::menuKeyBind() noexcept
-{
-    return miscConfig.menuKey;
-}
-
-bool Misc::isMenuKeyPressed() noexcept
-{
-    return menuKeyBind().isPressed();
 }
 
 void Misc::updateClanTag(bool tagChanged) noexcept
@@ -1089,13 +1076,10 @@ void Misc::drawGUI() noexcept
 {
     ImGui::Columns(2, nullptr, false);
     ImGui::SetColumnOffset(1, 230.0f);
-    ImGui::hotkey("Menu Key", miscConfig.menuKey);
     ImGui::Checkbox("Anti AFK kick", &miscConfig.antiAfkKick);
-    ImGui::Checkbox(xorstr_("Auto Disconnect"), &miscConfig.autoDisconnect);
-    ImGuiCustom::colorPicker("Noscope crosshair", miscConfig.noscopeCrosshair);//TODO: move to visuals
-    ImGuiCustom::colorPicker("Recoil crosshair", miscConfig.recoilCrosshair);//TODO: move to visuals
+    ImGui::Checkbox("Auto Disconnect", &miscConfig.autoDisconnect);
     ImGui::Checkbox("Auto pistol", &miscConfig.autoPistol);
-    ImGui::Checkbox("Auto reload", &miscConfig.autoReload);
+    //ImGui::Checkbox("Auto reload", &miscConfig.autoReload);
     ImGui::Checkbox("Auto accept", &miscConfig.autoAccept);
     ImGui::Checkbox("Nade Prediction", &miscConfig.nadePredict);//TODO: move to visuals
     ImGui::Checkbox("Radar hack", &miscConfig.radarHack);
@@ -1103,64 +1087,16 @@ void Misc::drawGUI() noexcept
     ImGui::Checkbox("Reveal money", &miscConfig.revealMoney);
     ImGui::Checkbox("Reveal suspect", &miscConfig.revealSuspect);
     ImGui::Checkbox("Reveal votes", &miscConfig.revealVotes);
-    ImGuiCustom::colorPicker("Bomb timer", miscConfig.bombTimer);//TODO: move to visuals
 
-    ImGui::Checkbox("Fix animation LOD", &miscConfig.fixAnimationLOD); //TODO: move to visuals
-    ImGui::Checkbox("Disable model occlusion", &miscConfig.disableModelOcclusion);//TODO: move to visuals
-    ImGui::Checkbox("Opposite Hand Knife", &miscConfig.oppositeHandKnife);//TODO: move to visuals
-    ImGui::Checkbox("Disable HUD blur", &miscConfig.disablePanoramablur);//TODO: move to visuals
+    //ImGui::Checkbox("Fix animation LOD", &miscConfig.fixAnimationLOD); //TODO: move to visuals
+    //ImGui::Checkbox("Disable model occlusion", &miscConfig.disableModelOcclusion);//TODO: move to visuals
+    //ImGui::Checkbox("Opposite Hand Knife", &miscConfig.oppositeHandKnife);//TODO: move to visuals
+    //ImGui::Checkbox("Disable HUD blur", &miscConfig.disablePanoramablur);//TODO: move to visuals
+    ImGui::SetNextItemWidth(140);
+    ImGui::Combo(xorstr_("Region"), &miscConfig.forceRelayCluster, "Default\0Australia\0Austria\0Brazil\0Chile\0Dubai\0France\0Germany\0Hong Kong\0India (Chennai)\0India (Mumbai)\0Japan\0Luxembourg\0Netherlands\0Peru\0Philipines\0Poland\0Singapore\0South Africa\0Spain\0Sweden\0UK\0USA (Atlanta)\0USA (Seattle)\0USA (Chicago)\0USA (Los Angeles)\0USA (Moses Lake)\0USA (Oklahoma)\0USA (Seattle)\0USA (Washington DC)\0");
     ImGui::NextColumn();
 
-    ImGui::Checkbox("Bypass SvPure", &miscConfig.bypassSvPure);
-    ImGui::Checkbox("Fix tablet signal", &miscConfig.fixTabletSignal);
-    ImGui::Checkbox("Fake Prime", &miscConfig.fakePrime);
-    ImGui::Checkbox("Quick reload", &miscConfig.quickReload);
-    ImGui::Checkbox("Name stealer", &miscConfig.nameStealer);
-    
-    ImGui::Checkbox("Animated clan tag", &miscConfig.animatedClanTag);
-    ImGui::Checkbox("Clock tag", &miscConfig.clocktag);
-    ImGui::Checkbox("Custom clantag", &miscConfig.customClanTag);
-    if (miscConfig.customClanTag) {
-        ImGui::SameLine();
-        ImGui::PushItemWidth(120.0f);
-        ImGui::PushID("Custom clantag text");
-        if (ImGui::InputText("", miscConfig.clanTag, sizeof(miscConfig.clanTag)))
-            Misc::updateClanTag(true);
-        ImGui::PopID();
-    }
-
-    ImGui::Checkbox("Kill message", &miscConfig.killMessage);
-    if (miscConfig.killMessage) {
-        ImGui::SameLine();
-        ImGui::PushItemWidth(120.0f);
-        ImGui::PushID("Custom KillMessage Text");
-        ImGui::InputText("", &miscConfig.killMessageString);
-        ImGui::PopID();
-    }
-
-    ImGui::Checkbox("Fake Message", &miscConfig.fakeMsgToggled);
-    if (miscConfig.fakeMsgToggled) {
-        ImGui::SameLine();
-        ImGui::PushItemWidth(120.0f);
-        ImGui::PushID("Fake Message Color");
-        ImGui::Combo("", &miscConfig.fakeMsgColor, "White\0Red\0Purple\0Green\0Light green\0Turquoise\0Light red\0Gray\0Yellow\0Gray 2\0Light blue\0Gray/Purple\0Blue\0Pink\0Dark orange\0Orange\0");
-        ImGui::PopID();
-        ImGui::SameLine();
-        ImGui::PushID("Fake Message Text");
-        ImGui::InputText("", &miscConfig.fakeMsgText);
-        ImGui::PopID();
-        ImGui::SameLine();
-        if (ImGui::Button("Update"))
-            Misc::fakeMessage(true);
-    }
-
-    /*ImGui::Checkbox("Quick healthshot", &miscConfig.quickHealthshot);
-    if (miscConfig.quickHealthshot) {
-        ImGui::SameLine();
-        ImGui::PushID("Prepare revolver Key");
-        ImGui::hotkey("", miscConfig.quickHealthshotKey);
-    }*/
-    
+    ImGuiCustom::colorPicker("Bomb timer", miscConfig.bombTimer);//TODO: move to visuals
     ImGuiCustom::colorPicker("Offscreen Enemies", miscConfig.offscreenEnemies.asColor4(), &miscConfig.offscreenEnemies.enabled);//TODO: move to visuals
     if (miscConfig.offscreenEnemies.enabled) {
         ImGui::SameLine();
@@ -1182,6 +1118,59 @@ void Misc::drawGUI() noexcept
         ImGui::PopID();
     }
 
+    ImGuiCustom::colorPicker("Noscope crosshair", miscConfig.noscopeCrosshair);//TODO: move to visuals
+    //ImGuiCustom::colorPicker("Recoil crosshair", miscConfig.recoilCrosshair);//TODO: move to visuals
+    //ImGui::Checkbox("Bypass SvPure", &miscConfig.bypassSvPure);
+    //ImGui::Checkbox("Fix tablet signal", &miscConfig.fixTabletSignal);
+    //ImGui::Checkbox("Fake Prime", &miscConfig.fakePrime);
+    ImGui::Checkbox("Quick reload", &miscConfig.quickReload);
+    ImGui::Checkbox("Name stealer", &miscConfig.nameStealer);
+    
+    //ImGui::Checkbox("Animated clan tag", &miscConfig.animatedClanTag);
+    //ImGui::Checkbox("Clock tag", &miscConfig.clocktag);
+    ImGui::Checkbox("Custom clantag", &miscConfig.customClanTag);
+    if (miscConfig.customClanTag) {
+        ImGui::SameLine();
+        ImGui::PushItemWidth(120.0f);
+        ImGui::PushID("Custom clantag text");
+        if (ImGui::InputText("", miscConfig.clanTag, sizeof(miscConfig.clanTag)))
+            Misc::updateClanTag(true);
+        ImGui::PopID();
+    }
+
+    ImGui::Checkbox("Kill message", &miscConfig.killMessage);
+    if (miscConfig.killMessage) {
+        ImGui::SameLine();
+        ImGui::PushItemWidth(120.0f);
+        ImGui::PushID("Custom KillMessage Text");
+        ImGui::InputText("", &miscConfig.killMessageString);
+        ImGui::PopID();
+    }
+    
+    /*
+    ImGui::Checkbox("Fake Message", &miscConfig.fakeMsgToggled);
+    if (miscConfig.fakeMsgToggled) {
+        ImGui::SameLine();
+        ImGui::PushItemWidth(120.0f);
+        ImGui::PushID("Fake Message Color");
+        ImGui::Combo("", &miscConfig.fakeMsgColor, "White\0Red\0Purple\0Green\0Light green\0Turquoise\0Light red\0Gray\0Yellow\0Gray 2\0Light blue\0Gray/Purple\0Blue\0Pink\0Dark orange\0Orange\0");
+        ImGui::PopID();
+        ImGui::SameLine();
+        ImGui::PushID("Fake Message Text");
+        ImGui::InputText("", &miscConfig.fakeMsgText);
+        ImGui::PopID();
+        ImGui::SameLine();
+        if (ImGui::Button("Update"))
+            Misc::fakeMessage(true);
+    }
+
+    ImGui::Checkbox("Quick healthshot", &miscConfig.quickHealthshot);
+    if (miscConfig.quickHealthshot) {
+        ImGui::SameLine();
+        ImGui::PushID("Prepare revolver Key");
+        ImGui::hotkey("", miscConfig.quickHealthshotKey);
+    }*/
+
     ImGui::Checkbox("Prepare revolver", &miscConfig.prepareRevolver);
     if (miscConfig.prepareRevolver) {
         ImGui::SameLine();
@@ -1201,7 +1190,8 @@ void Misc::drawGUI() noexcept
         }
         ImGui::PopID();
     }
-    
+
+    /*
     ImGui::Checkbox("Purchase List", &miscConfig.purchaseList.enabled);//TODO: move to visuals
     if (miscConfig.purchaseList.enabled) {
         ImGui::SameLine();
@@ -1253,10 +1243,7 @@ void Misc::drawGUI() noexcept
             ImGui::EndPopup();
         }
         ImGui::PopID();
-    }
-    
-    ImGui::SetNextItemWidth(140);
-    ImGui::Combo(xorstr_("Region"), &miscConfig.forceRelayCluster, "Default\0Australia\0Austria\0Brazil\0Chile\0Dubai\0France\0Germany\0Hong Kong\0India (Chennai)\0India (Mumbai)\0Japan\0Luxembourg\0Netherlands\0Peru\0Philipines\0Poland\0Singapore\0South Africa\0Spain\0Sweden\0UK\0USA (Atlanta)\0USA (Seattle)\0USA (Chicago)\0USA (Los Angeles)\0USA (Moses Lake)\0USA (Oklahoma)\0USA (Seattle)\0USA (Washington DC)\0");
+    }*/
      
     if (ImGui::Button(xorstr_("Unload DLL"))) hooks->uninstall();
     
@@ -1281,9 +1268,9 @@ void Misc::drawGUI() noexcept
                 ImGui::TableSetupColumn("Level");
                 ImGui::TableSetupColumn("Rank");
 
-                ImGui::TableSetupColumn("Commends Friendly");
-                ImGui::TableSetupColumn("Commends Teacher");
-                ImGui::TableSetupColumn("Commends Leader");
+                //ImGui::TableSetupColumn("Commends Friendly");
+                //ImGui::TableSetupColumn("Commends Teacher");
+                //ImGui::TableSetupColumn("Commends Leader");
                 ImGui::TableHeadersRow();
 
                 ImGui::TableNextRow();
@@ -1327,7 +1314,7 @@ void Misc::drawGUI() noexcept
                     ImGuiCustom::HelpMarker("Edit your comp rank.");
                 }
                     
-                if (ImGui::TableNextColumn()) {
+                /*if (ImGui::TableNextColumn()) {
                     ImGui::InputInt("Friendly", &pr->commendsFriendly()[localPlayer->index()]);
                     ImGuiCustom::HelpMarker("Edit your friendly commends.");
                 }
@@ -1340,7 +1327,7 @@ void Misc::drawGUI() noexcept
                 if (ImGui::TableNextColumn()) {
                     ImGui::InputInt("Leader", &pr->commendsLeader()[localPlayer->index()]);
                     ImGuiCustom::HelpMarker("Edit your leader commends.");
-                }
+                }*/
                  
                 for (auto& playersData : GameData::players())
                 {
@@ -1371,7 +1358,7 @@ void Misc::drawGUI() noexcept
                     if (ImGui::TableNextColumn())
                         ImGui::TextUnformatted(playersData.rank.c_str());
 
-                    if (ImGui::TableNextColumn())
+                    /*if (ImGui::TableNextColumn())
                         ImGui::Text("%i", playersData.commends.Friendly);
 
                     if (ImGui::TableNextColumn())
@@ -1379,6 +1366,7 @@ void Misc::drawGUI() noexcept
 
                     if (ImGui::TableNextColumn())
                         ImGui::Text("%i", playersData.commends.Leader);
+                    */
                 }
 
                 ImGui::EndTable();
@@ -1431,7 +1419,6 @@ static void from_json(const json& j, PreserveKillfeed& o)
 
 static void from_json(const json& j, MiscConfig& m)
 {
-    read(j, "Menu key", m.menuKey);
     read(j, "Anti AFK kick", m.antiAfkKick);
     read(j, xorstr_("Auto disconnect"), m.autoDisconnect);
     read(j, "Custom clan tag", m.customClanTag);
@@ -1544,8 +1531,7 @@ static void to_json(json& j, const PreserveKillfeed& o, const PreserveKillfeed& 
 static void to_json(json& j, const MiscConfig& o)
 {
     const MiscConfig dummy;
-
-    WRITE("Menu key", menuKey);
+    
     WRITE("Anti AFK kick", antiAfkKick);
     WRITE(xorstr_("Auto disconnect"), autoDisconnect);
     WRITE("Custom clan tag", customClanTag);

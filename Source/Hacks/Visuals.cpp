@@ -776,23 +776,22 @@ void Visuals::drawGUI() noexcept
     ImGui::Columns(2, nullptr, false);
     ImGui::SetColumnOffset(1, 280.0f);
     ImGui::Checkbox("Disable post-processing", &visualsConfig.disablePostProcessing);
-    ImGui::Checkbox("Inverse ragdoll gravity", &visualsConfig.inverseRagdollGravity);
     ImGui::Checkbox("No fog", &visualsConfig.noFog);
-    ImGui::Checkbox("No 3d sky", &visualsConfig.no3dSky);
+    //ImGui::Checkbox("No 3d sky", &visualsConfig.no3dSky);
     ImGui::Checkbox("No aim punch", &visualsConfig.noAimPunch);
     ImGui::Checkbox("No view punch", &visualsConfig.noViewPunch);
-    ImGui::Checkbox("No hands", &visualsConfig.noHands);
-    ImGui::Checkbox("No sleeves", &visualsConfig.noSleeves);
-    ImGui::Checkbox("No weapons", &visualsConfig.noWeapons);
+    //ImGui::Checkbox("No hands", &visualsConfig.noHands);
+    //ImGui::Checkbox("No sleeves", &visualsConfig.noSleeves);
+    //ImGui::Checkbox("No weapons", &visualsConfig.noWeapons);
     ImGui::Checkbox("No smoke", &visualsConfig.noSmoke);
     ImGui::Checkbox("No blur", &visualsConfig.noBlur);
     ImGui::Checkbox("No scope overlay", &visualsConfig.noScopeOverlay);
     ImGui::Checkbox("No grass", &visualsConfig.noGrass);
-    ImGui::Checkbox("No shadows", &visualsConfig.noShadows);
+    //ImGui::Checkbox("No shadows", &visualsConfig.noShadows);
     ImGui::Checkbox("Wireframe smoke", &visualsConfig.wireframeSmoke);
     
-    ImGuiCustom::colorPicker("Draw Bullet Tracers", visualsConfig.bulletTracers.asColor4().color.data(), &visualsConfig.bulletTracers.asColor4().color[3], nullptr, nullptr, &visualsConfig.bulletTracers.enabled);
-    ImGuiCustom::colorPicker("Draw Molotov Hull", visualsConfig.molotovHull);
+    //ImGuiCustom::colorPicker("Draw Bullet Tracers", visualsConfig.bulletTracers.asColor4().color.data(), &visualsConfig.bulletTracers.asColor4().color[3], nullptr, nullptr, &visualsConfig.bulletTracers.enabled);
+    //ImGuiCustom::colorPicker("Draw Molotov Hull", visualsConfig.molotovHull);
     if (movement->config.autoPeek)
         ImGuiCustom::colorPicker("Draw Autopeek", visualsConfig.autoPeekToggle);
 
@@ -811,7 +810,7 @@ void Visuals::drawGUI() noexcept
         }
     }
 
-    ImGui::Checkbox("Color correction", &visualsConfig.colorCorrection.enabled);
+    /*ImGui::Checkbox("Color correction", &visualsConfig.colorCorrection.enabled);
     if (visualsConfig.colorCorrection.enabled) {
         ImGui::SameLine();
         if (bool ccPopup = ImGui::Button("Edit"))
@@ -827,24 +826,34 @@ void Visuals::drawGUI() noexcept
             ImGui::VSliderFloat("##7", { 40.0f, 160.0f }, &visualsConfig.colorCorrection.yellow, 0.0f, 1.0f, "Yellow\n%.3f"); ImGui::SameLine();
             ImGui::EndPopup();
         }
-    }
+    }*/
 
     ImGui::NextColumn();
+
     ImGui::Checkbox("Zoom", &visualsConfig.zoom);
-    ImGui::SameLine();
-    ImGui::PushID("Zoom Key");
-    ImGui::hotkey("", visualsConfig.zoomKey);
-    ImGui::PopID();
+    if (visualsConfig.zoom) {
+        ImGui::SameLine();
+        ImGui::PushID("Zoom Key");
+        ImGui::hotkey("", visualsConfig.zoomKey);
+        ImGui::PopID();
+    }
+
     ImGui::Checkbox("Thirdperson", &visualsConfig.thirdperson);
-    ImGui::SameLine();
-    ImGui::PushID("Thirdperson Key");
-    ImGui::hotkey("", visualsConfig.thirdpersonKey);
-    ImGui::PopID();
+    if (visualsConfig.thirdperson) {
+        ImGui::SameLine();
+        ImGui::PushID("Thirdperson Key");
+        ImGui::hotkey("", visualsConfig.thirdpersonKey);
+        ImGui::PopID();
+        ImGui::PushItemWidth(290.0f);
+        ImGui::PushID("Thirdperson Distance");
+        ImGui::SliderInt("", &visualsConfig.thirdpersonDistance, 0, 1000, "Thirdperson distance: %d");
+        ImGui::PopID();
+        ImGui::PopItemWidth();
+    }
+
+
     ImGui::PushItemWidth(290.0f);
-    ImGui::PushID(0);
-    ImGui::SliderInt("", &visualsConfig.thirdpersonDistance, 0, 1000, "Thirdperson distance: %d");
-    ImGui::PopID();
-    ImGui::PushID(1);
+    /*ImGui::PushID(1);
     ImGui::SliderInt("", &visualsConfig.viewmodelFov, -60, 60, "Viewmodel FOV: %d");
     ImGui::SameLine();
     if (ImGui::Button("...##visuals_5"))
@@ -864,7 +873,7 @@ void Visuals::drawGUI() noexcept
     ImGui::PopID();
     ImGui::PushID(3);
     ImGui::SliderInt("", &visualsConfig.farZ, 0, 2000, "Far Z: %d");
-    ImGui::PopID();
+    ImGui::PopID();*/
     ImGui::PushID(4);
     ImGui::SliderInt("", &visualsConfig.flashReduction, 0, 100, "Flash reduction: %d%%");
     ImGui::PopID(); 
@@ -876,19 +885,24 @@ void Visuals::drawGUI() noexcept
     }
     ImGui::Checkbox(visualsConfig.fullBright ? "Max Brightness" : "Max", &visualsConfig.fullBright);
     ImGui::PushID(6);
-    ImGui::SliderInt("", &visualsConfig.ragdollForce, 1, 800, "Ragdoll Force: %d%%");
+    ImGui::SliderInt("", &visualsConfig.ragdollForce, 1, 800, visualsConfig.inverseRagdollGravity ? "Ragdoll Force: -%d%%" :"Ragdoll Force: %d%%");
     ImGui::PopID();
     ImGui::PopItemWidth();
-    ImGui::Combo("Skybox", &visualsConfig.skybox, Visuals::skyboxList.data(), Visuals::skyboxList.size());
-    ImGuiCustom::colorPicker("World color", visualsConfig.world);
-    ImGuiCustom::colorPicker("Sky color", visualsConfig.sky);
-    ImGui::Checkbox("Deagle spinner", &visualsConfig.deagleSpinner);
-    ImGui::Combo("Screen effect", &visualsConfig.screenEffect, "None\0Drone cam\0Drone cam with noise\0Underwater\0Healthboost\0Dangerzone\0");
-    ImGui::Combo("Hit effect", &visualsConfig.hitEffect, "None\0Drone cam\0Drone cam with noise\0Underwater\0Healthboost\0Dangerzone\0");
-    ImGui::SliderFloat("Hit effect time", &visualsConfig.hitEffectTime, 0.1f, 1.5f, "%.2fs");
+    ImGui::SameLine();
+    ImGui::Checkbox("Inverse", &visualsConfig.inverseRagdollGravity);
+
+    //ImGui::Combo("Skybox", &visualsConfig.skybox, Visuals::skyboxList.data(), Visuals::skyboxList.size());
+    //ImGuiCustom::colorPicker("World color", visualsConfig.world);
+    //ImGuiCustom::colorPicker("Sky color", visualsConfig.sky);
+    //ImGui::Checkbox("Deagle spinner", &visualsConfig.deagleSpinner);
+    //ImGui::Combo("Screen effect", &visualsConfig.screenEffect, "None\0Drone cam\0Drone cam with noise\0Underwater\0Healthboost\0Dangerzone\0");
+    //ImGui::Combo("Hit effect", &visualsConfig.hitEffect, "None\0Drone cam\0Drone cam with noise\0Underwater\0Healthboost\0Dangerzone\0");
+    //ImGui::SliderFloat("Hit effect time", &visualsConfig.hitEffectTime, 0.1f, 1.5f, "%.2fs");
+    
     ImGui::Combo("Hit marker", &visualsConfig.hitMarker, "None\0Default (Cross)\0");
-    ImGui::SliderFloat("Hit marker time", &visualsConfig.hitMarkerTime, 0.1f, 1.5f, "%.2fs"); 
-    ImGui::SliderFloat("Aspect Ratio", &visualsConfig.aspectratio, 0.0f, 5.0f, "%.2f");
+    if (visualsConfig.hitMarker > 0)
+        ImGui::SliderFloat("Hit marker time", &visualsConfig.hitMarkerTime, 0.1f, 1.5f, "%.2fs"); 
+    //ImGui::SliderFloat("Aspect Ratio", &visualsConfig.aspectratio, 0.0f, 5.0f, "%.2f");
 
     
     ImGui::Columns(1);
