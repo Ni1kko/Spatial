@@ -21,7 +21,7 @@ Windows support only
 
 ### Preview
 
-![Preview_overview](https://i.imgur.com/QfbnkCB.png)
+![Preview_overview](https://i.imgur.com/N3vt11i.png)
 
 ## FAQ
 
