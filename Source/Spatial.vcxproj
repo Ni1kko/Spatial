@@ -115,7 +115,6 @@
     <ClCompile Include="Hacks\Aimbot.cpp" />
     <ClCompile Include="Hacks\Chams.cpp" />
     <ClCompile Include="Hacks\EnginePrediction.cpp" />
-    <ClCompile Include="Hacks\Glow.cpp" />
     <ClCompile Include="Hacks\Movement.cpp" />
     <ClCompile Include="Hacks\Sound.cpp" />
     <ClCompile Include="Hacks\StreamProofESP.cpp" />
@@ -218,7 +217,6 @@
     <ClInclude Include="Hacks\Aimbot.h" />
     <ClInclude Include="Hacks\Chams.h" />
     <ClInclude Include="Hacks\EnginePrediction.h" />
-    <ClInclude Include="Hacks\Glow.h" />
     <ClInclude Include="Hacks\Misc.h" />
     <ClInclude Include="Hacks\Movement.h" />
     <ClInclude Include="Hacks\Sound.h" />

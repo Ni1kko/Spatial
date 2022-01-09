@@ -35,7 +35,6 @@
 
 #include <InventoryChanger/InventoryChanger.h>
 #include <Hacks/Visuals.h>
-#include <Hacks/Glow.h>
 #include <Hacks/Sound.h>
 #include <Hacks/StreamProofESP.h>
 #include <Hacks/Misc.h>
@@ -128,10 +127,6 @@ ImDrawList* Menu::drawGUI(ImDrawList* drawList, ImVec2 displaySize) noexcept
         }
         if (ImGui::TreeNode(xorstr_("Movement"))) {
             movement->drawGUI();
-            ImGui::TreePop();
-        }
-        if (ImGui::TreeNode(xorstr_("Glow"))) {
-            Glow::drawGUI();
             ImGui::TreePop();
         }
         if (ImGui::TreeNode(xorstr_("Chams"))) {

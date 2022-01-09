@@ -19,14 +19,14 @@
 
 #include "Config.h"
 
-#include "Hacks/Glow.h"
-#include "InventoryChanger/InventoryChanger.h"
 #include "Hacks/Sound.h"
 #include "Hacks/Visuals.h"
 #include "Hacks/Misc.h"
 #include "Hacks/Troll.h"
 #include <Hacks/Movement.h>
 #include <Helpers.h>
+#include <InventoryChanger/InventoryConfig.h>
+#include <InventoryChanger/InventoryChanger.h>
 
 int CALLBACK fontCallback(const LOGFONTW* lpelfe, const TEXTMETRICW*, DWORD, LPARAM lParam)
 {
@@ -205,15 +205,14 @@ void Config::drawGUI() noexcept
                             case 0: config->reset(); ImGuiCustom::updateColors(static_cast<ImGuiStyles>(config->style.menuColors)); Misc::updateClanTag(true); InventoryChanger::scheduleHudUpdate(); break;
                             case 1: config->aimbot = { }; break;
                             case 2: config->triggerbot = { }; break;
-                            case 3: movement->resetConfig(); break; 
-                            case 4: Glow::resetConfig(); break;
-                            case 5: config->chams = { }; break;
-                            case 6: config->streamProofESP = { }; break;
-                            case 7: Visuals::resetConfig(); break;
-                            case 8: InventoryChanger::resetConfig(); InventoryChanger::scheduleHudUpdate(); break;
-                            case 9: Sound::resetConfig(); break;
-                            case 10: config->style = { }; ImGuiCustom::updateColors(static_cast<ImGuiStyles>(config->style.menuColors)); break;
-                            case 11: Troll::resetConfig(); break;
+                            case 3: movement->resetConfig(); break;
+                            case 4: config->chams = { }; break;
+                            case 5: config->streamProofESP = { }; break;
+                            case 6: Visuals::resetConfig(); break;
+                            case 7: InventoryChanger::resetConfig(); InventoryChanger::scheduleHudUpdate(); break;
+                            case 8: Sound::resetConfig(); break;
+                            case 9: config->style = { }; ImGuiCustom::updateColors(static_cast<ImGuiStyles>(config->style.menuColors)); break;
+                            case 10: Troll::resetConfig(); break;
                         }
                     }
                 }
@@ -678,7 +677,6 @@ void Config::load(const char8_t* name, bool incremental) noexcept
     read<value_t::object>(j, "Style", style);
 
     movement->fromJson(j["Movement"]);
-    Glow::fromJson(j["Glow"]);
     Visuals::fromJson(j["Visuals"]);
     InventoryChanger::fromJson(j["Inventory Changer"]);
     Sound::fromJson(j["Sound"]);
@@ -704,7 +702,6 @@ void Config::save(size_t id) const noexcept
     to_json(j["Triggerbot Key"], triggerbotHoldKey, {});
 
     j["Movement"] = movement->toJson();
-    j["Glow"] = Glow::toJson();
     j["Chams"] = chams;
     j["Draw Aimbot FOV"] = drawaimbotFov;
     to_json(j["Chams"]["Toggle Key"], chamsToggleKey, {});
@@ -737,7 +734,6 @@ void Config::reset() noexcept
     style = { };
 
     movement->resetConfig();
-    Glow::resetConfig();
     Visuals::resetConfig();
     InventoryChanger::resetConfig();
     Sound::resetConfig();

@@ -26,7 +26,6 @@
 #include "Hacks/Chams.h"
 #include "Hacks/EnginePrediction.h"
 #include "Hacks/StreamProofESP.h"
-#include "Hacks/Glow.h"
 #include "Hacks/Misc.h"
 #include "Hacks/Troll.h"
 #include "Hacks/Sound.h"
@@ -134,7 +133,6 @@ static HRESULT __stdcall present(IDirect3DDevice9* device, const RECT* src, cons
         Misc::updateInput();
         Triggerbot::updateInput();
         chams->updateInput();
-        Glow::updateInput();
         Troll::chatSpam(ChatSpamEvents::Timed);
         gui->render(ImGui::GetBackgroundDrawList(), displaySize);
     }
@@ -229,7 +227,6 @@ static void __STDCALL doPostScreenEffects(void* param) noexcept
         Visuals::reduceFlashEffect();
         Visuals::updateBrightness();
         Visuals::remove3dSky();
-        Glow::render();
     }
     hooks->clientMode.callOriginal<void, 44>(param);
 }
@@ -646,7 +643,6 @@ void Hooks::uninstall() noexcept
 
     Netvars::restore();
 
-    Glow::clearCustomObjects();
     InventoryChanger::clearInventory();
 
     SetWindowLongPtrW(window, GWLP_WNDPROC, LONG_PTR(originalWndProc));
