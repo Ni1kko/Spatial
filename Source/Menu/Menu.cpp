@@ -40,7 +40,6 @@
 #include <Hacks/StreamProofESP.h>
 #include <Hacks/Misc.h>
 #include <Hacks/Troll.h>
-#include <Hacks/Tickbase.h>
 #include <Hacks/Movement.h>
 #include <Hacks/Triggerbot.h>
 #include <Hacks/Chams.h>
@@ -129,10 +128,6 @@ ImDrawList* Menu::drawGUI(ImDrawList* drawList, ImVec2 displaySize) noexcept
         }
         if (ImGui::TreeNode(xorstr_("Movement"))) {
             movement->drawGUI();
-            ImGui::TreePop();
-        }
-        if (ImGui::TreeNode(xorstr_("Network"))) {
-            Tickbase::drawGUI();
             ImGui::TreePop();
         }
         if (ImGui::TreeNode(xorstr_("Glow"))) {

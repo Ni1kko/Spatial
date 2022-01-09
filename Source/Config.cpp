@@ -25,7 +25,6 @@
 #include "Hacks/Visuals.h"
 #include "Hacks/Misc.h"
 #include "Hacks/Troll.h"
-#include "Hacks/Tickbase.h"
 #include <Hacks/Movement.h>
 #include <Helpers.h>
 
@@ -215,7 +214,6 @@ void Config::drawGUI() noexcept
                             case 9: Sound::resetConfig(); break;
                             case 10: config->style = { }; ImGuiCustom::updateColors(static_cast<ImGuiStyles>(config->style.menuColors)); break;
                             case 11: Troll::resetConfig(); break;
-                            case 12: Tickbase::resetConfig(); break;
                         }
                     }
                 }
@@ -686,7 +684,6 @@ void Config::load(const char8_t* name, bool incremental) noexcept
     Sound::fromJson(j["Sound"]);
     Misc::fromJson(j["Misc"]);
     Troll::fromJson(j["Troll"]);
-    Tickbase::fromJson(j["Tick Base"]);
 }
 
 /// <summary>
@@ -719,7 +716,6 @@ void Config::save(size_t id) const noexcept
     j["Troll"] = Troll::toJson();
     j["Style"] = style;
     j["Inventory Changer"] = InventoryChanger::toJson();
-    j["Tick Base"] = Tickbase::toJson();
 
     removeEmptyObjects(j);
 
@@ -747,7 +743,6 @@ void Config::reset() noexcept
     Sound::resetConfig();
     Misc::resetConfig();
     Troll::resetConfig();
-    Tickbase::resetConfig();
 }
 
 void Config::add(const char8_t* name) noexcept

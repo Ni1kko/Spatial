@@ -119,7 +119,6 @@
     <ClCompile Include="Hacks\Movement.cpp" />
     <ClCompile Include="Hacks\Sound.cpp" />
     <ClCompile Include="Hacks\StreamProofESP.cpp" />
-    <ClCompile Include="Hacks\Tickbase.cpp" />
     <ClCompile Include="Hacks\Triggerbot.cpp" />
     <ClCompile Include="Hacks\Troll.cpp" />
     <ClCompile Include="Hacks\Visuals.cpp" />
@@ -224,7 +223,6 @@
     <ClInclude Include="Hacks\Movement.h" />
     <ClInclude Include="Hacks\Sound.h" />
     <ClInclude Include="Hacks\StreamProofESP.h" />
-    <ClInclude Include="Hacks\Tickbase.h" />
     <ClInclude Include="Hacks\Triggerbot.h" />
     <ClInclude Include="Hacks\Troll.h" />
     <ClInclude Include="Hacks\Visuals.h" />

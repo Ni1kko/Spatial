@@ -32,7 +32,6 @@
 #include "Hacks/Sound.h"
 #include "Hacks/Triggerbot.h"
 #include "Hacks/Visuals.h"
-#include "Hacks/Tickbase.h"
 
 #include "InventoryChanger/InventoryChanger.h"
 
@@ -198,10 +197,7 @@ static bool __STDCALL createMove(float inputSampleTime, UserCmd* cmd) noexcept
     movement->fastPlant(cmd);
     Troll::doorSpam(cmd);
 
-    if (!(cmd->buttons & (UserCmd::IN_ATTACK | UserCmd::IN_ATTACK2))) {
-        Tickbase::chokePackets(sendPacket);
-    }
-
+    
     auto viewAnglesDelta{ cmd->viewangles - previousViewAngles };
     viewAnglesDelta.normalize();
     viewAnglesDelta.x = std::clamp(viewAnglesDelta.x, -movement->maxAngleDelta(), movement->maxAngleDelta());
@@ -221,8 +217,6 @@ static bool __STDCALL createMove(float inputSampleTime, UserCmd* cmd) noexcept
     movement->fixMouseDelta(cmd);
 
     previousViewAngles = cmd->viewangles;
-
-    Tickbase::run(cmd);
 
     return false;
 }

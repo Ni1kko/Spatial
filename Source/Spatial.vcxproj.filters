@@ -221,9 +221,6 @@
     <ClCompile Include="Hacks\Troll.cpp">
       <Filter>Hacks</Filter>
     </ClCompile>
-    <ClCompile Include="Hacks\Tickbase.cpp">
-      <Filter>Hacks</Filter>
-    </ClCompile>
     <ClCompile Include="Menu\Menu.cpp">
       <Filter>Menu</Filter>
     </ClCompile>
@@ -602,9 +599,6 @@
       <Filter>Hacks\InventoryChanger</Filter>
     </ClInclude>
     <ClInclude Include="Hacks\Troll.h">
-      <Filter>Hacks</Filter>
-    </ClInclude>
-    <ClInclude Include="Hacks\Tickbase.h">
       <Filter>Hacks</Filter>
     </ClInclude>
     <ClInclude Include="Encryption\cx_pcg32.h">
