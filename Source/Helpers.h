@@ -41,8 +41,8 @@ enum ColorByte
 namespace Helpers
 {
     const auto dll_name = "Spatial";
-    const auto dll_version = 1.7;
-    const auto dll_release = 2;
+    const auto dll_version = 2;
+    const auto dll_release = 0;
     const auto game_version = "1.38.1.3";
     const auto discordcode = "GyzJf5eNPe";
     const auto maintainer_discordname = "Ni1kko#1652";
