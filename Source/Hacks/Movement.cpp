@@ -445,10 +445,10 @@ void Movement::drawGUI() noexcept
     ImGui::Checkbox(xorstr_("Fast Stop"), &config.fastStop);
     ImGui::Checkbox(xorstr_("Fast plant"), &config.fastPlant);
     ImGui::Checkbox(xorstr_("Fast Crouch"), &config.fastCrouch);
-    ImGui::Checkbox(xorstr_("Moon Walk"), &config.moonwalk);
+    //ImGui::Checkbox(xorstr_("Moon Walk"), &config.moonwalk);
     ImGui::Checkbox(xorstr_("Bunny hop"), &config.bunnyHop);
     
-    ImGui::Checkbox(xorstr_("Edge Jump"), &config.edgejump);
+    /*ImGui::Checkbox(xorstr_("Edge Jump"), &config.edgejump);
     if (config.edgejump) {
         ImGui::SameLine();
         ImGui::PushID(xorstr_("Edge Jump Key"));
@@ -462,7 +462,7 @@ void Movement::drawGUI() noexcept
         ImGui::PushID(xorstr_("Slowwalk Key"));
         ImGui::hotkey("", config.slowwalkKey);
         ImGui::PopID();
-    }
+    }*/
 
     ImGui::Checkbox("Block Bot", &config.blockbot);
     if (config.blockbot) {
@@ -470,6 +470,10 @@ void Movement::drawGUI() noexcept
         ImGui::PushID("Block Bot Key");
         ImGui::hotkey("", config.blockbotKey);
         ImGui::PopID();
+    }
+    else
+    {
+        ImGuiCustom::HelpMarker("Blocks players passing you.");
     }
     
 }

@@ -1,4 +1,4 @@
-**Full Changelog**: https://github.com/Ni1kko/Spatial/compare/v1.7...v1.7r2
+**Full Changelog**: https://github.com/Ni1kko/Spatial/compare/
 **[Commits](https://github.com/Ni1kko/Spatial/commits/master)**
 
 ###  `Spatial.dll` Cheat only.
